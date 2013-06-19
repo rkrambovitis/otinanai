@@ -1,11 +1,13 @@
 import java.io.*;
 import java.net.*;
+import java.util.concurrent.*;
 //import java.util.Date;
 //import java.sql.Timestamp;
 
 class OtiNanai {
 	public static void main(String args[]) {
 		OtiNanai foo = new OtiNanai();
+		foo.init();
 		foo.mainLoop();
 	}
 
@@ -23,7 +25,6 @@ class OtiNanai {
 				}
 				String sentence = new String(receivePacket.getData());
 				InetAddress IPAddress = receivePacket.getAddress();
-				//System.out.println(IPAddress.getHostName().toString() + " Sent us: " + sentence);
 				parseData(IPAddress, sentence);
 			}
 		} catch (SocketException socker) {
@@ -33,16 +34,14 @@ class OtiNanai {
 	}
 	
 	private void parseData(InetAddress hip, String theDato) {
-//		Timestamp now = new Timestamp(new Date().getTime());
-		long timeNow = System.currentTimeMillis();
-		System.out.println(timeNow + " " + hip.getHostName() + " " + theDato);
-		String typeOfDato = new String();
-
-		/*
-		String[] tokenakia = theDato.split("\\s");
-		for (int i=0; i<tokenakia.length-1; i++) {
-			System.out.println("Token : " + tokenakia[i]);
-		}
-		*/
+		SomeRecord newRecord = new SomeRecord(hip, theDato);
+		System.out.println(newRecord.getTimeStamp() + " " + newRecord.getHostName() + " " + newRecord.getRecord());
+		storage.add(newRecord);
 	}
+
+	private void init() {
+		storage = new CopyOnWriteArrayList<SomeRecord>();
+	}
+
+	CopyOnWriteArrayList<SomeRecord> storage;
 }
