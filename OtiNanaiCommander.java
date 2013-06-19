@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.concurrent.*;
+import java.util.*;
 
 class OtiNanaiCommander implements Runnable {
 	public OtiNanaiCommander(OtiNanaiListener o) {
@@ -7,48 +8,40 @@ class OtiNanaiCommander implements Runnable {
 	}
 
 	public void run() {
-		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-		String s;
-		try {
-			while ((s = in.readLine()) != null && s.length() != 0) {
-			//System.out.println(s);
-			    processCommand(s);
-			}
-		} catch (IOException ioe) {
-			System.err.println(ioe);
+		Console console = System.console();
+		while (true) {
+			String s = console.readLine();
+			if (s.length() == 0) continue;
+			//System.out.println("issuing processcomand("+s+");");
+			processCommand(s);
 		}
 	}
 
 	private void processCommand(String input) {
-		System.out.println(input);
-		switch (input) {
-			case "hello": 
-				System.out.println("And what a fine morning it is");
-				break;
-			case "get":
-				getData();
-				break;
-			case "date":
-				System.out.println(System.currentTimeMillis());
-				break;
-			default: 
-				usage();
-				break;
+		CopyOnWriteArrayList<SomeRecord> storage = onl.getData();
+		Vector<SomeRecord> matched = new Vector<SomeRecord>();
+		String[] inputWords = input.split("\\s");
+		for (String word : inputWords ) {
+			for (SomeRecord aRecord : storage ) {
+				if (aRecord.hasKeyword(word)) {
+					matched.add(aRecord);
+				}
+			}
+		}
+		if (matched.size() == 0 ) {
+			for (String word : inputWords ) {
+				//System.out.println(word);
+				for (SomeRecord aRecord : storage ) {
+					if (aRecord.containsWord(word)) {
+						matched.add(aRecord);
+					}
+				}
+			}
+		}
+		for (SomeRecord sr : matched) {
+				System.out.println(sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord());
 		}
 	}
 	
-	private void getData() {
-		CopyOnWriteArrayList<SomeRecord> storage = onl.getData();
-		SomeRecord aRecord;
-		for (int i=0; i<storage.size(); i++) {
-			aRecord = storage.get(i);
-			System.out.println(aRecord.getIP() + " " + aRecord.getHostName() + " " + aRecord.getTimeStamp() + " " + aRecord.getRecord());
-		}
-	}
-
-	private void usage() {
-		System.out.println("try: <hello|get|date>");
-	}
-
 	private OtiNanaiListener onl;
 }
