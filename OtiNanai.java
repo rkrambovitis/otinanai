@@ -1,12 +1,12 @@
-import java.io.*;
-import java.net.*;
-import java.util.concurrent.*;
-
 class OtiNanai {
-	public static void main(String args[]) {
-		OtiNanaiListener foo = new OtiNanaiListener();
-		new Thread(foo).start();
+	public OtiNanai(){
+		OtiNanaiListener onl = new OtiNanaiListener();
+		new Thread(onl).start();
+		OtiNanaiCommander onc = new OtiNanaiCommander(onl);
+		new Thread(onc).start();
 	}
-	
-	CopyOnWriteArrayList<SomeRecord> storage;
+
+	public static void main(String args[]) {
+		OtiNanai non = new OtiNanai();
+	}
 }

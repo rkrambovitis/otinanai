@@ -31,11 +31,11 @@ class OtiNanaiListener implements Runnable {
 	
 	private void parseData(InetAddress hip, String theDato) {
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
-		System.out.println(newRecord.getTimeStamp() + " " + newRecord.getHostName() + " " + newRecord.getRecord());
+	//	System.out.println(newRecord.getTimeStamp() + " " + newRecord.getHostName() + " " + newRecord.getRecord());
 		storage.add(newRecord);
 	}
 
-	public CopyOnWriteArrayList getData() {
+	public CopyOnWriteArrayList<SomeRecord> getData() {
 		return storage;
 	}
 
