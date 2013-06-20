@@ -19,6 +19,8 @@ class SomeRecord {
 				keyWords.add(tok);
 			}
 		}
+		Tokens = str.split("\\s");
+		masterKey = Tokens[0];
 	}
 
 	public long getTimeStamp() {
@@ -45,8 +47,13 @@ class SomeRecord {
 		return theRecord.toLowerCase().contains(test.toLowerCase());
 	}
 
+	public String getKey() {
+		return masterKey;
+	}
+
 	private long timeStamp;
 	private InetAddress myip;
 	private String theRecord;
 	private ArrayList<String> keyWords;
+	private String masterKey;
 }

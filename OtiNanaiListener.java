@@ -31,7 +31,6 @@ class OtiNanaiListener implements Runnable {
 	
 	private void parseData(InetAddress hip, String theDato) {
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
-	//	System.out.println(newRecord.getTimeStamp() + " " + newRecord.getHostName() + " " + newRecord.getRecord());
 		storage.add(newRecord);
 	}
 
