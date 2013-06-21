@@ -5,6 +5,7 @@ class SomeRecord {
 
 	public SomeRecord(InetAddress ip, String data) {
 		timeStamp = System.currentTimeMillis();
+		timeNano = Long.toString(System.nanoTime());
 		myip = ip;
 		theRecord = data;
 		keyWords = new ArrayList<String>();
@@ -15,7 +16,6 @@ class SomeRecord {
 		String[] Tokens = str.split("[ .\t\n]");
 		for (String tok : Tokens ) {
 			if (tok.length() >= 4 ) {
-				//System.out.println(tok);
 				keyWords.add(tok);
 			}
 		}
@@ -25,6 +25,10 @@ class SomeRecord {
 
 	public long getTimeStamp() {
 		return timeStamp;
+	}
+
+	public String getTimeNano() {
+		return timeNano;
 	}
 
 	public InetAddress getIP() {
@@ -43,6 +47,10 @@ class SomeRecord {
 		return keyWords.contains(test);
 	}
 
+	public ArrayList<String> getKeyWords() {
+		return keyWords;
+	}
+
 	public boolean containsWord(String test) {
 		return theRecord.toLowerCase().contains(test.toLowerCase());
 	}
@@ -52,6 +60,7 @@ class SomeRecord {
 	}
 
 	private long timeStamp;
+	private String timeNano;
 	private InetAddress myip;
 	private String theRecord;
 	private ArrayList<String> keyWords;

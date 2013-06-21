@@ -14,7 +14,6 @@ class OtiNanaiProcessor {
 	public Vector<SomeRecord> processCommand(String input) {
 		storage = onl.getData();
 		Vector<SomeRecord> matched = new Vector<SomeRecord>();
-		Vector<SomeRecord> matchedClone = new Vector<SomeRecord>();
 		String[] inputWords = input.split("\\s");
 		String primary = inputWords[0];
 		matched = addWord(matched, primary);
@@ -32,11 +31,6 @@ class OtiNanaiProcessor {
 			} 
 		}
 		return matched;
-		/*
-		for (SomeRecord sr : matched) {
-				System.out.println(tsToDate(sr.getTimeStamp()) + " " + sr.getHostName() + " " + sr.getRecord());
-		}
-		*/
 	}
 
 	private Vector<SomeRecord> addWord(Vector<SomeRecord> matched, String key) {

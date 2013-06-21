@@ -18,7 +18,8 @@ class OtiNanaiCommander implements Runnable {
 
 	private void print(Vector<SomeRecord> matched) {
 		for (SomeRecord sr : matched) {
-			System.out.println(tsToDate(sr.getTimeStamp()) + " " + sr.getHostName() + " " + sr.getRecord());
+			//System.out.println(tsToDate(sr.getTimeStamp()) + " " + sr.getHostName() + " " + sr.getRecord());
+			System.out.println(sr.getTimeNano() + " " + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord());
 		}
 	}
 

@@ -1,5 +1,4 @@
 import java.io.*;
-//import java.util.concurrent.*;
 import java.net.*;
 import java.util.*;
 
@@ -25,8 +24,7 @@ class OtiNanaiWeb implements Runnable {
 				} else {
 					String[] request = requestMessageLine.split("[ .,]");
 					for (String word : request) {
-//						System.out.println(word);
-						results = onp.processCommand(word);
+						results = onp.processCommand(word.replaceAll("\\s", ""));
 					}
 					String text = toString(results);
 
@@ -46,13 +44,6 @@ class OtiNanaiWeb implements Runnable {
 			System.out.println(ioe);
 		}
 	}
-/*
-	private void print(Vector<SomeRecord> matched) {
-		for (SomeRecord sr : matched) {
-			System.out.println(tsToDate(sr.getTimeStamp()) + " " + sr.getHostName() + " " + sr.getRecord());
-		}
-	}
-	*/
 
 	private String toString(Vector<SomeRecord> matched) {
 		String output = new String("<html><body><pre>");

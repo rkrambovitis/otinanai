@@ -1,10 +1,13 @@
 import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
+import java.util.*;                                                                                                                         
+
 
 class OtiNanaiListener implements Runnable {
 	public OtiNanaiListener() {
 		storage = new CopyOnWriteArrayList<SomeRecord>();
+		keyMaps = new HashMap<String,ArrayList<String>>();
 	}
 
 	public void run() {
@@ -31,6 +34,17 @@ class OtiNanaiListener implements Runnable {
 	
 	private void parseData(InetAddress hip, String theDato) {
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
+		ArrayList<String> theKeys = newRecord.getKeyWords();
+		for (String kw : theKeys) {
+			if (keyMaps.containsKey(kw)) {
+				keyMaps.get(kw).add(newRecord.getTimeNano());
+			} else {
+				ArrayList<String> alBundy = new ArrayList<String>();
+				alBundy.add(newRecord.getTimeNano());
+				keyMaps.put(kw, alBundy);
+			}
+		}
+		storageMap.put(newRecord.getTimeNano(), newRecord);
 		storage.add(newRecord);
 	}
 
@@ -38,5 +52,15 @@ class OtiNanaiListener implements Runnable {
 		return storage;
 	}
 
+	public HashMap<String,SomeRecord> getDataMap() {
+		return storageMap;
+	}
+
+	public HashMap<String,ArrayList<String>> getKeyMaps() {
+		return keyMaps;
+	}
+
 	CopyOnWriteArrayList<SomeRecord> storage;
+	HashMap<String,SomeRecord> storageMap;
+	HashMap<String,ArrayList<String>> keyMaps;
 }
