@@ -12,33 +12,37 @@ class OtiNanaiProcessor {
 	}
 
 
-	public Vector<SomeRecord> processCommand(String input) {
+	public ArrayList<String> processCommand(String input) {
 		storage = onl.getData();
 		dataMap = onl.getDataMap();
 		keyMaps = onl.getKeyMaps();
-		Vector<SomeRecord> matched = new Vector<SomeRecord>();
+		//Vector<SomeRecord> matched = new Vector<SomeRecord>();
 		ArrayList<String> matchedIDs = new ArrayList<String>();
-		String[] inputWords = input.split("\\s");
-		String primary = inputWords[0];
-	//	matched = addWord(matched, primary);
+//		String[] inputWords = input.split("\\s");
+//		String primary = inputWords[0];
 
-		matchedIDs = addWord(matchedIDs, primary);
+//		matchedIDs = addWord(matchedIDs, primary);
 		
-		String word;
+		String word = input;
 		String rest;	
 		String firstChar = new String();
-		for (int i=1; i<inputWords.length; i++) {
-			word = inputWords[i];
-			firstChar = word.substring(0,1);
-			rest = word.substring(1);
-			if (firstChar.equals("-")) {
-				//matched = delWord(matched, rest);
-			} else if (firstChar.equals("+")) {
-				//matched = addWord(matched, rest);
-				matchedIDs = addWord(matchedIDs, rest);
-			} 
+	//	for (int i=0; i<inputWords.length; i++) {
+	//		word = inputWords[i];
+	
+			matchedIDs = addWord(matchedIDs, word);
+		/*
+		firstChar = word.substring(0,1);
+		rest = word.substring(1);
+		if (firstChar.equals("-")) {
+			matchedIDs = delWord(matchedIDs, rest);
+		} else if (firstChar.equals("+")) {
+			matchedIDs = addWord(matchedIDs, rest);
+		} else {
+			matchedIDs = addWord(matchedIDs, word);
 		}
-		return matched;
+		*/
+		//}
+		return matchedIDs;
 	}
 
 	private ArrayList<String> addWord(ArrayList<String> mid, String key) {

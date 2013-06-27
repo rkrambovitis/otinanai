@@ -8,6 +8,7 @@ class OtiNanaiListener implements Runnable {
 	public OtiNanaiListener() {
 		storage = new CopyOnWriteArrayList<SomeRecord>();
 		keyMaps = new HashMap<String,ArrayList<String>>();
+		storageMap = new HashMap<String,SomeRecord>();
 	}
 
 	public void run() {

@@ -4,12 +4,15 @@ import java.util.*;
 
 class OtiNanaiWeb implements Runnable {
 	public OtiNanaiWeb(OtiNanaiListener o) {
+		onl = o;
 		onp = new OtiNanaiProcessor(o);
+		dataMap = onl.getDataMap();
 	}
     
 	public void run() {
 		String requestMessageLine;
-		Vector<SomeRecord> results = new Vector<SomeRecord>();
+//		Vector<SomeRecord> results = new Vector<SomeRecord>();
+		ArrayList<String> results = new ArrayList<String>();
 		try {
 			ServerSocket listenSocket = new ServerSocket(6789);
 			while (true) {
@@ -45,9 +48,11 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-	private String toString(Vector<SomeRecord> matched) {
+	private String toString(ArrayList<String> keyList) {
 		String output = new String("<html><body><pre>");
-		for (SomeRecord sr : matched) {
+		SomeRecord sr;
+		for (String key : keyList) {
+			sr = dataMap.get(key);
 			output = output + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord();
 		}
 		output = output + "</pre></body></html>";
@@ -55,4 +60,6 @@ class OtiNanaiWeb implements Runnable {
 	}
 
 	private OtiNanaiProcessor onp;
+	private OtiNanaiListener onl;
+	private HashMap<String,SomeRecord> dataMap;
 }

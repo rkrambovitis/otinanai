@@ -12,10 +12,11 @@ class OtiNanaiCommander implements Runnable {
 			String s = console.readLine();
 			if (s.length() == 0) continue;
 			//onp.setONL(onl);
-			print(onp.processCommand(s));
+			//print(onp.processCommand(s));
 		}
 	}
 
+	/*
 	private void print(Vector<SomeRecord> matched) {
 		for (SomeRecord sr : matched) {
 			//System.out.println(tsToDate(sr.getTimeStamp()) + " " + sr.getHostName() + " " + sr.getRecord());
@@ -28,6 +29,7 @@ class OtiNanaiCommander implements Runnable {
 		cal.setTimeInMillis(ts);
 		return cal.getTime();
 	}
+	*/
 	
 	private OtiNanaiProcessor onp;
 }
