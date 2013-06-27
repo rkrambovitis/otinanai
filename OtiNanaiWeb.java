@@ -24,13 +24,23 @@ class OtiNanaiWeb implements Runnable {
 					outToClient.writeBytes("HTTP/1.1 404 Not Found\r\n");
 					connectionSocket.close();
 				} else {
-					String[] request = requestMessageLine.split("[ .,]");
+					String[] request = requestMessageLine.split("[ .,]|%20");
+					Integer metric = new Integer(-10);
 					for (String word : request) {
 						if (word.equals(""))
 								continue;
-						results = onp.processCommand(results, word.replaceAll("\\s", ""));
+						try {
+							metric = Integer.parseInt(word);
+						} catch (NumberFormatException nfe) {
+							results = onp.processCommand(results, word.replaceAll("\\s", ""));
+						}
 					}
-					String text = toString(results);
+					String text;
+					if (metric <= 0) {
+						text = toString(results);
+					} else {
+						text = toString(results, metric-1);
+					}
 
 					outToClient.writeBytes("HTTP/1.1 200 OK\r\n");
 					outToClient.writeBytes("Content-Type: text/html\r\n");
@@ -47,6 +57,19 @@ class OtiNanaiWeb implements Runnable {
 		} catch (IOException ioe) {
 			System.out.println(ioe);
 		}
+	}
+
+	private String toString(ArrayList<String> keyList, int metric) {
+		String output = new String("<html><body><pre>");
+		SomeRecord sr;
+		for (String key : keyList) {
+			sr = dataMap.get(key);
+			if (sr.isMetric(metric)) {
+				output = output + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord(metric);
+			}
+		}
+		output = output + "</pre></body></html>";
+		return output;
 	}
 
 	private String toString(ArrayList<String> keyList) {

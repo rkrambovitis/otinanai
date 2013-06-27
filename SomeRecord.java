@@ -25,7 +25,7 @@ class SomeRecord {
 			} catch (NumberFormatException e) {
 				String[] subTokens = tok.split("[.:]");
 				for (String subTok : subTokens ) {
-					if (subTok.length() >= 3 ) {
+					if (subTok.length() >= 2 ) {
 						keyWords.add(subTok);
 					}
 				}
@@ -57,6 +57,13 @@ class SomeRecord {
 
 	public String getRecord() {
 		return theRecord;
+	}
+
+	public String getRecord(int m) {
+		String toks[] = theRecord.split("\\s");
+		if (m < toks.length || m < 0) 
+			return toks[m]+"\n";
+		return null;	
 	}
 
 	public boolean hasKeyword(String test) {
