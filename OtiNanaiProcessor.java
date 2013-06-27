@@ -12,25 +12,13 @@ class OtiNanaiProcessor {
 	}
 
 
-	public ArrayList<String> processCommand(String input) {
+	public ArrayList<String> processCommand(ArrayList<String> matchedIDs, String input) {
 		storage = onl.getData();
 		dataMap = onl.getDataMap();
 		keyMaps = onl.getKeyMaps();
-		//Vector<SomeRecord> matched = new Vector<SomeRecord>();
-		ArrayList<String> matchedIDs = new ArrayList<String>();
-//		String[] inputWords = input.split("\\s");
-//		String primary = inputWords[0];
-
-//		matchedIDs = addWord(matchedIDs, primary);
-		
 		String word = input;
 		String rest;	
-		String firstChar = new String();
-	//	for (int i=0; i<inputWords.length; i++) {
-	//		word = inputWords[i];
-	
-			matchedIDs = addWord(matchedIDs, word);
-		/*
+		String firstChar;
 		firstChar = word.substring(0,1);
 		rest = word.substring(1);
 		if (firstChar.equals("-")) {
@@ -40,8 +28,6 @@ class OtiNanaiProcessor {
 		} else {
 			matchedIDs = addWord(matchedIDs, word);
 		}
-		*/
-		//}
 		return matchedIDs;
 	}
 

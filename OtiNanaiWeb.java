@@ -11,8 +11,6 @@ class OtiNanaiWeb implements Runnable {
     
 	public void run() {
 		String requestMessageLine;
-//		Vector<SomeRecord> results = new Vector<SomeRecord>();
-		ArrayList<String> results = new ArrayList<String>();
 		try {
 			ServerSocket listenSocket = new ServerSocket(6789);
 			while (true) {
@@ -21,13 +19,16 @@ class OtiNanaiWeb implements Runnable {
 				requestMessageLine = inFromClient.readLine().replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1", "");
 				System.err.println(requestMessageLine);
 				DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+				ArrayList<String> results = new ArrayList<String>();
 				if (requestMessageLine.equalsIgnoreCase(" favicon.ico ")) {
 					outToClient.writeBytes("HTTP/1.1 404 Not Found\r\n");
 					connectionSocket.close();
 				} else {
 					String[] request = requestMessageLine.split("[ .,]");
 					for (String word : request) {
-						results = onp.processCommand(word.replaceAll("\\s", ""));
+						if (word.equals(""))
+								continue;
+						results = onp.processCommand(results, word.replaceAll("\\s", ""));
 					}
 					String text = toString(results);
 

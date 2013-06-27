@@ -1,5 +1,6 @@
 import java.net.InetAddress;
 import java.util.*;
+import java.lang.*;
 
 class SomeRecord {
 
@@ -13,14 +14,29 @@ class SomeRecord {
 	}
 
 	private void findKeyWords(String str) {
-		String[] Tokens = str.split("[ .\t\n]");
-		for (String tok : Tokens ) {
-			if (tok.length() >= 4 ) {
-				keyWords.add(tok);
+		String[] Tokens = str.split("[ \t\n]");
+		//for (String tok : Tokens ) {
+		metrics = new ArrayList<Integer>();
+		for (int i=0; i<Tokens.length; i++ ) {
+			String tok = Tokens[i];
+			try {
+				Float.parseFloat(tok);
+				metrics.add(new Integer(i));
+			} catch (NumberFormatException e) {
+				String[] subTokens = tok.split("[.:]");
+				for (String subTok : subTokens ) {
+					if (subTok.length() >= 3 ) {
+						keyWords.add(subTok);
+					}
+				}
 			}
 		}
 		Tokens = str.split("\\s");
 		masterKey = Tokens[0];
+	}
+
+	public boolean isMetric(Integer c) {
+		return metrics.contains(c);
 	}
 
 	public long getTimeStamp() {
@@ -59,6 +75,7 @@ class SomeRecord {
 		return masterKey;
 	}
 
+	private ArrayList<Integer> metrics;
 	private long timeStamp;
 	private String timeNano;
 	private InetAddress myip;
