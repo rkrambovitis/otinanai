@@ -5,15 +5,17 @@ import java.util.*;
 
 
 class OtiNanaiListener implements Runnable {
-	public OtiNanaiListener() {
+	public OtiNanaiListener(int lp) {
 		storage = new CopyOnWriteArrayList<SomeRecord>();
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
+		keyTrackerMap = new HashMap<String, KeyWordTracker>();
+		port = lp;
 	}
 
 	public void run() {
 		try {
-			DatagramSocket serverSocket = new DatagramSocket(9876);
+			DatagramSocket serverSocket = new DatagramSocket(port);
 			while(true) {
 				byte[] receiveData = new byte[1024];
 				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -37,12 +39,17 @@ class OtiNanaiListener implements Runnable {
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 		for (String kw : theKeys) {
-			if (keyMaps.containsKey(kw)) {
+			//System.out.println(kw);
+			if (kw.equals("")) {
+				continue;
+			} else if (keyMaps.containsKey(kw)) {
 				keyMaps.get(kw).add(newRecord.getTimeNano());
+				keyTrackerMap.get(kw).put(newRecord.getTimeStamp());
 			} else {
 				ArrayList<String> alBundy = new ArrayList<String>();
 				alBundy.add(newRecord.getTimeNano());
 				keyMaps.put(kw, alBundy);
+				keyTrackerMap.put(kw, new KeyWordTracker(kw));
 			}
 		}
 		storageMap.put(newRecord.getTimeNano(), newRecord);
@@ -61,7 +68,13 @@ class OtiNanaiListener implements Runnable {
 		return keyMaps;
 	}
 
-	CopyOnWriteArrayList<SomeRecord> storage;
-	HashMap<String,SomeRecord> storageMap;
-	HashMap<String,ArrayList<String>> keyMaps;
+	public HashMap<String,KeyWordTracker> getKeyTrackerMap() {
+		return keyTrackerMap;
+	}
+
+	private CopyOnWriteArrayList<SomeRecord> storage;
+	private HashMap<String,SomeRecord> storageMap;
+	private HashMap<String,ArrayList<String>> keyMaps;
+	private HashMap<String,KeyWordTracker> keyTrackerMap; 
+	private int port;
 }

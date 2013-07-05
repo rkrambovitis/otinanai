@@ -1,5 +1,5 @@
 FLAGS= -Xlint:unchecked -Xlint:deprecation
-SRCFILES= OtiNanai.java SomeRecord.java OtiNanaiListener.java OtiNanaiCommander.java OtiNanaiWeb.java OtiNanaiProcessor.java
+SRCFILES= OtiNanai.java SomeRecord.java OtiNanaiListener.java OtiNanaiCommander.java OtiNanaiWeb.java OtiNanaiProcessor.java KeyWordTracker.java
 JAVAC= /usr/bin/javac
 
 all:

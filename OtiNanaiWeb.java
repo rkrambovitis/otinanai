@@ -3,16 +3,17 @@ import java.net.*;
 import java.util.*;
 
 class OtiNanaiWeb implements Runnable {
-	public OtiNanaiWeb(OtiNanaiListener o) {
+	public OtiNanaiWeb(OtiNanaiListener o, int lp) {
 		onl = o;
 		onp = new OtiNanaiProcessor(o);
 		dataMap = onl.getDataMap();
+		port = lp;
 	}
     
 	public void run() {
 		String requestMessageLine;
 		try {
-			ServerSocket listenSocket = new ServerSocket(6789);
+			ServerSocket listenSocket = new ServerSocket(port);
 			while (true) {
 				Socket connectionSocket = listenSocket.accept();
 				BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
@@ -20,6 +21,7 @@ class OtiNanaiWeb implements Runnable {
 				System.err.println(requestMessageLine);
 				DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 				ArrayList<String> results = new ArrayList<String>();
+				boolean alarms=false;
 				if (requestMessageLine.equalsIgnoreCase(" favicon.ico ")) {
 					outToClient.writeBytes("HTTP/1.1 404 Not Found\r\n");
 					connectionSocket.close();
@@ -32,11 +34,19 @@ class OtiNanaiWeb implements Runnable {
 						try {
 							metric = Integer.parseInt(word);
 						} catch (NumberFormatException nfe) {
-							results = onp.processCommand(results, word.replaceAll("\\s", ""));
+							switch (word) {
+								case "getAlarms":
+									alarms=true;
+									break;
+								default:
+									results = onp.processCommand(results, word.replaceAll("\\s", ""));
+							}
 						}
 					}
 					String text;
-					if (metric <= 0) {
+					if (alarms) {
+						text=getAlarms();
+					} else if (metric <= 0) {
 						text = toString(results);
 					} else {
 						text = toString(results, metric-1);
@@ -83,7 +93,21 @@ class OtiNanaiWeb implements Runnable {
 		return output;
 	}
 
+	private String getAlarms() {
+		Collection<KeyWordTracker> allKWs = onl.getKeyTrackerMap().values();
+		String output = new String("<html><body><pre>");
+		for (KeyWordTracker kwt : allKWs) {
+		//	System.out.println(kwt.getKeyWord());
+			if (kwt.getAlarm()) {
+				output=output + "Alarm Exists: " + kwt.getKeyWord() + "\n";
+			}
+		}
+		output = output + "</pre></body></html>";
+		return output;
+	}
+
 	private OtiNanaiProcessor onp;
 	private OtiNanaiListener onl;
 	private HashMap<String,SomeRecord> dataMap;
+	private int port;
 }

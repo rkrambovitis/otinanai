@@ -16,6 +16,7 @@ class OtiNanaiProcessor {
 		storage = onl.getData();
 		dataMap = onl.getDataMap();
 		keyMaps = onl.getKeyMaps();
+		keyTrackerMap = onl.getKeyTrackerMap();
 		String word = input;
 		String rest;	
 		String firstChar;
@@ -26,10 +27,22 @@ class OtiNanaiProcessor {
 		} else if (firstChar.equals("+")) {
 			matchedIDs = addWord(matchedIDs, rest);
 		} else {
-			matchedIDs = addWord(matchedIDs, word);
+				matchedIDs = addWord(matchedIDs, word);
 		}
 		return matchedIDs;
 	}
+
+	/*
+	public ArrayList<String> getAlarms() {
+		Collection<KeyWordTracker> allKWs = keyTrackerMap.values();
+		ArrayList<String> returnMe = new ArrayList<String>();
+		for (KeyWordTracker kwt : allKWs) {
+			System.out.println(kwt.getKeyWord());
+			returnMe.add(kwt.getKeyWord());
+		}
+		return returnMe;
+	}
+	*/
 
 	private ArrayList<String> addWord(ArrayList<String> mid, String key) {
 		if (keyMaps.containsKey(key)) 
@@ -69,4 +82,5 @@ class OtiNanaiProcessor {
 	private CopyOnWriteArrayList<SomeRecord> storage;
 	private HashMap<String,SomeRecord> dataMap;
 	private HashMap<String,ArrayList<String>> keyMaps;
+	private HashMap<String,KeyWordTracker> keyTrackerMap;
 }

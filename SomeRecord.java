@@ -10,11 +10,11 @@ class SomeRecord {
 		myip = ip;
 		theRecord = data;
 		keyWords = new ArrayList<String>();
-		findKeyWords(data);
+		findKeyWords(data.replaceAll("[\r\n]",""));
 	}
 
 	private void findKeyWords(String str) {
-		String[] Tokens = str.split("[ \t\n]");
+		String[] Tokens = str.split("[ \t]");
 		//for (String tok : Tokens ) {
 		metrics = new ArrayList<Integer>();
 		for (int i=0; i<Tokens.length; i++ ) {
@@ -27,6 +27,7 @@ class SomeRecord {
 				for (String subTok : subTokens ) {
 					if (subTok.length() >= 2 ) {
 						keyWords.add(subTok);
+		//				System.out.println(subTok);
 					}
 				}
 			}
