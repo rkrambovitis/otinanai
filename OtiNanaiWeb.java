@@ -22,11 +22,13 @@ class OtiNanaiWeb implements Runnable {
 				DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 				ArrayList<String> results = new ArrayList<String>();
 				boolean alarms=false;
+				boolean graph=false;
 				if (requestMessageLine.equalsIgnoreCase(" favicon.ico ")) {
 					outToClient.writeBytes("HTTP/1.1 404 Not Found\r\n");
 					connectionSocket.close();
 				} else {
 					String[] request = requestMessageLine.split("[ .,]|%20");
+					StringBuilder title = new StringBuilder();
 					Integer metric = new Integer(-10);
 					for (String word : request) {
 						if (word.equals(""))
@@ -38,8 +40,13 @@ class OtiNanaiWeb implements Runnable {
 								case "getAlarms":
 									alarms=true;
 									break;
+								case "drawGraph":
+									graph=true;
+									break;
 								default:
+									title.append(word+" ");
 									results = onp.processCommand(results, word.replaceAll("\\s", ""));
+									break;
 							}
 						}
 					}
@@ -48,6 +55,8 @@ class OtiNanaiWeb implements Runnable {
 						text=getAlarms();
 					} else if (metric <= 0) {
 						text = toString(results);
+					} else if (graph) {
+						text = toGraph(results, metric-1, title.toString());
 					} else {
 						text = toString(results, metric-1);
 					}
@@ -69,6 +78,40 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
+	private String toGraph(ArrayList<String> keyList, int metric, String title) {
+		String output = new String("<html><head>\r");
+		output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n";
+		output = output + "<script type=\"text/javascript\">\n";
+		output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
+		output = output + "google.setOnLoadCallback(drawChart);\n";
+		output = output + "function drawChart() {\n";
+		output = output + "var data = google.visualization.arrayToDataTable([\n";
+
+		output = output + "['Timestamp', 'Value'],\n";
+		SomeRecord sr;
+		for (String key : keyList) {
+			sr = dataMap.get(key);
+			if (sr.isMetric(metric)) {
+				output = output + "['" + sr.getDate() + "', " + sr.getRecord(metric) + "],\n";
+			} else {
+				output = output + "['foo', '0'],\n";
+			}
+		}
+//		output = output.substring(0, output.length()-1);
+		output = output + "]);\n";
+		output = output + "var options = { title: \""+title+"\" };\n";
+	   output = output + "var chart = new google.visualization.LineChart(document.getElementById('chart_div'));\n";
+	   output = output + "chart.draw(data, options);\n";
+		output = output + "}\n";
+		output = output + "</script>\n";
+		output = output + "</head>\n";
+		output = output + "<body>\n";
+		output = output + "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>\n";
+		output = output + "</body>\n";
+		output = output + "</html>\n";
+		return output;
+	}
+
 	private String toString(ArrayList<String> keyList, int metric) {
 		String output = new String("<html><body><pre>");
 		SomeRecord sr;
@@ -77,6 +120,9 @@ class OtiNanaiWeb implements Runnable {
 			if (sr.isMetric(metric)) {
 				output = output + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord(metric);
 			}
+		}
+		if (output.equals("<html><body><pre>")) {
+			output = output + "No Data";
 		}
 		output = output + "</pre></body></html>";
 		return output;

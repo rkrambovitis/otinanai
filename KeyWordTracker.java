@@ -18,8 +18,6 @@ class KeyWordTracker {
 
 	public void put(long ts) {
 		fiveMinCount ++;
-	//	System.out.println("Added to : "+keyWord+", current count is: "+fiveMinCount+", mean is "+fiveMinMean+" after "+sampleCount+" samples, alarm is "+alarm);
-//		if ((ts - fiveMinFlush) > FIVE_MIN ) {
 		if ((ts - fiveMinFlush) > 30000 ) {
 			fiveMinFlush=ts;
 			flush();
