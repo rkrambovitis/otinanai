@@ -1,80 +1,115 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+
 
 class OtiNanaiWeb implements Runnable {
-	public OtiNanaiWeb(OtiNanaiListener o, int lp) {
+	public OtiNanaiWeb(OtiNanaiListener o, int lp) throws IOException {
 		onl = o;
 		onp = new OtiNanaiProcessor(o);
 		dataMap = onl.getDataMap();
 		port = lp;
+		ServerSocket listenSocket = new ServerSocket(port);
+	}
+
+	public OtiNanaiWeb(OtiNanaiListener o, ServerSocket ss) {
+		onl = o;
+		onp = new OtiNanaiProcessor(o);
+		dataMap = onl.getDataMap();
+		listenSocket = ss;
 	}
     
 	public void run() {
-		String requestMessageLine;
 		try {
-			ServerSocket listenSocket = new ServerSocket(port);
+			BufferedReader inFromClient;
+			String requestMessageLine;
 			while (true) {
 				Socket connectionSocket = listenSocket.accept();
-				BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-				requestMessageLine = inFromClient.readLine().replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1", "");
-				System.err.println(requestMessageLine);
-				DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 				ArrayList<String> results = new ArrayList<String>();
+				try {
+					inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+					requestMessageLine = inFromClient.readLine().replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1", "");
+					System.err.println("\""+requestMessageLine+"\"");
+				} catch (NullPointerException npe) {
+					System.err.println("gotcha");
+					continue;
+				}
 				boolean alarms=false;
 				boolean graph=false;
-				if (requestMessageLine.equalsIgnoreCase(" favicon.ico ")) {
-					outToClient.writeBytes("HTTP/1.1 404 Not Found\r\n");
-					connectionSocket.close();
-				} else {
-					String[] request = requestMessageLine.split("[ .,]|%20");
-					StringBuilder title = new StringBuilder();
-					Integer metric = new Integer(-10);
-					for (String word : request) {
-						if (word.equals(""))
-								continue;
-						try {
-							metric = Integer.parseInt(word);
-						} catch (NumberFormatException nfe) {
-							switch (word) {
-								case "getAlarms":
-									alarms=true;
-									break;
-								case "drawGraph":
-									graph=true;
-									break;
-								default:
-									title.append(word+" ");
-									results = onp.processCommand(results, word.replaceAll("\\s", ""));
-									break;
+				switch (requestMessageLine) {
+					case " / ":
+					case "  ":
+						String bogus = new String("Robert's random piece of junk.");
+						sendToClient(bogus.getBytes(), "text/html", false, connectionSocket);
+						break;
+					case " favicon.ico ":
+						FileInputStream fico = new FileInputStream(new File("/root/OtiNanai/favicon.ico"));
+						Path path = Paths.get("/root/OtiNanai/favicon.ico");
+						byte[] data = Files.readAllBytes(path);
+						sendToClient(data, "image/x-icon", true, connectionSocket);
+						break;
+					default:
+						String[] request = requestMessageLine.split("[ .,]|%20");
+						StringBuilder title = new StringBuilder();
+						Integer metric = new Integer(-10);
+						for (String word : request) {
+							if (word.equals(""))
+									continue;
+							try {
+								metric = Integer.parseInt(word);
+							} catch (NumberFormatException nfe) {
+								switch (word) {
+									case "getAlarms":
+										alarms=true;
+										break;
+									case "drawGraph":
+										graph=true;
+										break;
+									default:
+										title.append(word+" ");
+										results = onp.processCommand(results, word.replaceAll("\\s", ""));
+										break;
+								}
 							}
 						}
-					}
-					String text;
-					if (alarms) {
-						text=getAlarms();
-					} else if (metric <= 0) {
-						text = toString(results);
-					} else if (graph) {
-						text = toGraph(results, metric-1, title.toString());
-					} else {
-						text = toString(results, metric-1);
-					}
-
-					outToClient.writeBytes("HTTP/1.1 200 OK\r\n");
-					outToClient.writeBytes("Content-Type: text/html\r\n");
-
-					int numOfBytes = text.length();
-
-					outToClient.writeBytes("Content-Length: " + numOfBytes + "\r\n");
-					outToClient.writeBytes("\r\n");
-				 
-					outToClient.write(text.getBytes(), 0, numOfBytes);
-					connectionSocket.close();
+						String text;
+						if (alarms) {
+							text=getAlarms();
+						} else if (metric <= 0) {
+							text = toString(results);
+						} else if (graph) {
+							text = toGraph(results, metric-1, title.toString());
+						} else {
+							text = toString(results, metric-1);
+						}
+						sendToClient(text.getBytes(), "text/html", false, connectionSocket);
+						connectionSocket.close();
 				}
 			}
 		} catch (IOException ioe) {
 			System.out.println(ioe);
+		}
+	}
+
+	private boolean sendToClient(byte[] dato, String contType, boolean cache, Socket connectionSocket) {
+		try {
+			DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+			outToClient.writeBytes("HTTP/1.1 200 OK\r\n");
+			outToClient.writeBytes("Content-Type: "+contType+"\r\n");
+			int numOfBytes = dato.length;
+			outToClient.writeBytes("Content-Length: " + numOfBytes + "\r\n");
+			if (cache) 
+				outToClient.writeBytes("Expires: Wed, 31 Dec 2014 23:59:59 GMT\r\n");
+			outToClient.writeBytes("\r\n");
+			outToClient.write(dato, 0, numOfBytes);
+			connectionSocket.close();
+			return true;
+		} catch (IOException ioe) {
+			System.err.println("Here");
+			return false;
 		}
 	}
 
@@ -143,7 +178,6 @@ class OtiNanaiWeb implements Runnable {
 		Collection<KeyWordTracker> allKWs = onl.getKeyTrackerMap().values();
 		String output = new String("<html><body><pre>");
 		for (KeyWordTracker kwt : allKWs) {
-		//	System.out.println(kwt.getKeyWord());
 			if (kwt.getAlarm()) {
 				output=output + "Alarm Exists: " + kwt.getKeyWord() + "\n";
 			}
@@ -156,4 +190,5 @@ class OtiNanaiWeb implements Runnable {
 	private OtiNanaiListener onl;
 	private HashMap<String,SomeRecord> dataMap;
 	private int port;
+	private ServerSocket listenSocket;
 }
