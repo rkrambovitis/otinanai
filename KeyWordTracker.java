@@ -1,3 +1,5 @@
+import java.util.logging.*;
+
 class KeyWordTracker {
 	public KeyWordTracker(String key) {
 		fiveMinCount = 0;
