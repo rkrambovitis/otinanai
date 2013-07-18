@@ -14,13 +14,13 @@ class OtiNanaiListener implements Runnable {
 	 */
 	public OtiNanaiListener(int lp, Logger l) throws SocketException {
 		logger = l;
-		storage = new CopyOnWriteArrayList<SomeRecord>();
+		//storage = new CopyOnWriteArrayList<SomeRecord>();
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
 		keyTrackerMap = new HashMap<String, KeyWordTracker>();
 		port = lp;
 		dataSocket = new DatagramSocket(lp);
-		logger.finest("New OtiNanaiListener Initialized");
+		logger.finest("[Listener]: New OtiNanaiListener Initialized");
 	}
 
 	/**
@@ -30,12 +30,12 @@ class OtiNanaiListener implements Runnable {
 	 */
 	public OtiNanaiListener(DatagramSocket ds, Logger l) {
 		logger = l;
-		storage = new CopyOnWriteArrayList<SomeRecord>();
+		//storage = new CopyOnWriteArrayList<SomeRecord>();
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
 		keyTrackerMap = new HashMap<String, KeyWordTracker>();
 		dataSocket = ds;
-		logger.finest("New OtiNanaiListener Initialized");
+		logger.finest("[Listener]: New OtiNanaiListener Initialized");
 	}
 
 	/**
@@ -51,12 +51,12 @@ class OtiNanaiListener implements Runnable {
 				dataSocket.receive(receivePacket);
 			} catch (IOException ioer) {
 				System.out.println(ioer);
-				logger.severe(ioer.getMessage());
+				logger.severe("[Listener]: "+ioer.getMessage());
 				continue;
 			}
 			String sentence = new String(receivePacket.getData());
 			InetAddress IPAddress = receivePacket.getAddress();
-			logger.fine("Listener received message from "+IPAddress);
+			logger.fine("[Listener]: Listener received message from "+IPAddress);
 			parseData(IPAddress, sentence.replaceAll("\u0000.*", "").replaceAll("[\r\n]", ""));
 		}
 	}
@@ -69,37 +69,39 @@ class OtiNanaiListener implements Runnable {
 	 * @param	theDato	The dato.
 	 */
 	private void parseData(InetAddress hip, String theDato) {
-		logger.finest("+ Attempting to parse: \""+theDato+"\" from "+hip);
+		logger.finest("[Listener]: + Attempting to parse: \""+theDato+"\" from "+hip);
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 		for (String kw : theKeys) {
 			//System.out.println(kw);
 			if (kw.equals("")) {
-				logger.finest("Blank Keyword, ignored");
+				logger.finest("[Listener]: Blank Keyword, ignored");
 				continue;
 			} else if (keyMaps.containsKey(kw)) {
-				logger.fine("Existing keyword detected. Adding to list : " + kw);
+				logger.fine("[Listener]: Existing keyword detected. Adding to list : " + kw);
 				keyMaps.get(kw).add(newRecord.getTimeNano());
 				keyTrackerMap.get(kw).put(newRecord.getTimeStamp());
 			} else {
-				logger.fine("Keyword not detected. Creating new list : " + kw);
+				logger.fine("[Listener]: Keyword not detected. Creating new list : " + kw);
 				ArrayList<String> alBundy = new ArrayList<String>();
 				alBundy.add(newRecord.getTimeNano());
 				keyMaps.put(kw, alBundy);
 				keyTrackerMap.put(kw, new KeyWordTracker(kw));
 			}
 		}
-		logger.fine("Storing to storage and storageMap");
+		logger.fine("[Listener]: Storing to storageMap");
 		storageMap.put(newRecord.getTimeNano(), newRecord);
-		storage.add(newRecord);
+//		storage.add(newRecord);
 	}
 
 	/**
 	 * Access Method
 	 */
+/*
 	public CopyOnWriteArrayList<SomeRecord> getData() {
 		return storage;
 	}
+*/
 
 	/**
 	 * Access Method
@@ -129,7 +131,7 @@ class OtiNanaiListener implements Runnable {
 		return logger;
 	}
 
-	private CopyOnWriteArrayList<SomeRecord> storage;
+//	private CopyOnWriteArrayList<SomeRecord> storage;
 	private HashMap<String,SomeRecord> storageMap;
 	private HashMap<String,ArrayList<String>> keyMaps;
 	private HashMap<String,KeyWordTracker> keyTrackerMap; 

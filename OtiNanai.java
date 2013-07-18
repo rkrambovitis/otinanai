@@ -22,21 +22,21 @@ class OtiNanai {
 		setupLogger("/home/robert/otinanai.log", "ALL");
 		try {
 			// Listener
-			logger.finest("Setting up new DatagramSocket Listener on port "+listenerPort);
+			logger.finest("[Init]: Setting up new DatagramSocket Listener on port "+listenerPort);
 			DatagramSocket ds = new DatagramSocket(listenerPort);
 			OtiNanaiListener onl = new OtiNanaiListener(ds, logger);
 			new Thread(onl).start();
 
 			// Web Interface
-			logger.finest("Setting up new Web Listener on port "+webPort);
+			logger.finest("[Init]: Setting up new Web Listener on port "+webPort);
 			ServerSocket ss = new ServerSocket(webPort);
-			OtiNanaiWeb onw = new OtiNanaiWeb(onl, ss);
+			OtiNanaiWeb onw = new OtiNanaiWeb(onl, ss, logger);
 			for (int i=1; i<=webThreads; i++) {
-				logger.finest("Starting web thread: "+i+"/"+webThreads);
+				logger.finest("[Init]: Starting web thread: "+i+"/"+webThreads);
 				new Thread(onw).start();
 			}
 		} catch (java.lang.Exception e) {
-			System.out.println(e);
+			System.err.println(e);
 			logger.severe(e.getMessage());
 			System.exit(1);
 		}

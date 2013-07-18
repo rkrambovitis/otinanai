@@ -23,8 +23,8 @@ class OtiNanaiProcessor {
 	 * @return	An Arralist containing the unique ids of records
 	 */
 	public ArrayList<String> processCommand(ArrayList<String> matchedIDs, String input) {
-		logger.info("Attempting to processCommand \""+input+"\" on List with length "+matchedIDs.size());
-		storage = onl.getData();
+		logger.info("[processor]: Attempting to processCommand \""+input+"\" on List with length "+matchedIDs.size());
+		//storage = onl.getData();
 		dataMap = onl.getDataMap();
 		keyMaps = onl.getKeyMaps();
 		keyTrackerMap = onl.getKeyTrackerMap();
@@ -62,7 +62,7 @@ class OtiNanaiProcessor {
 	 * @return	Arraylist containing new (and old) ids
 	 */
 	private ArrayList<String> addWord(ArrayList<String> mid, String key) {
-		logger.fine("Adding to search results : "+key);
+		logger.fine("[processor]: Adding to search results : "+key);
 		if (keyMaps.containsKey(key)) 
 			mid.addAll(keyMaps.get(key));
 		return mid;
@@ -75,7 +75,7 @@ class OtiNanaiProcessor {
 	 * @return	Arraylist containing new set of ids
 	 */
 	private ArrayList<String> delWord(ArrayList<String> mid, String key) {
-		logger.fine("Removing from search results : "+key);
+		logger.fine("[processor]: Removing from search results : "+key);
 		if (keyMaps.containsKey(key)) 
 			mid.removeAll(keyMaps.get(key));
 		return mid;
@@ -107,7 +107,7 @@ class OtiNanaiProcessor {
 
 	private OtiNanaiListener onl;
 	private Logger logger;
-	private CopyOnWriteArrayList<SomeRecord> storage;
+//	private CopyOnWriteArrayList<SomeRecord> storage;
 	private HashMap<String,SomeRecord> dataMap;
 	private HashMap<String,ArrayList<String>> keyMaps;
 	private HashMap<String,KeyWordTracker> keyTrackerMap;

@@ -4,25 +4,31 @@ import java.util.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.util.logging.*;
 
 
 class OtiNanaiWeb implements Runnable {
-	public OtiNanaiWeb(OtiNanaiListener o, int lp) throws IOException {
+	public OtiNanaiWeb(OtiNanaiListener o, int lp, Logger l) throws IOException {
 		onl = o;
 		onp = new OtiNanaiProcessor(o);
 		dataMap = onl.getDataMap();
 		port = lp;
 		ServerSocket listenSocket = new ServerSocket(port);
+		logger = l;
+		logger.finest("[Web]: New OtiNanaiWeb Initialized");
 	}
 
-	public OtiNanaiWeb(OtiNanaiListener o, ServerSocket ss) {
+	public OtiNanaiWeb(OtiNanaiListener o, ServerSocket ss, Logger l) {
 		onl = o;
 		onp = new OtiNanaiProcessor(o);
 		dataMap = onl.getDataMap();
 		listenSocket = ss;
+		logger = l;
+		logger.finest("[Web]: New OtiNanaiWeb Initialized");
 	}
     
 	public void run() {
+		logger.finest("[Web]: New OtiNanaiWeb Thread ran");
 		try {
 			BufferedReader inFromClient;
 			String requestMessageLine;
@@ -32,9 +38,9 @@ class OtiNanaiWeb implements Runnable {
 				try {
 					inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 					requestMessageLine = inFromClient.readLine().replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1", "");
-					System.err.println("\""+requestMessageLine+"\"");
+					logger.fine("[Web]: Got Web request for : \""+requestMessageLine+"\"");
 				} catch (NullPointerException npe) {
-					System.err.println("gotcha");
+					logger.warning("[Web]: "+npe.getMessage());
 					continue;
 				}
 				boolean alarms=false;
@@ -42,12 +48,14 @@ class OtiNanaiWeb implements Runnable {
 				switch (requestMessageLine) {
 					case " / ":
 					case "  ":
+                  logger.info("[Web]: Sending default blank webpage");
 						String bogus = new String("Robert's random piece of junk.");
 						sendToClient(bogus.getBytes(), "text/html", false, connectionSocket);
 						break;
 					case " favicon.ico ":
-						FileInputStream fico = new FileInputStream(new File("/root/OtiNanai/favicon.ico"));
-						Path path = Paths.get("/root/OtiNanai/favicon.ico");
+                  logger.info("[Web]: Sending favicon.ico");
+						//FileInputStream fico = new FileInputStream(new File("/home/robert/OtiNanai/favicon.ico"));
+						Path path = Paths.get("/home/robert/OtiNanai/favicon.ico");
 						byte[] data = Files.readAllBytes(path);
 						sendToClient(data, "image/x-icon", true, connectionSocket);
 						break;
@@ -56,19 +64,26 @@ class OtiNanaiWeb implements Runnable {
 						StringBuilder title = new StringBuilder();
 						Integer metric = new Integer(-10);
 						for (String word : request) {
-							if (word.equals(""))
+							if (word.equals("")) {
+                           logger.fine("[Web]: Skipping blank word");
 									continue;
+                     }
 							try {
 								metric = Integer.parseInt(word);
+                        logger.fine("[Web]: word is metric");
 							} catch (NumberFormatException nfe) {
+                        logger.fine("[Web]: word is not a metric");
 								switch (word) {
 									case "getAlarms":
+                              logger.fine("[Web]: getAlarms matched");
 										alarms=true;
 										break;
 									case "drawGraph":
+                              logger.fine("[Web]: doGraph matched");
 										graph=true;
 										break;
 									default:
+                              logger.fine("[Web]: processing word "+word);
 										title.append(word+" ");
 										results = onp.processCommand(results, word.replaceAll("\\s", ""));
 										break;
@@ -85,12 +100,13 @@ class OtiNanaiWeb implements Runnable {
 						} else {
 							text = toString(results, metric-1);
 						}
+                  logger.fine("[Web]: got text, sending to client");
 						sendToClient(text.getBytes(), "text/html", false, connectionSocket);
 						connectionSocket.close();
 				}
 			}
 		} catch (IOException ioe) {
-			System.out.println(ioe);
+			logger.severe("[Web]: "+ioe.getMessage());
 		}
 	}
 
@@ -108,12 +124,13 @@ class OtiNanaiWeb implements Runnable {
 			connectionSocket.close();
 			return true;
 		} catch (IOException ioe) {
-			System.err.println("Here");
+			logger.severe("[Web]: "+ioe.getMessage());
 			return false;
 		}
 	}
 
 	private String toGraph(ArrayList<String> keyList, int metric, String title) {
+      logger.finest("[Web]: Generating graph: "+title);
 		String output = new String("<html><head>\r");
 		output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n";
 		output = output + "<script type=\"text/javascript\">\n";
@@ -148,12 +165,13 @@ class OtiNanaiWeb implements Runnable {
 	}
 
 	private String toString(ArrayList<String> keyList, int metric) {
+      logger.finest("[Web]: Generating Web Output for metric :"+metric);
 		String output = new String("<html><body><pre>");
 		SomeRecord sr;
 		for (String key : keyList) {
 			sr = dataMap.get(key);
 			if (sr.isMetric(metric)) {
-				output = output + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord(metric);
+				output = output + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord(metric)+"\n";
 			}
 		}
 		if (output.equals("<html><body><pre>")) {
@@ -164,17 +182,19 @@ class OtiNanaiWeb implements Runnable {
 	}
 
 	private String toString(ArrayList<String> keyList) {
+      logger.finest("[Web]: Generating Web Output");
 		String output = new String("<html><body><pre>");
 		SomeRecord sr;
 		for (String key : keyList) {
 			sr = dataMap.get(key);
-			output = output + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord();
+			output = output + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord()+"\n";
 		}
 		output = output + "</pre></body></html>";
 		return output;
 	}
 
 	private String getAlarms() {
+      logger.finest("[Web]: Generating Alarms Output");
 		Collection<KeyWordTracker> allKWs = onl.getKeyTrackerMap().values();
 		String output = new String("<html><body><pre>");
 		for (KeyWordTracker kwt : allKWs) {
@@ -191,4 +211,5 @@ class OtiNanaiWeb implements Runnable {
 	private HashMap<String,SomeRecord> dataMap;
 	private int port;
 	private ServerSocket listenSocket;
+	private Logger logger;
 }
