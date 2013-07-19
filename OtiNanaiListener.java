@@ -18,6 +18,7 @@ class OtiNanaiListener implements Runnable {
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
 		keyTrackerMap = new HashMap<String, KeyWordTracker>();
+      keyWords = new ArrayList<String>();
 		port = lp;
 		dataSocket = new DatagramSocket(lp);
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
@@ -34,6 +35,7 @@ class OtiNanaiListener implements Runnable {
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
 		keyTrackerMap = new HashMap<String, KeyWordTracker>();
+      keyWords = new ArrayList<String>();
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
 	}
@@ -86,7 +88,8 @@ class OtiNanaiListener implements Runnable {
 				ArrayList<String> alBundy = new ArrayList<String>();
 				alBundy.add(newRecord.getTimeNano());
 				keyMaps.put(kw, alBundy);
-				keyTrackerMap.put(kw, new KeyWordTracker(kw));
+            keyWords.add(kw);
+				keyTrackerMap.put(kw, new KeyWordTracker(kw, logger));
 			}
 		}
 		logger.fine("[Listener]: Storing to storageMap");
@@ -131,7 +134,15 @@ class OtiNanaiListener implements Runnable {
 		return logger;
 	}
 
+   public void tick() {
+      long now=System.currentTimeMillis();
+      for (String kw : keyWords) {
+         keyTrackerMap.get(kw).tick(now);
+      }
+   }
+
 //	private CopyOnWriteArrayList<SomeRecord> storage;
+   private ArrayList<String> keyWords;
 	private HashMap<String,SomeRecord> storageMap;
 	private HashMap<String,ArrayList<String>> keyMaps;
 	private HashMap<String,KeyWordTracker> keyTrackerMap; 

@@ -1,17 +1,21 @@
 import java.util.logging.*;
+import java.util.*;
 
 class KeyWordTracker {
-	public KeyWordTracker(String key) {
+	public KeyWordTracker(String key, Logger l) {
 		fiveMinCount = 0;
 		fiveMinMean = 0;
 		thirtyMinCount = 0;
 		thirtyMinMean = 0;
+      fiveMinMemory = new LinkedList<Long> ();
 		keyWord = new String(key);
 		fiveMinFlush = System.currentTimeMillis();
 		thirtyMinFlush = fiveMinFlush;
-		sampleCount = 0;
+      logger = l;
+		sampleCount = 1;
 		deviation = 0;
 		alarm = false;
+      logger.finest("[KeyWordTracker]: new KeyWordTracker initialized for \"" +keyWord+"\"");
 	}
 
 	public String getKeyWord() {
@@ -20,35 +24,58 @@ class KeyWordTracker {
 
 	public void put(long ts) {
 		fiveMinCount ++;
-		if ((ts - fiveMinFlush) > 30000 ) {
-			fiveMinFlush=ts;
-			flush();
-		}
+      logger.finest("[KeyWordTracker]: fiveMinCount is now " +fiveMinCount);
 	}
 
+   public void tick(long ts) {
+		if ((ts - fiveMinFlush) > FIVE_MIN ) {
+         logger.fine("[KeyWordTracker]: ticking " + keyWord );
+			fiveMinFlush=ts;
+			flush();
+		} else {
+         logger.fine("[KeyWordTracker]: Not ticking " + keyWord );
+      }
+   }
+
 	private void flush() {
+      logger.finest("[KeyWordTracker]: Adding " +fiveMinCount+ " to thirtyMinCount");
 		thirtyMinCount += fiveMinCount;
+      logger.finest("[KeyWordTracker]: Adding from front of stack");
+      fiveMinMemory.push(fiveMinCount);
+
+      if (fiveMinMemory.size() >= FIVE_MINS_DAY) {
+         logger.finest("[KeyWordTracker]: Removing from end of stack");
+         fiveMinMemory.removeLast();
+      }
+
 		if (fiveMinMean == 0 ) {
+         logger.finest("[KeyWordTracker]: fiveMinMean is 0, setting new value");
 			fiveMinMean = fiveMinCount;
 		} else {
+         logger.finest("[KeyWordTracker]: Calculating new fiveMinMean");
 			deviation = (fiveMinCount - fiveMinMean)/fiveMinMean;
 			fiveMinMean += (fiveMinCount - fiveMinMean)/sampleCount;
 		}
 		sampleCount++;
 		fiveMinCount = 0;
 		if ((sampleCount > MINSAMPLES) && (deviation >= ERROR_DEVIATION)) {
+         logger.info("[KeyWordTracker]: Error conditions met for " + keyWord);
 			alarm=true;
 		} else {
 			alarm = false;
 		}
-		if (sampleCount >= 288 ) {
-			sampleCount = 0;
+		if (sampleCount >= FIVE_MINS_DAY ) {
+			sampleCount = 1;
 		}
 	}
 
 	public boolean getAlarm() {
 		return alarm;
 	}
+
+   public LinkedList<Long> getFiveMinMemory() {
+      return fiveMinMemory;
+   }
 
 	private boolean alarm;
 	private long fiveMinFlush;
@@ -60,10 +87,14 @@ class KeyWordTracker {
 	private long thirtyMinMean;
 	private int sampleCount;
 	private float deviation;
+   private LinkedList<Long> fiveMinMemory;
+   private LinkedList<Long> thirtyMinMemory;
+   private Logger logger;
 
 	private static final int COUNT = 0;
 	private static final int METRIC = 1;
 	private static final int MINSAMPLES = 2;
 	private static final int ERROR_DEVIATION = 2;
-	private static final int FIVE_MIN = 300000;
+	private static final int FIVE_MIN = 30000;
+	private static final int FIVE_MINS_DAY = 288;
 }

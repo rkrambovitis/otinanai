@@ -28,7 +28,7 @@ class OtiNanaiWeb implements Runnable {
 	}
     
 	public void run() {
-		logger.finest("[Web]: New OtiNanaiWeb Thread ran");
+		logger.finest("[Web]: New OtiNanaiWeb Thread Started");
 		try {
 			BufferedReader inFromClient;
 			String requestMessageLine;
@@ -164,6 +164,18 @@ class OtiNanaiWeb implements Runnable {
 		return output;
 	}
 
+	private String toGraph(LinkedList<Long> data, String title) {
+      logger.finest("[Web]: Generating graph from KeyWordTracker: "+title);
+		String output = new String();
+
+		output = output + "['Value'],\n";
+		SomeRecord sr;
+		for (Long dato : data) {
+         output = output + "['" + dato + "],\n";
+		}
+      return output;
+	}
+
 	private String toString(ArrayList<String> keyList, int metric) {
       logger.finest("[Web]: Generating Web Output for metric :"+metric);
 		String output = new String("<html><body><pre>");
@@ -196,13 +208,30 @@ class OtiNanaiWeb implements Runnable {
 	private String getAlarms() {
       logger.finest("[Web]: Generating Alarms Output");
 		Collection<KeyWordTracker> allKWs = onl.getKeyTrackerMap().values();
-		String output = new String("<html><body><pre>");
+		String output = new String("<html><head>");
+		output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n";
+		output = output + "<script type=\"text/javascript\">\n";
+		output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
+		output = output + "google.setOnLoadCallback(drawChart);\n";
+		output = output + "function drawChart() {\n";
+		output = output + "var data = google.visualization.arrayToDataTable([\n";
 		for (KeyWordTracker kwt : allKWs) {
 			if (kwt.getAlarm()) {
-				output=output + "Alarm Exists: " + kwt.getKeyWord() + "\n";
+				//output=output + "Alarm Exists: " + kwt.getKeyWord() + "\n";
+            output = output + toGraph(kwt.getFiveMinMemory(), kwt.getKeyWord());
 			}
 		}
-		output = output + "</pre></body></html>";
+      output = output + "]);\n";
+		output = output + "var options = { title: \"FooBar\" };\n";
+	   output = output + "var chart = new google.visualization.LineChart(document.getElementById('chart_div'));\n";
+	   output = output + "chart.draw(data, options);\n";
+		output = output + "}\n";
+		output = output + "</script>\n";
+		output = output + "</head>\n";
+		output = output + "<body>\n";
+		output = output + "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>\n";
+
+		output = output + "</body></html>";
 		return output;
 	}
 

@@ -27,6 +27,11 @@ class OtiNanai {
 			OtiNanaiListener onl = new OtiNanaiListener(ds, logger);
 			new Thread(onl).start();
 
+         // Ticker
+         logger.finest("[Init]: Setting up ticker");
+         OtiNanaiTicker ont = new OtiNanaiTicker(onl, logger);
+         new Thread(ont).start();
+
 			// Web Interface
 			logger.finest("[Init]: Setting up new Web Listener on port "+webPort);
 			ServerSocket ss = new ServerSocket(webPort);
