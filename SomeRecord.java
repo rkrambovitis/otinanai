@@ -39,6 +39,7 @@ class SomeRecord {
 				Float.parseFloat(tok);
 				metrics.add(new Integer(i));
 			} catch (NumberFormatException e) {
+            /*
 				String[] subTokens = tok.split("[.]");
 				for (String subTok : subTokens ) {
 					if (subTok.length() >= 2 ) {
@@ -46,6 +47,11 @@ class SomeRecord {
 		//				System.out.println(subTok);
 					}
 				}
+            */
+            if (tok.length() >= 3 ) {
+               keyWords.add(tok);
+               break;
+            }
 			}
 		}
 		Tokens = str.split("\\s");

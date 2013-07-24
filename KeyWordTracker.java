@@ -28,19 +28,9 @@ class KeyWordTracker {
 	}
 
    public void tick(long ts) {
-      /*
-		if ((ts - fiveMinFlush) > FIVE_MIN ) {
-      */
-
       logger.fine("[KeyWordTracker]: ticking " + keyWord );
       fiveMinFlush=ts;
       flush(ts);
-
-      /*
-		} else {
-         logger.fine("[KeyWordTracker]: Not ticking " + keyWord );
-      }
-      */
    }
 
 	private void flush(long ts) {
@@ -68,12 +58,7 @@ class KeyWordTracker {
          logger.info("[KeyWordTracker]: Error conditions met for " + keyWord);
 			alarm=true;
       }
-         /*
-		} else {
-			alarm = false;
-		}
-      */
-		if (sampleCount >= FIVE_MINS_DAY ) {
+      if (sampleCount >= FIVE_MINS_DAY ) {
 			sampleCount = 1;
 		}
 	}
@@ -84,6 +69,13 @@ class KeyWordTracker {
 
    public LinkedList<String> getFiveMinMemory() {
       return fiveMinMemory;
+   }
+
+   public long getFiveMinCount() {
+      return fiveMinCount;
+   }
+   public long getThirtyMinCount() {
+      return thirtyMinCount;
    }
 
 	private boolean alarm;

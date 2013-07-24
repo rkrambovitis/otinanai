@@ -14,7 +14,6 @@ class OtiNanaiListener implements Runnable {
 	 */
 	public OtiNanaiListener(int lp, Logger l) throws SocketException {
 		logger = l;
-		//storage = new CopyOnWriteArrayList<SomeRecord>();
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
 		keyTrackerMap = new HashMap<String, KeyWordTracker>();
@@ -31,7 +30,6 @@ class OtiNanaiListener implements Runnable {
 	 */
 	public OtiNanaiListener(DatagramSocket ds, Logger l) {
 		logger = l;
-		//storage = new CopyOnWriteArrayList<SomeRecord>();
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
 		keyTrackerMap = new HashMap<String, KeyWordTracker>();
@@ -75,8 +73,8 @@ class OtiNanaiListener implements Runnable {
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 		for (String kw : theKeys) {
-			//System.out.println(kw);
-         kw = kw.replaceAll("[;:.,()!@#%^&\\/|'\"?<>]", "");
+         //kw = kw.replaceAll("[+=@#$%^&*;:()-_\\/|'\"]", "");
+         kw = kw.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]", "");
          try { 
             Float.parseFloat(kw);
             logger.finest("[Listener]: Number, ignored");
@@ -89,6 +87,11 @@ class OtiNanaiListener implements Runnable {
 				logger.finest("[Listener]: Existing keyword detected. Adding to list : " + kw);
 				keyMaps.get(kw).add(newRecord.getTimeNano());
 				keyTrackerMap.get(kw).put(newRecord.getTimeStamp());
+            if (keyMaps.get(kw).size() >= MAXSAMPLES) {
+               String uid = keyMaps.get(kw).get(MAXSAMPLES);
+               keyMaps.get(kw).remove(uid);
+               storageMap.remove(uid);
+            }
 			} else {
 				logger.info("[Listener]: Keyword not detected. Creating new list : " + kw);
 				ArrayList<String> alBundy = new ArrayList<String>();
@@ -100,17 +103,7 @@ class OtiNanaiListener implements Runnable {
 		}
 		logger.finest("[Listener]: Storing to storageMap");
 		storageMap.put(newRecord.getTimeNano(), newRecord);
-//		storage.add(newRecord);
 	}
-
-	/**
-	 * Access Method
-	 */
-/*
-	public CopyOnWriteArrayList<SomeRecord> getData() {
-		return storage;
-	}
-*/
 
 	/**
 	 * Access Method
@@ -147,7 +140,6 @@ class OtiNanaiListener implements Runnable {
       }
    }
 
-//	private CopyOnWriteArrayList<SomeRecord> storage;
    private ArrayList<String> keyWords;
 	private HashMap<String,SomeRecord> storageMap;
 	private HashMap<String,ArrayList<String>> keyMaps;
@@ -155,4 +147,5 @@ class OtiNanaiListener implements Runnable {
 	private int port;
 	private DatagramSocket dataSocket;
 	private Logger logger;
+   private static final int MAXSAMPLES = 100;
 }
