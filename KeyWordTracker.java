@@ -7,7 +7,7 @@ class KeyWordTracker {
 		fiveMinMean = 0;
 		thirtyMinCount = 0;
 		thirtyMinMean = 0;
-      fiveMinMemory = new LinkedList<Long> ();
+      fiveMinMemory = new LinkedList<String> ();
 		keyWord = new String(key);
 		fiveMinFlush = System.currentTimeMillis();
 		thirtyMinFlush = fiveMinFlush;
@@ -28,20 +28,26 @@ class KeyWordTracker {
 	}
 
    public void tick(long ts) {
+      /*
 		if ((ts - fiveMinFlush) > FIVE_MIN ) {
-         logger.fine("[KeyWordTracker]: ticking " + keyWord );
-			fiveMinFlush=ts;
-			flush();
+      */
+
+      logger.fine("[KeyWordTracker]: ticking " + keyWord );
+      fiveMinFlush=ts;
+      flush(ts);
+
+      /*
 		} else {
          logger.fine("[KeyWordTracker]: Not ticking " + keyWord );
       }
+      */
    }
 
-	private void flush() {
+	private void flush(long ts) {
       logger.finest("[KeyWordTracker]: Adding " +fiveMinCount+ " to thirtyMinCount");
 		thirtyMinCount += fiveMinCount;
       logger.finest("[KeyWordTracker]: Adding from front of stack");
-      fiveMinMemory.push(fiveMinCount);
+      fiveMinMemory.push(new String(ts+" "+fiveMinCount));
 
       if (fiveMinMemory.size() >= FIVE_MINS_DAY) {
          logger.finest("[KeyWordTracker]: Removing from end of stack");
@@ -61,9 +67,12 @@ class KeyWordTracker {
 		if ((sampleCount > MINSAMPLES) && (deviation >= ERROR_DEVIATION)) {
          logger.info("[KeyWordTracker]: Error conditions met for " + keyWord);
 			alarm=true;
+      }
+         /*
 		} else {
 			alarm = false;
 		}
+      */
 		if (sampleCount >= FIVE_MINS_DAY ) {
 			sampleCount = 1;
 		}
@@ -73,7 +82,7 @@ class KeyWordTracker {
 		return alarm;
 	}
 
-   public LinkedList<Long> getFiveMinMemory() {
+   public LinkedList<String> getFiveMinMemory() {
       return fiveMinMemory;
    }
 
@@ -87,7 +96,7 @@ class KeyWordTracker {
 	private long thirtyMinMean;
 	private int sampleCount;
 	private float deviation;
-   private LinkedList<Long> fiveMinMemory;
+   private LinkedList<String> fiveMinMemory;
    private LinkedList<Long> thirtyMinMemory;
    private Logger logger;
 

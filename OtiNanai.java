@@ -19,7 +19,7 @@ class OtiNanai {
 	 * @param	webThreads	The number of web listener threads
 	 */
 	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads){
-		setupLogger("/home/robert/otinanai.log", "ALL");
+		setupLogger("/home/robert/otinanai.log", "INFO");
 		try {
 			// Listener
 			logger.finest("[Init]: Setting up new DatagramSocket Listener on port "+listenerPort);

@@ -76,15 +76,21 @@ class OtiNanaiListener implements Runnable {
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 		for (String kw : theKeys) {
 			//System.out.println(kw);
+         kw = kw.replaceAll("[;:.,()!@#%^&\\/|'\"?<>]", "");
+         try { 
+            Float.parseFloat(kw);
+            logger.finest("[Listener]: Number, ignored");
+            continue;
+         } catch (NumberFormatException e) {}
 			if (kw.equals("")) {
 				logger.finest("[Listener]: Blank Keyword, ignored");
 				continue;
 			} else if (keyMaps.containsKey(kw)) {
-				logger.fine("[Listener]: Existing keyword detected. Adding to list : " + kw);
+				logger.finest("[Listener]: Existing keyword detected. Adding to list : " + kw);
 				keyMaps.get(kw).add(newRecord.getTimeNano());
 				keyTrackerMap.get(kw).put(newRecord.getTimeStamp());
 			} else {
-				logger.fine("[Listener]: Keyword not detected. Creating new list : " + kw);
+				logger.info("[Listener]: Keyword not detected. Creating new list : " + kw);
 				ArrayList<String> alBundy = new ArrayList<String>();
 				alBundy.add(newRecord.getTimeNano());
 				keyMaps.put(kw, alBundy);
@@ -92,7 +98,7 @@ class OtiNanaiListener implements Runnable {
 				keyTrackerMap.put(kw, new KeyWordTracker(kw, logger));
 			}
 		}
-		logger.fine("[Listener]: Storing to storageMap");
+		logger.finest("[Listener]: Storing to storageMap");
 		storageMap.put(newRecord.getTimeNano(), newRecord);
 //		storage.add(newRecord);
 	}

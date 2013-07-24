@@ -13,9 +13,9 @@ class OtiNanaiTicker implements Runnable {
 		while (true) {
          try {
             Thread.sleep(FIVE_MIN);
-            logger.fine("[Ticker]: TICK ?");
+            logger.info("[Ticker]: TICK ?");
             onl.tick();
-            logger.fine("[Ticker]: TOCK !");
+            logger.info("[Ticker]: TOCK !");
          } catch (InterruptedException ie) {
             logger.severe("[Ticker]: "+ie.getMessage());
          }

@@ -39,7 +39,7 @@ class SomeRecord {
 				Float.parseFloat(tok);
 				metrics.add(new Integer(i));
 			} catch (NumberFormatException e) {
-				String[] subTokens = tok.split("[.:]");
+				String[] subTokens = tok.split("[.]");
 				for (String subTok : subTokens ) {
 					if (subTok.length() >= 2 ) {
 						keyWords.add(subTok);

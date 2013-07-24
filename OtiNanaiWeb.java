@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.logging.*;
+import java.text.SimpleDateFormat;
+
 
 
 class OtiNanaiWeb implements Runnable {
@@ -45,11 +47,21 @@ class OtiNanaiWeb implements Runnable {
 				}
 				boolean alarms=false;
 				boolean graph=false;
+            boolean timeGraph=false;
+            boolean showKeyWords=false;
+            boolean draw=false;
 				switch (requestMessageLine) {
 					case " / ":
 					case "  ":
                   logger.info("[Web]: Sending default blank webpage");
-						String bogus = new String("Robert's random piece of junk.");
+						String bogus = new String();
+                  bogus = bogus 
+                     +"<html><body>"
+                     +"<h3>Robert's random piece of junk.</h3>"
+                     +"<hr>Keys:"
+                     +"<li><a href=\"k\">k</a> : show keywords"
+                     +"<li><a href=\"a\">a</a> : show alarms"
+                     +"</body></html>";
 						sendToClient(bogus.getBytes(), "text/html", false, connectionSocket);
 						break;
 					case " favicon.ico ":
@@ -74,25 +86,47 @@ class OtiNanaiWeb implements Runnable {
 							} catch (NumberFormatException nfe) {
                         logger.fine("[Web]: word is not a metric");
 								switch (word) {
-									case "getAlarms":
-                              logger.fine("[Web]: getAlarms matched");
+                           case "a":
+                              logger.info("[Web]: getAlarms matched");
 										alarms=true;
 										break;
-									case "drawGraph":
-                              logger.fine("[Web]: doGraph matched");
+                           case "k":
+                              logger.info("[Web]: showKeyWords matched");
+                              showKeyWords = true;
+                              break;
+                           default:
+                              logger.info("[Web]: Draw matched");
+                              draw = true;
+                              break;
+                              /*
+                           case "g":
+                              logger.info("[Web]: doGraph matched");
 										graph=true;
 										break;
-									default:
-                              logger.fine("[Web]: processing word "+word);
+                           case "t":
+                              logger.info("[Web]: timeGraph matched");
+										timeGraph=true;
+										break;
+                           default:
+                              logger.info("[Web]: processing word "+word);
 										title.append(word+" ");
 										results = onp.processCommand(results, word.replaceAll("\\s", ""));
 										break;
+                              */
 								}
 							}
 						}
-						String text;
-						if (alarms) {
-							text=getAlarms();
+						String text = new String();
+                  if (showKeyWords) {
+                     text = showKeyWords();
+                  } else if (alarms) {
+							text = getAlarms();
+                  } else if (draw) {
+                     text = draw(request);
+                  }
+                     /*
+                  } else if (timeGraph) {
+                     text = getTimeGraph(request);
 						} else if (metric <= 0) {
 							text = toString(results);
 						} else if (graph) {
@@ -100,6 +134,7 @@ class OtiNanaiWeb implements Runnable {
 						} else {
 							text = toString(results, metric-1);
 						}
+                  */
                   logger.fine("[Web]: got text, sending to client");
 						sendToClient(text.getBytes(), "text/html", false, connectionSocket);
 						connectionSocket.close();
@@ -151,7 +186,7 @@ class OtiNanaiWeb implements Runnable {
 		}
 //		output = output.substring(0, output.length()-1);
 		output = output + "]);\n";
-		output = output + "var options = { title: \""+title+"\" };\n";
+		output = output + "var options = { title: \""+title+"\", hAxis: { direction: \"-1\" }};\n";
 	   output = output + "var chart = new google.visualization.LineChart(document.getElementById('chart_div'));\n";
 	   output = output + "chart.draw(data, options);\n";
 		output = output + "}\n";
@@ -164,76 +199,203 @@ class OtiNanaiWeb implements Runnable {
 		return output;
 	}
 
-	private String toGraph(LinkedList<Long> data, String title) {
+	private String toGraph(LinkedList<String> data, String title) {
       logger.finest("[Web]: Generating graph from KeyWordTracker: "+title);
-		String output = new String();
+		String output = new String("");
 
-		output = output + "['Value'],\n";
+		output = output + "['Time','"+title+"'],\n";
 		SomeRecord sr;
-		for (Long dato : data) {
-         output = output + "['" + dato + "],\n";
-		}
+      if (data.size() == 0 ) {
+         output = "['foo', 0],\n";
+      } else {
+         for (String dato : data) {
+            output = output + "['";
+            String[] twowords = dato.split("\\s");
+            output = output + calcDate(twowords[0]) + "'," + twowords[1];
+            output = output + "],\n";
+         }
+      }
       return output;
 	}
 
+   /*
 	private String toString(ArrayList<String> keyList, int metric) {
       logger.finest("[Web]: Generating Web Output for metric :"+metric);
-		String output = new String("<html><body><pre>");
+		String output = new String("<html><body>");
 		SomeRecord sr;
 		for (String key : keyList) {
 			sr = dataMap.get(key);
 			if (sr.isMetric(metric)) {
-				output = output + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord(metric)+"\n";
+				output = output 
+               + "<div style=\"text-decoration:none;color:green;\">"
+               + sr.getDate() 
+               + "</div><div style=\"text-decoration:none;color:orange;\">"
+               + " " + sr.getHostName() 
+               + "</div><div style=\"text-decoration:none;color:black;\">"
+               + " " + sr.getRecord(metric)
+               + "</div><br>";
 			}
 		}
-		if (output.equals("<html><body><pre>")) {
+		if (output.equals("<html><body>")) {
 			output = output + "No Data";
 		}
-		output = output + "</pre></body></html>";
+		output = output + "</body></html>";
 		return output;
 	}
+   */
 
 	private String toString(ArrayList<String> keyList) {
       logger.finest("[Web]: Generating Web Output");
-		String output = new String("<html><body><pre>");
 		SomeRecord sr;
+      String output = new String();
 		for (String key : keyList) {
 			sr = dataMap.get(key);
-			output = output + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord()+"\n";
+         output = output 
+            + "<div style=\"text-decoration:none;color:green;\">"
+            + sr.getDate() 
+            + "</div><div style=\"text-decoration:none;color:orange;\">"
+            + " " + sr.getHostName() 
+            + "</div><div style=\"text-decoration:none;color:black;\">"
+            + " " + sr.getRecord()
+            + "</div><br>";
+//			output = output + sr.getTimeStamp() + " " + sr.getHostName() + " " + sr.getRecord()+"\n";
 		}
-		output = output + "</pre></body></html>";
 		return output;
 	}
+
+	private String drawText(String keyword) {
+      ArrayList<String> results = new ArrayList<String>();
+      results = onp.processCommand(results, keyword);
+      logger.finest("[Web]: Generating Web Output");
+		SomeRecord sr;
+      String output = new String();
+		for (String key : results) {
+         sr = dataMap.get(key);
+         output = output 
+            + "<div style=\"text-decoration:none;color:green;\">"
+            + sr.getDate() 
+            + "</div><div style=\"text-decoration:none;color:orange;\">"
+            + " " + sr.getHostName() 
+            + "</div><div style=\"text-decoration:none;color:black;\">"
+            + " " + sr.getRecord()
+            + "</div><br>";
+      }
+		return output;
+	}
+
+   private String timeGraphHead(ArrayList<KeyWordTracker> kws) {
+      String output = new String("");
+		for (KeyWordTracker kwt : kws) {
+         output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n";
+         output = output + "<script type=\"text/javascript\">\n";
+         output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
+         output = output + "google.setOnLoadCallback(drawChart);\n";
+         output = output + "function drawChart() {\n";
+         output = output + "var data = google.visualization.arrayToDataTable([\n";
+         output = output + toGraph(kwt.getFiveMinMemory(), kwt.getKeyWord());
+         output = output + "]);\n";
+         output = output + "var options = { title: \""+kwt.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n";
+         output = output + "var chart = new google.visualization.LineChart(document.getElementById('"+kwt.getKeyWord()+"'));\n";
+         output = output + "chart.draw(data, options);\n";
+         output = output + "}\n";
+         output = output + "</script>\n";
+      }
+      return output;
+   }
+
+   private String timeGraphBody(ArrayList<KeyWordTracker> kws) {
+      String output = new String("");
+      for (KeyWordTracker kwt : kws) {
+         output = output + "<div id=\""+kwt.getKeyWord()+"\" style=\"width: 900px; height: 500px;\"></div><br>\n";
+         output = output + drawText(kwt.getKeyWord());
+      }
+      return output;
+   }
+
+   private String draw(String[] keyList) {
+      logger.info("[Web]: Drawing Output for keywords");
+		HashMap<String,KeyWordTracker> allKWs = onl.getKeyTrackerMap();
+      ArrayList<KeyWordTracker> toGraph = new ArrayList<KeyWordTracker> ();
+      for (String key : keyList) {
+         if (allKWs.containsKey(key)) {
+            toGraph.add(allKWs.get(key));
+         }
+      }
+		String output = new String("<html><body>");
+      output = output + timeGraphHead(toGraph);
+		output = output + "</head><body>\n";
+      output = output + timeGraphBody(toGraph);
+		output = output + "</body></html>";
+      return output;
+   }
+/*
+	private String getTimeGraph(String[] keyList) {
+      logger.info("[Web]: Generating TimeGraph Output for keywords");
+		HashMap<String,KeyWordTracker> allKWs = onl.getKeyTrackerMap();
+      ArrayList<KeyWordTracker> toGraph = new ArrayList<KeyWordTracker> ();
+      for (String key : keyList) {
+         if (allKWs.containsKey(key)) {
+            toGraph.add(allKWs.get(key));
+         }
+      }
+      String output = new String("<html><head>");
+      output = output + timeGraphHead(toGraph);
+		output = output + "</head><body>\n";
+      output = output + timeGraphBody(toGraph)
+		output = output + "</body></html>";
+      return output;
+	}
+   */
 
 	private String getAlarms() {
       logger.finest("[Web]: Generating Alarms Output");
 		Collection<KeyWordTracker> allKWs = onl.getKeyTrackerMap().values();
-		String output = new String("<html><head>");
-		output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n";
-		output = output + "<script type=\"text/javascript\">\n";
-		output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
-		output = output + "google.setOnLoadCallback(drawChart);\n";
-		output = output + "function drawChart() {\n";
-		output = output + "var data = google.visualization.arrayToDataTable([\n";
-		for (KeyWordTracker kwt : allKWs) {
-			if (kwt.getAlarm()) {
-				//output=output + "Alarm Exists: " + kwt.getKeyWord() + "\n";
-            output = output + toGraph(kwt.getFiveMinMemory(), kwt.getKeyWord());
-			}
-		}
-      output = output + "]);\n";
-		output = output + "var options = { title: \"FooBar\" };\n";
-	   output = output + "var chart = new google.visualization.LineChart(document.getElementById('chart_div'));\n";
-	   output = output + "chart.draw(data, options);\n";
-		output = output + "}\n";
-		output = output + "</script>\n";
-		output = output + "</head>\n";
-		output = output + "<body>\n";
-		output = output + "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>\n";
-
-		output = output + "</body></html>";
-		return output;
+//      ArrayList<KeyWordTracker> alarmKWs = new ArrayList<KeyWordTracker> ();
+      ArrayList<String> kws = new ArrayList<String> ();
+      for (KeyWordTracker kwt : allKWs ) {
+         if (kwt.getAlarm()) {
+            //alarmKWs.add(kwt);
+            kws.add(kwt.getKeyWord());
+         }
+      }
+      if (kws.size() == 0 ) {
+         return new String("No Alarms");
+      }
+      String[] asd = new String[kws.size()];
+      for (int i=0; i< kws.size(); i++) {
+         asd[i] = kws.get(i);
+      }
+      return draw(asd);
+      /*
+      return draw((String[])kws.toArray());
+      */
 	}
+
+	private String showKeyWords() {
+      logger.finest("[Web]: Generating List of KeyWords");
+		Collection<KeyWordTracker> allKWs = onl.getKeyTrackerMap().values();
+		String output = new String("<html><body>");
+      for (KeyWordTracker kwt : allKWs ) {
+         output = output + "<li><a href = \""+kwt.getKeyWord()+"\">"+kwt.getKeyWord()+"</a></li>\n";
+      }
+		if (output.equals("<html><body>")) {
+			output = output + "No Data";
+		}
+		output = output + "</body></html>";
+      return output;
+	}
+
+   /**
+    * Changes milliseconds into date with format: MM/dd/YY HH:mm:ss
+    * @param   millisecs the millisecs to change
+    * @return  String containing the date.
+    */
+   private String calcDate(String millisecs) {
+      SimpleDateFormat date_format = new SimpleDateFormat("MM/dd/YY HH:mm:ss");
+      Date resultdate = new Date(Long.parseLong(millisecs));
+      return date_format.format(resultdate);
+   }
+
 
 	private OtiNanaiProcessor onp;
 	private OtiNanaiListener onl;
