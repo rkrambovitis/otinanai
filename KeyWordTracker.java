@@ -8,6 +8,7 @@ class KeyWordTracker {
 		thirtyMinCount = 0;
 		thirtyMinMean = 0;
       fiveMinMemory = new LinkedList<String> ();
+      thirtyMinMemory = new LinkedList<String> ();
 		keyWord = new String(key);
 		fiveMinFlush = System.currentTimeMillis();
 		thirtyMinFlush = fiveMinFlush;
@@ -34,14 +35,27 @@ class KeyWordTracker {
    }
 
 	private void flush(long ts) {
-      logger.finest("[KeyWordTracker]: Adding " +fiveMinCount+ " to thirtyMinCount");
+      logger.fine("[KeyWordTracker]: Adding " +fiveMinCount+ " to thirtyMinCount");
 		thirtyMinCount += fiveMinCount;
-      logger.finest("[KeyWordTracker]: Adding from front of stack");
+      logger.finest("[KeyWordTracker]: Adding to front of stack");
       fiveMinMemory.push(new String(ts+" "+fiveMinCount));
 
       if (fiveMinMemory.size() >= FIVE_MINS_DAY) {
-         logger.finest("[KeyWordTracker]: Removing from end of stack");
-         fiveMinMemory.removeLast();
+         long lastThirty = 0;
+         String lastDatoString = new String();
+         String lastts = new String();
+         String lastDato = new String();
+         for (int i=1; i<=6 ; i++) {
+            lastDatoString=fiveMinMemory.get(FIVE_MINS_DAY - i);
+            lastts=lastDatoString.substring(0,lastDatoString.indexOf(" "));
+            lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
+            lastThirty += Long.parseLong(lastDato);
+            //logger.finest("[KeyWordTracker]: Removing from end of stack");
+            //fiveMinMemory.removeLast();
+            fiveMinMemory.remove(FIVE_MINS_DAY -i);
+         }
+         thirtyMinMemory.push(new String(lastts+" "+Math.round(lastThirty/5)));
+
       }
 
 		if (fiveMinMean == 0 ) {
@@ -67,8 +81,19 @@ class KeyWordTracker {
 		return alarm;
 	}
 
-   public LinkedList<String> getFiveMinMemory() {
-      return fiveMinMemory;
+   public LinkedList<String> getMemory() {
+      LinkedList<String> returner = new LinkedList<String>();
+      try {
+         returner.addAll(fiveMinMemory);
+         returner.addAll(thirtyMinMemory);
+         return returner;
+      } catch (NullPointerException npe) {
+         return fiveMinMemory;
+      }
+   }
+
+   public long getThirtySecCount() {
+      return thirtySecCount;
    }
 
    public long getFiveMinCount() {
@@ -89,13 +114,13 @@ class KeyWordTracker {
 	private int sampleCount;
 	private float deviation;
    private LinkedList<String> fiveMinMemory;
-   private LinkedList<Long> thirtyMinMemory;
+   private LinkedList<String> thirtyMinMemory;
    private Logger logger;
 
 	private static final int COUNT = 0;
 	private static final int METRIC = 1;
 	private static final int MINSAMPLES = 2;
 	private static final int ERROR_DEVIATION = 2;
-	private static final int FIVE_MIN = 30000;
-	private static final int FIVE_MINS_DAY = 288;
+	//private static final int FIVE_MINS_DAY = 288;
+	private static final int FIVE_MINS_DAY = 10;
 }

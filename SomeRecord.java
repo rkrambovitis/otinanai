@@ -30,10 +30,17 @@ class SomeRecord {
 	 * @param	str	the data to be broken down
 	 */
 	private void findKeyWords(String str) {
+      str = str.toLowerCase();
 		String[] Tokens = str.split("[ \t]");
 		//for (String tok : Tokens ) {
 		metrics = new ArrayList<Integer>();
-		for (int i=0; i<Tokens.length; i++ ) {
+      int i=0;
+      boolean indexAll = false;
+      if (Tokens[i].equals("index")) {
+         indexAll = true;
+         i++;
+      }
+		for (; i<Tokens.length; i++ ) {
 			String tok = Tokens[i];
 			try {
 				Float.parseFloat(tok);
@@ -48,9 +55,10 @@ class SomeRecord {
 					}
 				}
             */
-            if (tok.length() >= 3 ) {
+            if ( tok.length() >= 3 && tok.length() < 48 ) {
                keyWords.add(tok);
-               break;
+               if (!indexAll)
+                  break;
             }
 			}
 		}

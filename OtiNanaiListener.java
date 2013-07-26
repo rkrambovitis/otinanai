@@ -45,7 +45,7 @@ class OtiNanaiListener implements Runnable {
 	 */
 	public void run() {
 		while(true) {
-			byte[] receiveData = new byte[1024];
+			byte[] receiveData = new byte[1490];
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			try {
 				dataSocket.receive(receivePacket);
@@ -88,7 +88,7 @@ class OtiNanaiListener implements Runnable {
 				keyMaps.get(kw).add(newRecord.getTimeNano());
 				keyTrackerMap.get(kw).put(newRecord.getTimeStamp());
             if (keyMaps.get(kw).size() >= MAXSAMPLES) {
-               String uid = keyMaps.get(kw).get(MAXSAMPLES);
+               String uid = keyMaps.get(kw).get(0);
                keyMaps.get(kw).remove(uid);
                storageMap.remove(uid);
             }
@@ -147,5 +147,5 @@ class OtiNanaiListener implements Runnable {
 	private int port;
 	private DatagramSocket dataSocket;
 	private Logger logger;
-   private static final int MAXSAMPLES = 100;
+   private static final int MAXSAMPLES = 20;
 }

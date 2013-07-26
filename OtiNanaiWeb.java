@@ -201,25 +201,30 @@ class OtiNanaiWeb implements Runnable {
 	private String drawText(String keyword) {
       ArrayList<String> results = new ArrayList<String>();
       results = onp.processCommand(results, keyword);
+      Collections.reverse(results);
       logger.finest("[Web]: Generating Web Output");
 		SomeRecord sr;
       String output = new String();
       output = output + "<div id=\"wrapper\">";
-      int i=0;
+      int c=0;
 		for (String key : results) {
          sr = dataMap.get(key);
-         output = output 
-            + "<div class=\"log\"><span class=\"date\">"
-            + sr.getDate() 
-            + "</span><span class=\"server\">"
-            + sr.getHostName() 
-            + "</span><span class=\"data\">"
-            + sr.getRecord()
-            + "</span></div>\n";
-            if (i >= 10) {
-               break;
-            }
-            i++;
+         try {
+            output = output 
+               + "<div class=\"log\"><span class=\"date\">"
+               + sr.getDate() 
+               + "</span><span class=\"server\">"
+               + sr.getHostName() 
+               + "</span><span class=\"data\">"
+               + sr.getRecord()
+               + "</span></div>\n";
+         } catch (NullPointerException npe) {
+            logger.severe(npe.getMessage());
+         }
+         if (c >= MAX_LOG_OUTPUT) {
+            break;
+         }
+         c++;
       }
       output = output + "</div>";
 		return output;
@@ -234,7 +239,7 @@ class OtiNanaiWeb implements Runnable {
          output = output + "google.setOnLoadCallback(drawChart);\n";
          output = output + "function drawChart() {\n";
          output = output + "var data = google.visualization.arrayToDataTable([\n";
-         output = output + toGraph(kwt.getFiveMinMemory(), kwt.getKeyWord());
+         output = output + toGraph(kwt.getMemory(), kwt.getKeyWord());
          output = output + "]);\n";
          output = output + "var options = { title: \""+kwt.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n";
          output = output + "var chart = new google.visualization.LineChart(document.getElementById('myGraph'));\n";
@@ -261,6 +266,7 @@ class OtiNanaiWeb implements Runnable {
 		HashMap<String,KeyWordTracker> allKWs = onl.getKeyTrackerMap();
       ArrayList<KeyWordTracker> toGraph = new ArrayList<KeyWordTracker> ();
       for (String key : keyList) {
+         key=key.toLowerCase();
          if (allKWs.containsKey(key)) {
             toGraph.add(allKWs.get(key));
          }
@@ -333,4 +339,5 @@ class OtiNanaiWeb implements Runnable {
 	private int port;
 	private ServerSocket listenSocket;
 	private Logger logger;
+   private static int MAX_LOG_OUTPUT=20;
 }
