@@ -23,7 +23,7 @@ class OtiNanaiTicker implements Runnable {
 	}
 	
 	private OtiNanaiListener onl;
-   private static final int FIVE_MIN = 3000;
+   private static final int FIVE_MIN = 30000;
    private Logger logger;
 }
 

@@ -3,18 +3,16 @@ import java.util.*;
 
 class KeyWordTracker {
 	public KeyWordTracker(String key, Logger l) {
+		mean = 0;
+		thirtySecCount = 0;
 		fiveMinCount = 0;
-		fiveMinMean = 0;
 		thirtyMinCount = 0;
-		thirtyMinMean = 0;
+      thirtySecMemory = new LinkedList<String> ();
       fiveMinMemory = new LinkedList<String> ();
       thirtyMinMemory = new LinkedList<String> ();
 		keyWord = new String(key);
-		fiveMinFlush = System.currentTimeMillis();
-		thirtyMinFlush = fiveMinFlush;
       logger = l;
 		sampleCount = 1;
-		deviation = 0;
 		alarm = false;
       logger.finest("[KeyWordTracker]: new KeyWordTracker initialized for \"" +keyWord+"\"");
 	}
@@ -24,57 +22,68 @@ class KeyWordTracker {
 	}
 
 	public void put(long ts) {
-		fiveMinCount ++;
+		thirtySecCount ++;
       logger.finest("[KeyWordTracker]: fiveMinCount is now " +fiveMinCount);
 	}
 
    public void tick(long ts) {
       logger.fine("[KeyWordTracker]: ticking " + keyWord );
-      fiveMinFlush=ts;
       flush(ts);
    }
 
 	private void flush(long ts) {
-      logger.fine("[KeyWordTracker]: Adding " +fiveMinCount+ " to thirtyMinCount");
-		thirtyMinCount += fiveMinCount;
-      logger.finest("[KeyWordTracker]: Adding to front of stack");
-      fiveMinMemory.push(new String(ts+" "+fiveMinCount));
+      thirtySecMemory.push(new String(ts+" "+fiveMinCount));
 
-      if (fiveMinMemory.size() >= FIVE_MINS_DAY) {
-         long lastThirty = 0;
-         String lastDatoString = new String();
-         String lastts = new String();
-         String lastDato = new String();
-         for (int i=1; i<=6 ; i++) {
-            lastDatoString=fiveMinMemory.get(FIVE_MINS_DAY - i);
+      long lastMerge;
+      String lastDatoString = new String();
+      String lastts = new String();
+      String lastDato = new String();
+
+      if (thirtySecMemory.size() >= THIRTY_SEC_SAMPLES) {
+         lastMerge = 0;
+         for (int i=1; i<=THIRTY_S_TO_FIVE_M ; i++) {
+            lastDatoString=thirtySecMemory.get(THIRTY_SEC_SAMPLES - i);
             lastts=lastDatoString.substring(0,lastDatoString.indexOf(" "));
             lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
-            lastThirty += Long.parseLong(lastDato);
-            //logger.finest("[KeyWordTracker]: Removing from end of stack");
-            //fiveMinMemory.removeLast();
-            fiveMinMemory.remove(FIVE_MINS_DAY -i);
+            lastMerge += Long.parseLong(lastDato);
+            thirtySecMemory.remove(THIRTY_SEC_SAMPLES -i);
          }
-         thirtyMinMemory.push(new String(lastts+" "+Math.round(lastThirty/5)));
-
+         fiveMinMemory.push(new String(lastts+" "+Math.round(lastMerge/THIRTY_S_TO_FIVE_M)));
       }
 
-		if (fiveMinMean == 0 ) {
-         logger.finest("[KeyWordTracker]: fiveMinMean is 0, setting new value");
-			fiveMinMean = fiveMinCount;
+      if (fiveMinMemory.size() >= FIVE_MIN_SAMPLES) {
+         lastMerge = 0;
+         for (int i=1; i<=FIVE_M_TO_THIRTY_M ; i++) {
+            lastDatoString=fiveMinMemory.get(FIVE_MIN_SAMPLES - i);
+            lastts=lastDatoString.substring(0,lastDatoString.indexOf(" "));
+            lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
+            lastMerge += Long.parseLong(lastDato);
+            fiveMinMemory.remove(FIVE_MIN_SAMPLES -i);
+         }
+         thirtyMinMemory.push(new String(lastts+" "+Math.round(lastMerge/FIVE_M_TO_THIRTY_M)));
+      }
+
+      
+
+      if (sampleCount < MEANSAMPLES)
+         sampleCount++;
+
+		if (mean == 0 ) {
+         logger.finest("[KeyWordTracker]: mean is 0, setting new value");
+			mean = thirtySecCount;
+         sampleCount = 1;
 		} else {
-         logger.finest("[KeyWordTracker]: Calculating new fiveMinMean");
-			deviation = (fiveMinCount - fiveMinMean)/fiveMinMean;
-			fiveMinMean += (fiveMinCount - fiveMinMean)/sampleCount;
-		}
-		sampleCount++;
-		fiveMinCount = 0;
-		if ((sampleCount > MINSAMPLES) && (deviation >= ERROR_DEVIATION)) {
-         logger.info("[KeyWordTracker]: Error conditions met for " + keyWord);
-			alarm=true;
+         logger.finest("[KeyWordTracker]: Calculating new mean");
+			float deviation = (thirtySecCount - mean)/mean;
+			mean += (thirtySecCount - mean)/MEANSAMPLES;
+
+         if ((sampleCount > MEANSAMPLES) && (deviation >= ERROR_DEVIATION)) {
+            logger.info("[KeyWordTracker]: Error conditions met for " + keyWord);
+            alarm=true;
+         }
       }
-      if (sampleCount >= FIVE_MINS_DAY ) {
-			sampleCount = 1;
-		}
+
+      thirtySecCount = 0;
 	}
 
 	public boolean getAlarm() {
@@ -84,12 +93,21 @@ class KeyWordTracker {
    public LinkedList<String> getMemory() {
       LinkedList<String> returner = new LinkedList<String>();
       try {
-         returner.addAll(fiveMinMemory);
-         returner.addAll(thirtyMinMemory);
-         return returner;
-      } catch (NullPointerException npe) {
-         return fiveMinMemory;
+         returner.addAll(thirtySecMemory);
+      } catch (NullPointerException e1) {
+         logger.severe(e1.getMessage());
       }
+      try {
+         returner.addAll(fiveMinMemory);
+      } catch (NullPointerException e2) {
+         logger.severe(e2.getMessage());
+      }
+      try {
+         returner.addAll(thirtyMinMemory);
+      } catch (NullPointerException e3) {
+         logger.severe(e3.getMessage());
+      }
+      return returner;
    }
 
    public long getThirtySecCount() {
@@ -104,23 +122,24 @@ class KeyWordTracker {
    }
 
 	private boolean alarm;
-	private long fiveMinFlush;
-	private long thirtyMinFlush;
 	private String keyWord;
+	private long thirtySecCount;
 	private long fiveMinCount;
 	private long thirtyMinCount;
-	private float fiveMinMean;
-	private long thirtyMinMean;
+	private float mean;
 	private int sampleCount;
-	private float deviation;
+   private LinkedList<String> thirtySecMemory;
    private LinkedList<String> fiveMinMemory;
    private LinkedList<String> thirtyMinMemory;
    private Logger logger;
 
 	private static final int COUNT = 0;
 	private static final int METRIC = 1;
-	private static final int MINSAMPLES = 2;
+	private static final int MEANSAMPLES = 10;
 	private static final int ERROR_DEVIATION = 2;
-	//private static final int FIVE_MINS_DAY = 288;
-	private static final int FIVE_MINS_DAY = 10;
+
+   private static final int THIRTY_SEC_SAMPLES = 30;
+   private static final int THIRTY_S_TO_FIVE_M = 10;
+	private static final int FIVE_MIN_SAMPLES = 288;
+   private static final int FIVE_M_TO_THIRTY_M = 6;
 }
