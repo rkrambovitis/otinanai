@@ -21,12 +21,9 @@ class KeyWordTracker {
 		return keyWord;
 	}
 
-   public void put(String host) {
-   }
-
-	public void put(long ts) {
+	public void put() {
 		thirtySecCount ++;
-      logger.finest("[KeyWordTracker]: fiveMinCount is now " +fiveMinCount);
+      logger.finest("[KeyWordTracker]: thirtySecCount is now " +thirtySecCount);
 	}
 
    public void tick(long ts) {

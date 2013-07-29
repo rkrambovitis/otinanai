@@ -86,7 +86,7 @@ class OtiNanaiListener implements Runnable {
 			} else if (keyMaps.containsKey(kw)) {
 				logger.finest("[Listener]: Existing keyword detected. Adding to list : " + kw);
 				keyMaps.get(kw).add(newRecord.getTimeNano());
-				keyTrackerMap.get(kw).put(newRecord.getTimeStamp());
+				keyTrackerMap.get(kw).put();
             if (keyMaps.get(kw).size() >= MAXSAMPLES) {
                String uid = keyMaps.get(kw).get(0);
                keyMaps.get(kw).remove(uid);
