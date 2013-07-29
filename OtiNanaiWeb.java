@@ -145,53 +145,59 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
+   /*
 	private String toGraph(ArrayList<String> keyList, int metric, String title) {
       logger.finest("[Web]: Generating graph: "+title);
 		String output = new String("<html><head>\r");
-		output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n";
-		output = output + "<script type=\"text/javascript\">\n";
-		output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
-		output = output + "google.setOnLoadCallback(drawChart);\n";
-		output = output + "function drawChart() {\n";
-		output = output + "var data = google.visualization.arrayToDataTable([\n";
+		output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
+         + "<script type=\"text/javascript\">\n"
+         + "google.load(\"visualization\", \"1\", {packages:[\"annotatedtimeline\"]});\n"
+         + "google.setOnLoadCallback(drawChart);\n"
+         + "function drawChart() {\n"
+         + "var data = new google.visualization.DataTable();"
+         + "data.addColumn('datetime', 'Date')"
+         + "data.addColumn('number', '"+title+"');"
+         + "data.addRows([";
 
-		output = output + "['Timestamp', 'Value'],\n";
+//		output = output + "var data = google.visualization.arrayToDataTable([\n";
+//		output = output + "['Timestamp', 'Value'],\n";
+
 		SomeRecord sr;
 		for (String key : keyList) {
 			sr = dataMap.get(key);
 			if (sr.isMetric(metric)) {
 				output = output + "['" + sr.getDate() + "', " + sr.getRecord(metric) + "],\n";
 			} else {
-				output = output + "['foo', 0],\n";
+				output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
 			}
 		}
-		output = output + "]);\n";
-		output = output + "var options = { title: \""+title+"\", hAxis: { direction: \"-1\" }};\n";
-	   output = output + "var chart = new google.visualization.LineChart(document.getElementById('chart_div'));\n";
-	   output = output + "chart.draw(data, options);\n";
-		output = output + "}\n";
-		output = output + "</script>\n";
-		output = output + "</head>\n";
-		output = output + "<body>\n";
-		output = output + "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>\n";
-		output = output + "</body>\n";
-		output = output + "</html>\n";
+		output = output + "]);\n"
+         + "var options = { title: \""+title+"\", hAxis: { direction: \"-1\" }};\n"
+         + "var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('chart_div'));\n"
+         + "chart.draw(data, options);\n"
+         + "}\n"
+         + "</script>\n"
+         + "</head>\n"
+         + "<body>\n"
+         + "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>\n"
+         + "</body>\n"
+         + "</html>\n";
 		return output;
 	}
+   */
 
 	private String toGraph(LinkedList<String> data, String title) {
       logger.finest("[Web]: Generating graph from KeyWordTracker: "+title);
-		String output = new String("");
+		String output = new String("\n");
 
-		output = output + "['Time','"+title+"'],\n";
 		SomeRecord sr;
       if (data.size() == 0 ) {
-         output = "['foo', 0],\n";
+				output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
       } else {
          for (String dato : data) {
-            output = output + "['";
+            output = output + "[";
             String[] twowords = dato.split("\\s");
-            output = output + calcDate(twowords[0]) + "'," + twowords[1];
+            output = output + calcDate(twowords[0]) + "," + twowords[1];
             output = output + "],\n";
          }
       }
@@ -233,20 +239,22 @@ class OtiNanaiWeb implements Runnable {
    private String timeGraphHead(ArrayList<KeyWordTracker> kws) {
       String output = new String("");
 		for (KeyWordTracker kwt : kws) {
-         output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n";
-         output = output + "<script type=\"text/javascript\">\n";
-         output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
-         output = output + "google.setOnLoadCallback(drawChart);\n";
-         output = output + "function drawChart() {\n";
-         output = output + "var data = google.visualization.arrayToDataTable([\n";
-         output = output + toGraph(kwt.getMemory(), kwt.getKeyWord());
-         output = output + "]);\n";
-         output = output + "var options = { title: \""+kwt.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n";
-         output = output + "var chart = new google.visualization.LineChart(document.getElementById('myGraph'));\n";
-         //output = output + "var chart = new google.visualization.LineChart(document.getElementById('"+kwt.getKeyWord()+"'));\n";
-         output = output + "chart.draw(data, options);\n";
-         output = output + "}\n";
-         output = output + "</script>\n";
+         output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
+            + "<script type=\"text/javascript\">\n"
+            + "google.load(\"visualization\", \"1\", {packages:[\"annotatedtimeline\"]});\n"
+            + "google.setOnLoadCallback(drawChart);\n"
+            + "function drawChart() {\n"
+            + "var data = new google.visualization.DataTable();\n"
+            + "data.addColumn('datetime', 'Date');\n"
+            + "data.addColumn('number', '"+kwt.getKeyWord()+"');\n"
+            + "data.addRows(["
+            + toGraph(kwt.getMemory(), kwt.getKeyWord())
+            + "]);\n"
+            + "var options = { title: \""+kwt.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n"
+            + "var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('myGraph'));\n"
+            + "chart.draw(data, options);\n"
+            + "}\n"
+            + "</script>\n";
       }
       return output;
    }
@@ -254,7 +262,6 @@ class OtiNanaiWeb implements Runnable {
    private String timeGraphBody(ArrayList<KeyWordTracker> kws) {
       String output = new String("");
       for (KeyWordTracker kwt : kws) {
-         //output = output + "<div id=\""+kwt.getKeyWord()+"\"></div><br>\n";
          output = output + "<div id=\"myGraph\"></div><br>\n";
          output = output + drawText(kwt.getKeyWord());
       }
@@ -272,11 +279,11 @@ class OtiNanaiWeb implements Runnable {
          }
       }
 		String output = new String("<html><head>\n");
-      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n";
-      output = output + timeGraphHead(toGraph);
-		output = output + "</head><body>\n";
-      output = output + timeGraphBody(toGraph);
-		output = output + "</body></html>";
+      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+         + timeGraphHead(toGraph)
+         + "</head><body>\n"
+         + timeGraphBody(toGraph)
+         + "</body></html>";
       return output;
    }
 
@@ -327,7 +334,7 @@ class OtiNanaiWeb implements Runnable {
     * @return  String containing the date.
     */
    private String calcDate(String millisecs) {
-      SimpleDateFormat date_format = new SimpleDateFormat("MM/dd/YY HH:mm:ss");
+      SimpleDateFormat date_format = new SimpleDateFormat("'new Date('yyyy,MM,dd,HH,mm,ss')'");
       Date resultdate = new Date(Long.parseLong(millisecs));
       return date_format.format(resultdate);
    }

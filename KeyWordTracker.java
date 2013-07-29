@@ -21,6 +21,9 @@ class KeyWordTracker {
 		return keyWord;
 	}
 
+   public void put(String host) {
+   }
+
 	public void put(long ts) {
 		thirtySecCount ++;
       logger.finest("[KeyWordTracker]: fiveMinCount is now " +fiveMinCount);
@@ -32,7 +35,10 @@ class KeyWordTracker {
    }
 
 	private void flush(long ts) {
-      thirtySecMemory.push(new String(ts+" "+fiveMinCount));
+      logger.fine("[KeyWordTracker]: thirtySecCount = " +thirtySecCount);
+      float perSec = ((float)thirtySecCount / 30);
+      logger.fine("[KeyWordTracker]: perSec = " +perSec);
+      thirtySecMemory.push(new String(ts+" "+perSec));
 
       long lastMerge;
       String lastDatoString = new String();
@@ -45,7 +51,7 @@ class KeyWordTracker {
             lastDatoString=thirtySecMemory.get(THIRTY_SEC_SAMPLES - i);
             lastts=lastDatoString.substring(0,lastDatoString.indexOf(" "));
             lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
-            lastMerge += Long.parseLong(lastDato);
+            lastMerge += Float.parseFloat(lastDato);
             thirtySecMemory.remove(THIRTY_SEC_SAMPLES -i);
          }
          fiveMinMemory.push(new String(lastts+" "+Math.round(lastMerge/THIRTY_S_TO_FIVE_M)));
@@ -69,15 +75,15 @@ class KeyWordTracker {
          sampleCount++;
 
 		if (mean == 0 ) {
-         logger.finest("[KeyWordTracker]: mean is 0, setting new value");
+         logger.fine("[KeyWordTracker]: mean is 0, setting new value");
 			mean = thirtySecCount;
          sampleCount = 1;
 		} else {
-         logger.finest("[KeyWordTracker]: Calculating new mean");
+         logger.fine("[KeyWordTracker]: Calculating new mean");
 			float deviation = (thirtySecCount - mean)/mean;
 			mean += (thirtySecCount - mean)/MEANSAMPLES;
 
-         if ((sampleCount > MEANSAMPLES) && (deviation >= ERROR_DEVIATION)) {
+         if ((sampleCount >= MEANSAMPLES) && (deviation >= ERROR_DEVIATION)) {
             logger.info("[KeyWordTracker]: Error conditions met for " + keyWord);
             alarm=true;
          }
@@ -138,8 +144,8 @@ class KeyWordTracker {
 	private static final int MEANSAMPLES = 10;
 	private static final int ERROR_DEVIATION = 2;
 
-   private static final int THIRTY_SEC_SAMPLES = 30;
+   private static final int THIRTY_SEC_SAMPLES = 300;
    private static final int THIRTY_S_TO_FIVE_M = 10;
-	private static final int FIVE_MIN_SAMPLES = 288;
+	private static final int FIVE_MIN_SAMPLES = 2880;
    private static final int FIVE_M_TO_THIRTY_M = 6;
 }

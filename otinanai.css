@@ -15,6 +15,7 @@ body {
    margin: 0 auto; 
 }
 #mygraph { 
+   height: 50%;
    border-bottom: 1px solid #ccc; 
    padding-bottom: 20px; 
    margin-bottom: 20px; 
