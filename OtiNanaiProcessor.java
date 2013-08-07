@@ -27,7 +27,7 @@ class OtiNanaiProcessor {
 		//storage = onl.getData();
 		dataMap = onl.getDataMap();
 		keyMaps = onl.getKeyMaps();
-		keyTrackerMap = onl.getKeyTrackerMap();
+		memoryMap = onl.getMemoryMap();
 		String word = input;
 		String rest;
 		String firstChar;
@@ -110,5 +110,5 @@ class OtiNanaiProcessor {
 //	private CopyOnWriteArrayList<SomeRecord> storage;
 	private HashMap<String,SomeRecord> dataMap;
 	private HashMap<String,ArrayList<String>> keyMaps;
-	private HashMap<String,KeyWordTracker> keyTrackerMap;
+	private HashMap<String,OtiNanaiMemory> memoryMap;
 }

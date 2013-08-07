@@ -186,8 +186,48 @@ class OtiNanaiWeb implements Runnable {
 	}
    */
 
+
+   private String toGraph(OtiNanaiMemory onm) {
+      logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+onm.getKeyWord());
+		String output = new String("\n");
+      SomeRecord sr;
+      int i=0;
+      Set<String> gah = onm.getAllHosts();
+      int gahSize = gah.size();
+      if (gahSize == 2)
+         gahSize = 1;
+      for (String host : gah) {
+         LinkedList<String> data = onm.getMemory(host);
+         if (data.size() == 0 ) {
+            output = output + "[new Date(2013,07,30,0,0,0)";
+            for (int j=0; j<gahSize; j++) {
+               output=output + ",undefined";
+            }
+            output = output + "],\n";
+         } else {
+            for (String dato : data) {
+               output = output + "[";
+               String[] twowords = dato.split("\\s");
+               output = output + calcDate(twowords[0]) + ",";
+               for (int j=0;j<i;j++) {
+                  output=output + "undefined,";
+               }
+               output = output + twowords[1];
+               for (int j=i+1; j<gahSize; j++) {
+                  output=output + ",undefined";
+               }
+               output = output + "],\n";
+            }
+         }
+         if (gahSize == 1)
+            break;
+         i++;
+      }
+      return output;
+   }
+
 	private String toGraph(LinkedList<String> data, String title) {
-      logger.finest("[Web]: Generating graph from KeyWordTracker: "+title);
+      logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+title);
 		String output = new String("\n");
 
 		SomeRecord sr;
@@ -236,21 +276,30 @@ class OtiNanaiWeb implements Runnable {
 		return output;
 	}
 
-   private String timeGraphHead(ArrayList<KeyWordTracker> kws) {
+   private String timeGraphHead(ArrayList<OtiNanaiMemory> kws) {
       String output = new String("");
-		for (KeyWordTracker kwt : kws) {
+		for (OtiNanaiMemory onm : kws) {
          output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
             + "<script type=\"text/javascript\">\n"
             + "google.load(\"visualization\", \"1\", {packages:[\"annotatedtimeline\"]});\n"
             + "google.setOnLoadCallback(drawChart);\n"
             + "function drawChart() {\n"
             + "var data = new google.visualization.DataTable();\n"
-            + "data.addColumn('datetime', 'Date');\n"
-            + "data.addColumn('number', '"+kwt.getKeyWord()+"');\n"
-            + "data.addRows(["
-            + toGraph(kwt.getMemory(), kwt.getKeyWord())
+            + "data.addColumn('datetime', 'Date');\n";
+         for (String host : onm.getAllHosts()) {
+            if (onm.getAllHosts().size() == 2) {
+               output = output + "data.addColumn('number', '"+onm.getKeyWord()+"');\n";
+               break;
+            }
+            output = output + "data.addColumn('number', '"+host+"');\n";
+         }
+//            + "data.addColumn('string', 'Host');\n";
+//            + "data.addColumn('number', '"+onm.getKeyWord()+"');\n"
+         output = output + "data.addRows(["
+            + toGraph(onm)
+            //+ toGraph(onm.getMemory(), onm.getKeyWord())
             + "]);\n"
-            + "var options = { title: \""+kwt.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n"
+            + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n"
             + "var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('myGraph'));\n"
             + "chart.draw(data, options);\n"
             + "}\n"
@@ -259,43 +308,42 @@ class OtiNanaiWeb implements Runnable {
       return output;
    }
 
-   private String timeGraphBody(ArrayList<KeyWordTracker> kws) {
+   private String timeGraphBody(ArrayList<OtiNanaiMemory> kws) {
       String output = new String("");
-      for (KeyWordTracker kwt : kws) {
+      for (OtiNanaiMemory onm : kws) {
          output = output + "<div id=\"myGraph\"></div><br>\n";
-         output = output + drawText(kwt.getKeyWord());
+         output = output + drawText(onm.getKeyWord());
       }
       return output;
    }
 
    private String draw(String[] keyList) {
       logger.info("[Web]: Drawing Output for keywords");
-		HashMap<String,KeyWordTracker> allKWs = onl.getKeyTrackerMap();
-      ArrayList<KeyWordTracker> toGraph = new ArrayList<KeyWordTracker> ();
+		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
+      ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
       for (String key : keyList) {
          key=key.toLowerCase();
          if (allKWs.containsKey(key)) {
-            toGraph.add(allKWs.get(key));
+            graphMe.add(allKWs.get(key));
          }
       }
 		String output = new String("<html><head>\n");
       output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
-         + timeGraphHead(toGraph)
+         + timeGraphHead(graphMe)
          + "</head><body>\n"
-         + timeGraphBody(toGraph)
+         + timeGraphBody(graphMe)
          + "</body></html>";
       return output;
    }
 
 	private String getAlarms() {
       logger.finest("[Web]: Generating Alarms Output");
-		Collection<KeyWordTracker> allKWs = onl.getKeyTrackerMap().values();
+		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
 		String output = new String("<html><body>");
       ArrayList<String> kws = new ArrayList<String> ();
-      for (KeyWordTracker kwt : allKWs ) {
-         if (kwt.getAlarm()) {
-            //kws.add(kwt.getKeyWord());
-            kws.add(kwt.getKeyWord()+" "+kwt.getFiveMinCount()+" "+kwt.getThirtyMinCount());
+      for (OtiNanaiMemory onm : allOMs ) {
+         if (onm.getAlarm()) {
+            kws.add(onm.getKeyWord());//+" "+onm.getFiveMinCount()+" "+onm.getThirtyMinCount());
          }
       }
       output = output + listKeyWords(kws);
@@ -309,19 +357,20 @@ class OtiNanaiWeb implements Runnable {
          return new String("No KeyWords");
       }
       for (String kw : keyWords ) {
-         String first = kw.substring(0,kw.indexOf(" "));
-         output = output + "<li><a href = \""+first+"\">"+kw+"</a></li>\n";
+         //String first = kw.substring(0,kw.indexOf(" "));
+        // output = output + "<li><a href = \""+first+"\">"+kw+"</a></li>\n";
+         output = output + "<li><a href = \""+kw+"\">"+kw+"</a></li>\n";
       }
       return output;
    }
 
 	private String showKeyWords() {
       logger.finest("[Web]: Generating List of KeyWords");
-		Collection<KeyWordTracker> allKWs = onl.getKeyTrackerMap().values();
+		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
 		String output = new String("<html><body>");
       ArrayList<String> kws = new ArrayList<String>();
-      for (KeyWordTracker kwt : allKWs ) {
-         kws.add(kwt.getKeyWord()+" "+kwt.getFiveMinCount()+" "+kwt.getThirtyMinCount());
+      for (OtiNanaiMemory onm : allOMs ) {
+         kws.add(onm.getKeyWord());//+" "+onm.getFiveMinCount()+" "+onm.getThirtyMinCount());
       }
       output = output + listKeyWords(kws);
 		output = output + "</body></html>";
@@ -334,7 +383,7 @@ class OtiNanaiWeb implements Runnable {
     * @return  String containing the date.
     */
    private String calcDate(String millisecs) {
-      SimpleDateFormat date_format = new SimpleDateFormat("'new Date('yyyy,MM,dd,HH,mm,ss')'");
+      SimpleDateFormat date_format = new SimpleDateFormat("'new Date('yyyy,MM-1,dd,HH,mm,ss')'");
       Date resultdate = new Date(Long.parseLong(millisecs));
       return date_format.format(resultdate);
    }

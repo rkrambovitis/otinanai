@@ -35,9 +35,9 @@ class KeyWordTracker {
       logger.fine("[KeyWordTracker]: thirtySecCount = " +thirtySecCount);
       float perSec = ((float)thirtySecCount / 30);
       logger.fine("[KeyWordTracker]: perSec = " +perSec);
-      thirtySecMemory.push(new String(ts+" "+perSec));
+      thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
 
-      long lastMerge;
+      float lastMerge;
       String lastDatoString = new String();
       String lastts = new String();
       String lastDato = new String();
@@ -48,10 +48,13 @@ class KeyWordTracker {
             lastDatoString=thirtySecMemory.get(THIRTY_SEC_SAMPLES - i);
             lastts=lastDatoString.substring(0,lastDatoString.indexOf(" "));
             lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
+            logger.fine("[KeyWordTracker]: Aggregating: "+lastMerge+" += "+lastDato);
             lastMerge += Float.parseFloat(lastDato);
             thirtySecMemory.remove(THIRTY_SEC_SAMPLES -i);
          }
-         fiveMinMemory.push(new String(lastts+" "+Math.round(lastMerge/THIRTY_S_TO_FIVE_M)));
+         float finalSum = lastMerge/THIRTY_S_TO_FIVE_M;
+         logger.fine("[KeyWordTracker]: Aggregated to : "+ lastMerge + "/"+THIRTY_S_TO_FIVE_M+" = "+finalSum);
+         fiveMinMemory.push(new String(lastts+" "+String.format("%.2f", finalSum)));
       }
 
       if (fiveMinMemory.size() >= FIVE_MIN_SAMPLES) {

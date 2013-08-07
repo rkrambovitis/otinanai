@@ -16,7 +16,7 @@ class OtiNanaiListener implements Runnable {
 		logger = l;
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
-		keyTrackerMap = new HashMap<String, KeyWordTracker>();
+		memoryMap = new HashMap<String, OtiNanaiMemory>();
       keyWords = new ArrayList<String>();
 		port = lp;
 		dataSocket = new DatagramSocket(lp);
@@ -32,7 +32,7 @@ class OtiNanaiListener implements Runnable {
 		logger = l;
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
-		keyTrackerMap = new HashMap<String, KeyWordTracker>();
+		memoryMap = new HashMap<String, OtiNanaiMemory>();
       keyWords = new ArrayList<String>();
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
@@ -86,7 +86,7 @@ class OtiNanaiListener implements Runnable {
 			} else if (keyMaps.containsKey(kw)) {
 				logger.finest("[Listener]: Existing keyword detected. Adding to list : " + kw);
 				keyMaps.get(kw).add(newRecord.getTimeNano());
-				keyTrackerMap.get(kw).put();
+				memoryMap.get(kw).put(newRecord.getHostName());
             if (keyMaps.get(kw).size() >= MAXSAMPLES) {
                String uid = keyMaps.get(kw).get(0);
                keyMaps.get(kw).remove(uid);
@@ -98,7 +98,7 @@ class OtiNanaiListener implements Runnable {
 				alBundy.add(newRecord.getTimeNano());
 				keyMaps.put(kw, alBundy);
             keyWords.add(kw);
-				keyTrackerMap.put(kw, new KeyWordTracker(kw, logger));
+				memoryMap.put(kw, new OtiNanaiMemory(kw, logger));
 			}
 		}
 		logger.finest("[Listener]: Storing to storageMap");
@@ -122,8 +122,8 @@ class OtiNanaiListener implements Runnable {
 	/**
 	 * Access Method
 	 */
-	public HashMap<String,KeyWordTracker> getKeyTrackerMap() {
-		return keyTrackerMap;
+	public HashMap<String,OtiNanaiMemory> getMemoryMap() {
+		return memoryMap;
 	}
 	
 	/**
@@ -136,14 +136,14 @@ class OtiNanaiListener implements Runnable {
    public void tick() {
       long now=System.currentTimeMillis();
       for (String kw : keyWords) {
-         keyTrackerMap.get(kw).tick(now);
+         memoryMap.get(kw).tick(now);
       }
    }
 
    private ArrayList<String> keyWords;
 	private HashMap<String,SomeRecord> storageMap;
 	private HashMap<String,ArrayList<String>> keyMaps;
-	private HashMap<String,KeyWordTracker> keyTrackerMap; 
+	private HashMap<String,OtiNanaiMemory> memoryMap; 
 	private int port;
 	private DatagramSocket dataSocket;
 	private Logger logger;
