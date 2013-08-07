@@ -18,26 +18,31 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife){
 		setupLogger("/home/robert/otinanai.log", "INFO");
 		try {
 			// Listener
-			logger.finest("[Init]: Setting up new DatagramSocket Listener on port "+listenerPort);
+			logger.config("[Init]: Setting up new DatagramSocket Listener on port "+listenerPort);
+			logger.config("[Init]: Deviation Alarm life: "+alarmLife + "s");
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, logger);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, logger);
 			new Thread(onl).start();
 
          // Ticker
-         logger.finest("[Init]: Setting up ticker");
+         logger.config("[Init]: Setting up ticker");
          OtiNanaiTicker ont = new OtiNanaiTicker(onl, logger);
          new Thread(ont).start();
 
+         // Cacher
+         logger.config("[Init]: Setting up cacher (life: " +cacheTime+ "items: "+cacheItems+")");
+         OtiNanaiCache onc = new OtiNanaiCache(cacheTime, cacheItems, logger);
+
 			// Web Interface
-			logger.finest("[Init]: Setting up new Web Listener on port "+webPort);
+			logger.config("[Init]: Setting up new Web Listener on port "+webPort);
 			ServerSocket ss = new ServerSocket(webPort);
-			OtiNanaiWeb onw = new OtiNanaiWeb(onl, ss, logger);
+			OtiNanaiWeb onw = new OtiNanaiWeb(onl, onc, ss, logger);
 			for (int i=1; i<=webThreads; i++) {
-				logger.finest("[Init]: Starting web thread: "+i+"/"+webThreads);
+				logger.config("[Init]: Starting web thread: "+i+"/"+webThreads);
 				new Thread(onw).start();
 			}
 		} catch (java.lang.Exception e) {
@@ -102,6 +107,9 @@ class OtiNanai {
 		int udpPort = 9876;
 		int tcpPort = 1010;
 		int listenerThreads = 5;
+      Long cacheTime = 120000L;
+      Long alarmLife = 86400000L;
+      int cacheItems = 50; 
 		try {
 			for (int i=0; i<args.length; i++) {
 				arg = args[i];
@@ -123,8 +131,24 @@ class OtiNanai {
 						webThreads = Integer.parseInt(args[i]);
 						System.out.println("Web Threads = " + webThreads);
 						break;
+					case "-ct":
+						i++;
+						cacheTime = 1000*(Long.parseLong(args[i]));
+						System.out.println("cacheTime = " + cacheTime);
+						break;
+					case "-ci":
+						i++;
+						cacheItems = Integer.parseInt(args[i]);
+						System.out.println("cacheItems = " + cacheItems);
+						break;
+					case "-al":
+						i++;
+						alarmLife = 1000*(Long.parseLong(args[i]));
+						System.out.println("alarmLife = " + alarmLife);
+						break;
 					default:
-						System.out.println("-w <webPort> -p <listenerPort> -t <webThreads>");
+						System.out.println("-w <webPort> -p <listenerPort> -t <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s>)");
+                  System.exit(0);
 						break;
 				}
 			}
@@ -132,7 +156,7 @@ class OtiNanai {
 			System.out.println(e);
 			System.exit(1);
 		}
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife);
 	}
 
 	/**

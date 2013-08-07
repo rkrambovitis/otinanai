@@ -2,10 +2,11 @@ import java.util.logging.*;
 import java.util.*;
 
 class OtiNanaiMemory {
-   public OtiNanaiMemory(String key, Logger l) {
+   public OtiNanaiMemory(String key, long al, Logger l) {
       keyWord = key;
       logger = l;
-      alarm = false;
+      alarmLife = al;
+      alarm = 0L;
       keyTrackerMap = new HashMap<String,KeyWordTracker> (20);
       KeyWordTracker defaultKWT = new KeyWordTracker(key, logger);
       defKey = new String("All_Hosts_Combined");
@@ -38,25 +39,26 @@ class OtiNanaiMemory {
       return keyWord;
    }
 
-   public boolean getAlarm() {
-      if (alarm)
-         return alarm;
+   public boolean getAlarm(long ts) {
+      if ((alarm - ts) > alarmLife)
+         return true;
 
       Set<String> allKeys = keyTrackerMap.keySet();
+      long hostAlarm = 0L;
       for (String host : allKeys) {
          logger.fine("[Memory]: checking for alarms: "+host);
-         if (keyTrackerMap.get(host).getAlarm())
-            alarm = true;
+         hostAlarm = keyTrackerMap.get(host).getAlarm();
+         if (hostAlarm > alarm) {
+            alarm = hostAlarm;
+         }
       }
-      return alarm;
+      if ((alarm - ts) > alarmLife)
+         return true;
+      return false;
    }
 
    public Set<String> getAllHosts() {
       return keyTrackerMap.keySet();
-   }
-
-   public void resetAlarm() {
-      alarm = false;
    }
 
    public LinkedList<String> getMemory(String host) {
@@ -68,7 +70,8 @@ class OtiNanaiMemory {
    }
 
    private String defKey;
-   private boolean alarm;
+   private long alarm;
+   private long alarmLife;
    private String keyWord;
    private Logger logger;
    private HashMap<String,KeyWordTracker> keyTrackerMap;

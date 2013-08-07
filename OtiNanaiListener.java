@@ -12,8 +12,9 @@ class OtiNanaiListener implements Runnable {
 	 * @param	lp	the port to listen on
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(int lp, Logger l) throws SocketException {
+	public OtiNanaiListener(int lp, long al, Logger l) throws SocketException {
 		logger = l;
+      alarmLife = al;
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
 		memoryMap = new HashMap<String, OtiNanaiMemory>();
@@ -28,8 +29,9 @@ class OtiNanaiListener implements Runnable {
 	 * @param	ds	the DatagraSocket to be used
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, Logger l) {
+	public OtiNanaiListener(DatagramSocket ds, long al, Logger l) {
 		logger = l;
+      alarmLife = al;
 		keyMaps = new HashMap<String,ArrayList<String>>();
 		storageMap = new HashMap<String,SomeRecord>();
 		memoryMap = new HashMap<String, OtiNanaiMemory>();
@@ -98,7 +100,7 @@ class OtiNanaiListener implements Runnable {
 				alBundy.add(newRecord.getTimeNano());
 				keyMaps.put(kw, alBundy);
             keyWords.add(kw);
-				memoryMap.put(kw, new OtiNanaiMemory(kw, logger));
+				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, logger));
 			}
 		}
 		logger.finest("[Listener]: Storing to storageMap");
@@ -145,6 +147,7 @@ class OtiNanaiListener implements Runnable {
 	private HashMap<String,ArrayList<String>> keyMaps;
 	private HashMap<String,OtiNanaiMemory> memoryMap; 
 	private int port;
+   private long alarmLife;
 	private DatagramSocket dataSocket;
 	private Logger logger;
    private static final int MAXSAMPLES = 20;

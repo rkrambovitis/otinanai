@@ -20,8 +20,9 @@ class OtiNanaiWeb implements Runnable {
 		logger.finest("[Web]: New OtiNanaiWeb Initialized");
 	}
 
-	public OtiNanaiWeb(OtiNanaiListener o, ServerSocket ss, Logger l) {
+	public OtiNanaiWeb(OtiNanaiListener o, OtiNanaiCache oc, ServerSocket ss, Logger l) {
 		onl = o;
+      onc = oc;
 		onp = new OtiNanaiProcessor(o);
 		dataMap = onl.getDataMap();
 		listenSocket = ss;
@@ -144,48 +145,6 @@ class OtiNanaiWeb implements Runnable {
 			return false;
 		}
 	}
-
-   /*
-	private String toGraph(ArrayList<String> keyList, int metric, String title) {
-      logger.finest("[Web]: Generating graph: "+title);
-		String output = new String("<html><head>\r");
-		output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
-         + "<script type=\"text/javascript\">\n"
-         + "google.load(\"visualization\", \"1\", {packages:[\"annotatedtimeline\"]});\n"
-         + "google.setOnLoadCallback(drawChart);\n"
-         + "function drawChart() {\n"
-         + "var data = new google.visualization.DataTable();"
-         + "data.addColumn('datetime', 'Date')"
-         + "data.addColumn('number', '"+title+"');"
-         + "data.addRows([";
-
-//		output = output + "var data = google.visualization.arrayToDataTable([\n";
-//		output = output + "['Timestamp', 'Value'],\n";
-
-		SomeRecord sr;
-		for (String key : keyList) {
-			sr = dataMap.get(key);
-			if (sr.isMetric(metric)) {
-				output = output + "['" + sr.getDate() + "', " + sr.getRecord(metric) + "],\n";
-			} else {
-				output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
-			}
-		}
-		output = output + "]);\n"
-         + "var options = { title: \""+title+"\", hAxis: { direction: \"-1\" }};\n"
-         + "var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('chart_div'));\n"
-         + "chart.draw(data, options);\n"
-         + "}\n"
-         + "</script>\n"
-         + "</head>\n"
-         + "<body>\n"
-         + "<div id=\"chart_div\" style=\"width: 900px; height: 500px;\"></div>\n"
-         + "</body>\n"
-         + "</html>\n";
-		return output;
-	}
-   */
-
 
    private String toGraph(OtiNanaiMemory onm) {
       logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+onm.getKeyWord());
@@ -321,19 +280,29 @@ class OtiNanaiWeb implements Runnable {
       logger.info("[Web]: Drawing Output for keywords");
 		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
       ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
+      String fullString = new String();
       for (String key : keyList) {
          key=key.toLowerCase();
          if (allKWs.containsKey(key)) {
             graphMe.add(allKWs.get(key));
+            fullString = fullString+key+" ";
          }
       }
-		String output = new String("<html><head>\n");
-      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
-         + timeGraphHead(graphMe)
-         + "</head><body>\n"
-         + timeGraphBody(graphMe)
-         + "</body></html>";
-      return output;
+      String output = onc.getCached(fullString);
+      if (output == null) {
+         logger.fine("[Web]: Not cached, will generate \"" + fullString+"\"");
+         output = new String("<html><head>\n");
+         output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+            + timeGraphHead(graphMe)
+            + "</head><body>\n"
+            + timeGraphBody(graphMe)
+            + "</body></html>";
+         onc.cache(fullString, output);
+         return output;
+      } else {
+         logger.fine("[Web]: Cached data for \"" + fullString + "\"");
+         return output;
+      }
    }
 
 	private String getAlarms() {
@@ -342,7 +311,7 @@ class OtiNanaiWeb implements Runnable {
 		String output = new String("<html><body>");
       ArrayList<String> kws = new ArrayList<String> ();
       for (OtiNanaiMemory onm : allOMs ) {
-         if (onm.getAlarm()) {
+         if (onm.getAlarm(System.currentTimeMillis())) {
             kws.add(onm.getKeyWord());//+" "+onm.getFiveMinCount()+" "+onm.getThirtyMinCount());
          }
       }
@@ -396,4 +365,5 @@ class OtiNanaiWeb implements Runnable {
 	private ServerSocket listenSocket;
 	private Logger logger;
    private static int MAX_LOG_OUTPUT=20;
+   private OtiNanaiCache onc;
 }

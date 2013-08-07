@@ -13,7 +13,7 @@ class KeyWordTracker {
 		keyWord = new String(key);
       logger = l;
 		sampleCount = 1;
-		alarm = false;
+		alarm = 0L;
       logger.finest("[KeyWordTracker]: new KeyWordTracker initialized for \"" +keyWord+"\"");
 	}
 
@@ -85,14 +85,14 @@ class KeyWordTracker {
 
          if ((sampleCount >= MEANSAMPLES) && (deviation >= ERROR_DEVIATION)) {
             logger.info("[KeyWordTracker]: Error conditions met for " + keyWord);
-            alarm=true;
+            alarm=ts;
          }
       }
 
       thirtySecCount = 0;
 	}
 
-	public boolean getAlarm() {
+	public long getAlarm() {
 		return alarm;
 	}
 
@@ -127,7 +127,7 @@ class KeyWordTracker {
       return thirtyMinCount;
    }
 
-	private boolean alarm;
+	private long alarm;
 	private String keyWord;
 	private long thirtySecCount;
 	private long fiveMinCount;
