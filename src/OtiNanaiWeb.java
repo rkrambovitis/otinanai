@@ -69,13 +69,13 @@ class OtiNanaiWeb implements Runnable {
 						break;
 					case " favicon.ico ":
                   logger.info("[Web]: Sending favicon.ico");
-						path = Paths.get("/home/robert/OtiNanai/favicon.ico");
+						path = Paths.get("web/favicon.ico");
 						data = Files.readAllBytes(path);
 						sendToClient(data, "image/x-icon", true, connectionSocket);
 						break;
 					case " otinanai.css ":
                   logger.info("[Web]: Sending otinanai.css");
-						path = Paths.get("/home/robert/OtiNanai/otinanai.css");
+						path = Paths.get("web/otinanai.css");
 						data = Files.readAllBytes(path);
 						sendToClient(data, "text/css", true, connectionSocket);
 						break;
