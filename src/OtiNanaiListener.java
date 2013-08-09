@@ -15,9 +15,9 @@ class OtiNanaiListener implements Runnable {
 	public OtiNanaiListener(int lp, long al, Logger l) throws SocketException {
 		logger = l;
       alarmLife = al;
-		keyMaps = new HashMap<String,ArrayList<String>>();
-		storageMap = new HashMap<String,SomeRecord>();
-		memoryMap = new HashMap<String, OtiNanaiMemory>();
+		keyMaps = new HashMap<String,ArrayList<String>>(500);
+		storageMap = new HashMap<String,SomeRecord>(10000);
+		memoryMap = new HashMap<String, OtiNanaiMemory>(500);
       keyWords = new ArrayList<String>();
 		port = lp;
 		dataSocket = new DatagramSocket(lp);
@@ -32,9 +32,9 @@ class OtiNanaiListener implements Runnable {
 	public OtiNanaiListener(DatagramSocket ds, long al, Logger l) {
 		logger = l;
       alarmLife = al;
-		keyMaps = new HashMap<String,ArrayList<String>>();
-		storageMap = new HashMap<String,SomeRecord>();
-		memoryMap = new HashMap<String, OtiNanaiMemory>();
+		keyMaps = new HashMap<String,ArrayList<String>>(500);
+		storageMap = new HashMap<String,SomeRecord>(10000);
+		memoryMap = new HashMap<String, OtiNanaiMemory>(500);
       keyWords = new ArrayList<String>();
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");

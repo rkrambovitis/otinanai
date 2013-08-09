@@ -14,7 +14,7 @@ class OtiNanaiCache {
       }
       theCache = new HashMap<String,String>(limit*2);
       cacheTime = new HashMap<String, Long>(limit*2);
-      logger.finest("[Cacher]: New OtiNanaiCache Initialized (time: "+exp+" items: "+limit+")");
+      logger.config("[Cacher]: New OtiNanaiCache Initialized (time: "+exp+" items: "+limit+")");
 	}
 
    private void tidy() {
