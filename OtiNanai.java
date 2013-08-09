@@ -18,8 +18,8 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife){
-		setupLogger("/home/robert/otinanai.log", "INFO");
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, String logFile, String logLevel){
+		setupLogger(logFile, logLevel);
 		try {
 			// Listener
 			logger.config("[Init]: Setting up new DatagramSocket Listener on port "+listenerPort);
@@ -110,6 +110,8 @@ class OtiNanai {
       Long cacheTime = 120000L;
       Long alarmLife = 86400000L;
       int cacheItems = 50; 
+      String logFile = new String("/var/log/otinanai.log");
+      String logLevel = new String("INFO");
 		try {
 			for (int i=0; i<args.length; i++) {
 				arg = args[i];
@@ -146,8 +148,18 @@ class OtiNanai {
 						alarmLife = 1000*(Long.parseLong(args[i]));
 						System.out.println("alarmLife = " + alarmLife);
 						break;
+					case "-lf":
+						i++;
+						logFile = args[i];
+						System.out.println("logFile = " + logFile);
+						break;
+					case "-ll":
+						i++;
+						logLevel = args[i];
+						System.out.println("logLevel = " + logLevel);
+						break;
 					default:
-						System.out.println("-w <webPort> -p <listenerPort> -t <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s>)");
+						System.out.println("-w <webPort> -p <listenerPort> -t <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s>) -lf <logFile> -ll <logLegel>");
                   System.exit(0);
 						break;
 				}
@@ -156,7 +168,7 @@ class OtiNanai {
 			System.out.println(e);
 			System.exit(1);
 		}
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, logFile, logLevel);
 	}
 
 	/**
