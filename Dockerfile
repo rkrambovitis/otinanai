@@ -1,14 +1,12 @@
 FROM base
 MAINTAINER Robert J. Krambovitis "Robert@split.gr"
 
-RUN apt-get update #09 Aug 2013
-RUN apt-get upgrade -y
+RUN apt-get update
+RUN apt-get install -y openjdk-7-jre-headless
 
-RUN apt-get install -y openjdk-7-jre
+ADD . /
 
-RUN mkdir -p /opt/Cascade
-ADD . /opt/Cascade
+EXPOSE 80 9876/udp
 
-ENTRYPOINT ["/opt/Cascade"]
-
-CMD ["/usr/bin"]
+RUN cd /home/system/Tools/OtiNanai
+CMD ["/bin/java OtiNanai -lf /tmp/crap.log "]
