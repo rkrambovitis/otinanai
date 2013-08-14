@@ -75,7 +75,9 @@ class OtiNanaiListener implements Runnable {
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 		for (String kw : theKeys) {
-         //kw = kw.replaceAll("[+=@#$%^&*;:()-_\\/|'\"]", "");
+         if (newRecord.isMetric()) {
+            kw = kw + "_OtiNanaiMetric";
+         }
          kw = kw.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]", "");
          try { 
             Float.parseFloat(kw);
@@ -96,9 +98,9 @@ class OtiNanaiListener implements Runnable {
             }
 			} else {
 				logger.info("[Listener]: Keyword not detected. Creating new list : " + kw);
-				ArrayList<String> alBundy = new ArrayList<String>();
-				alBundy.add(newRecord.getTimeNano());
-				keyMaps.put(kw, alBundy);
+				ArrayList<String> nanoList = new ArrayList<String>();
+				nanoList.add(newRecord.getTimeNano());
+				keyMaps.put(kw, nanoList);
             keyWords.add(kw);
 				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, logger));
 			}

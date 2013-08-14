@@ -48,6 +48,8 @@ class SomeRecord {
             if (w2 != null) {
                theMetric = w2;
                IAmMetric = true;
+               //masterKey=Tokens[0];
+               keyWords.add(Tokens[0]);
             }
          }
       }

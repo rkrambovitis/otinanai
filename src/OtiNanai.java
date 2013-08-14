@@ -118,18 +118,18 @@ class OtiNanai {
 				arg = args[i];
 				System.out.println("arg " +i+ ": " +arg);
 				switch (arg) {
-					case "-w":
+					case "-wp":
 						i++;
 						webPort = Integer.parseInt(args[i]);
 						System.out.println("Web port = " + webPort);
 						break;	
-					case "-p":
+					case "-lp":
 						i++;
 						udpPort = Integer.parseInt(args[i]);
 						tcpPort = Integer.parseInt(args[i]);
 						System.out.println("Listener port = " + udpPort);
 						break;
-					case "-t":
+					case "-wt":
 						i++;
 						webThreads = Integer.parseInt(args[i]);
 						System.out.println("Web Threads = " + webThreads);
@@ -160,7 +160,7 @@ class OtiNanai {
 						System.out.println("logLevel = " + logLevel);
 						break;
 					default:
-						System.out.println("-w <webPort> -p <listenerPort> -t <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s>) -lf <logFile> -ll <logLegel>");
+						System.out.println("-wp <webPort> -lp <listenerPort> -wt <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s>) -lf <logFile> -ll <logLevel>");
                   System.exit(0);
 						break;
 				}

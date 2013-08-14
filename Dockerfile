@@ -8,5 +8,5 @@ ADD . /
 
 EXPOSE 80 9876/udp
 
-RUN cd /home/system/Tools/OtiNanai
-CMD ["/bin/java OtiNanai -lf /tmp/crap.log "]
+RUN mkdir -p /tmp/crap
+CMD ["./startOtiNanai.sh"]
