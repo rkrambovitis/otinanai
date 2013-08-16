@@ -2,8 +2,9 @@ import java.util.logging.*;
 import java.util.*;
 
 class OtiNanaiMemory {
-   public OtiNanaiMemory(String key, long al, Logger l) {
+   public OtiNanaiMemory(String key, long al, Logger l, short rT, float theValue) {
       keyWord = key;
+      recType = rT;
       logger = l;
       alarmLife = al;
       alarm = 0L;
@@ -13,7 +14,7 @@ class OtiNanaiMemory {
       keyTrackerMap.put(defKey, defaultKWT);
    }
 
-   public void put(String host) {
+   public void put(String host, float value) {
       if (keyTrackerMap.containsKey(host)) {
          logger.finest("[Memory]: "+host+" -> "+keyWord+" tracker detected.");
          keyTrackerMap.get(host).put();
@@ -75,4 +76,5 @@ class OtiNanaiMemory {
    private String keyWord;
    private Logger logger;
    private HashMap<String,KeyWordTracker> keyTrackerMap;
+   private short recType;
 }

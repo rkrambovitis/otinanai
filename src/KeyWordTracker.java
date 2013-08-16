@@ -22,9 +22,9 @@ class KeyWordTracker {
 	}
 
 	public void put() {
-		thirtySecCount ++;
+      thirtySecCount ++;
       logger.finest("[KeyWordTracker]: thirtySecCount is now " +thirtySecCount);
-	}
+   }
 
    public void tick(long ts) {
       logger.fine("[KeyWordTracker]: ticking " + keyWord );

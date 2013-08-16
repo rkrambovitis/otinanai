@@ -73,10 +73,12 @@ class OtiNanaiListener implements Runnable {
 	private void parseData(InetAddress hip, String theDato) {
 		logger.finest("[Listener]: + Attempting to parse: \""+theDato+"\" from "+hip);
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
+      short recType = FREQ;
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 		for (String kw : theKeys) {
          if (newRecord.isMetric()) {
             kw = kw + "_OtiNanaiMetric";
+            recType = GAUGE;
          }
          kw = kw.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]", "");
          try { 
@@ -90,7 +92,7 @@ class OtiNanaiListener implements Runnable {
 			} else if (keyMaps.containsKey(kw)) {
 				logger.finest("[Listener]: Existing keyword detected. Adding to list : " + kw);
 				keyMaps.get(kw).add(newRecord.getTimeNano());
-				memoryMap.get(kw).put(newRecord.getHostName());
+				memoryMap.get(kw).put(newRecord.getHostName(), newRecord.getMetric());
             if (keyMaps.get(kw).size() >= MAXSAMPLES) {
                String uid = keyMaps.get(kw).get(0);
                keyMaps.get(kw).remove(uid);
@@ -102,7 +104,7 @@ class OtiNanaiListener implements Runnable {
 				nanoList.add(newRecord.getTimeNano());
 				keyMaps.put(kw, nanoList);
             keyWords.add(kw);
-				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, logger));
+				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, logger, recType, newRecord.getMetric()));
 			}
 		}
 		logger.finest("[Listener]: Storing to storageMap");
@@ -153,4 +155,7 @@ class OtiNanaiListener implements Runnable {
 	private DatagramSocket dataSocket;
 	private Logger logger;
    private static final int MAXSAMPLES = 20;
+   private static final short GAUGE = 0;
+   private static final short COUNTER = 1;
+   private static final short FREQ = 2;
 }
