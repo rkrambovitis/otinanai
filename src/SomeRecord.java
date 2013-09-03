@@ -222,7 +222,7 @@ class SomeRecord {
    public Float getMetric() {
       if (IAmMetric)
          return theMetric;
-      return null;
+      return CRAPVALUE;
    }
 
 	private long timeStamp;
@@ -234,4 +234,5 @@ class SomeRecord {
 	private String theDate;
 	private ArrayList<String> keyWords;
 	private String masterKey;
+   private static final Float CRAPVALUE = -666.0f;
 }
