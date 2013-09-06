@@ -13,6 +13,8 @@ class KeyWordTracker {
 		keyWord = new String(key);
       logger = l;
 		sampleCount = 1;
+      thirtySecDataCount = -1;
+      thirtySecFloat = 0f;
 		alarm = 0L;
       logger.finest("[KeyWordTracker]: new KeyWordTracker initialized for \"" +keyWord+"\"");
 	}
@@ -26,16 +28,32 @@ class KeyWordTracker {
       logger.finest("[KeyWordTracker]: thirtySecCount is now " +thirtySecCount);
    }
 
+   public void put(float value) {
+      thirtySecFloat += value;
+      thirtySecDataCount ++;
+      if (thirtySecDataCount == 0)
+         thirtySecDataCount++;
+      logger.finest("[KeyWordTracker]: thirtySecFloat is now " +thirtySecFloat);
+   }
+
    public void tick(long ts) {
       logger.fine("[KeyWordTracker]: ticking " + keyWord );
       flush(ts);
    }
 
 	private void flush(long ts) {
-      logger.fine("[KeyWordTracker]: thirtySecCount = " +thirtySecCount);
-      float perSec = ((float)thirtySecCount / 30);
-      logger.fine("[KeyWordTracker]: perSec = " +perSec);
-      thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+      float perSec;
+      if (thirtySecDataCount < 0 ) {
+         logger.fine("[KeyWordTracker]: thirtySecCount = " +thirtySecCount);
+         perSec = ((float)thirtySecCount / 30);
+         logger.fine("[KeyWordTracker]: perSec = " +perSec);
+         thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+      } else if (thirtySecDataCount > 0 ) {
+         logger.fine("[KeyWordTracker]: thirtySecFloat = " +thirtySecFloat);
+         perSec = (thirtySecFloat / thirtySecDataCount);
+         thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+         thirtySecDataCount = 0;
+      } 
 
       float lastMerge;
       String lastDatoString = new String();
@@ -90,6 +108,7 @@ class KeyWordTracker {
       }
 
       thirtySecCount = 0;
+      thirtySecFloat = 0f;
 	}
 
 	public long getAlarm() {
@@ -134,6 +153,8 @@ class KeyWordTracker {
 	private long thirtyMinCount;
 	private float mean;
 	private int sampleCount;
+   private int thirtySecDataCount;
+   private float thirtySecFloat;
    private LinkedList<String> thirtySecMemory;
    private LinkedList<String> fiveMinMemory;
    private LinkedList<String> thirtyMinMemory;

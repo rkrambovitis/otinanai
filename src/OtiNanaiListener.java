@@ -76,10 +76,12 @@ class OtiNanaiListener implements Runnable {
       short recType = FREQ;
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 		for (String kw : theKeys) {
+         
          if (newRecord.isMetric()) {
-            kw = kw + "_OtiNanaiMetric";
+            kw = kw + "_";
             recType = GAUGE;
          }
+         
          kw = kw.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]", "");
          try { 
             Float.parseFloat(kw);
@@ -92,7 +94,11 @@ class OtiNanaiListener implements Runnable {
 			} else if (keyMaps.containsKey(kw)) {
 				logger.finest("[Listener]: Existing keyword detected. Adding to list : " + kw);
 				keyMaps.get(kw).add(newRecord.getTimeNano());
-				memoryMap.get(kw).put(newRecord.getHostName(), newRecord.getMetric());
+            if (newRecord.isMetric()) {
+               memoryMap.get(kw).put(newRecord.getHostName(), newRecord.getMetric());
+            } else {
+               memoryMap.get(kw).put(newRecord.getHostName());
+            }
             if (keyMaps.get(kw).size() >= MAXSAMPLES) {
                String uid = keyMaps.get(kw).get(0);
                keyMaps.get(kw).remove(uid);
@@ -104,7 +110,7 @@ class OtiNanaiListener implements Runnable {
 				nanoList.add(newRecord.getTimeNano());
 				keyMaps.put(kw, nanoList);
             keyWords.add(kw);
-				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, logger, recType, newRecord.getMetric()));
+				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, logger, recType, newRecord.getHostName(), newRecord.getMetric()));
 			}
 		}
 		logger.finest("[Listener]: Storing to storageMap");

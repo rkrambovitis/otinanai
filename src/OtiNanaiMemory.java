@@ -2,7 +2,7 @@ import java.util.logging.*;
 import java.util.*;
 
 class OtiNanaiMemory {
-   public OtiNanaiMemory(String key, long al, Logger l, short rT, float theValue) {
+   public OtiNanaiMemory(String key, long al, Logger l, short rT, String host, float theValue) {
       keyWord = key;
       recType = rT;
       logger = l;
@@ -12,9 +12,14 @@ class OtiNanaiMemory {
       KeyWordTracker defaultKWT = new KeyWordTracker(key, logger);
       defKey = new String("All_Hosts_Combined");
       keyTrackerMap.put(defKey, defaultKWT);
+      if (rT == GAUGE) {
+         put(host, theValue);
+      } else if (rT == FREQ) {
+         put(host);
+      }
    }
 
-   public void put(String host, float value) {
+   public void put(String host) {
       if (keyTrackerMap.containsKey(host)) {
          logger.finest("[Memory]: "+host+" -> "+keyWord+" tracker detected.");
          keyTrackerMap.get(host).put();
@@ -24,6 +29,20 @@ class OtiNanaiMemory {
          KeyWordTracker nkt = new KeyWordTracker(keyWord, logger);
          nkt.put();
          keyTrackerMap.get(defKey).put();
+         keyTrackerMap.put(host, nkt);
+      }
+   }
+
+   public void put(String host, float value) {
+      if (keyTrackerMap.containsKey(host)) {
+         logger.finest("[Memory]: "+host+" -> "+keyWord+" tracker detected.");
+         keyTrackerMap.get(host).put(value);
+         keyTrackerMap.get(defKey).put(value);
+      } else {
+         logger.info("[Memory]: Creating new "+host+" -> "+keyWord+" tracker.");
+         KeyWordTracker nkt = new KeyWordTracker(keyWord, logger);
+         nkt.put(value);
+         keyTrackerMap.get(defKey).put(value);
          keyTrackerMap.put(host, nkt);
       }
    }
@@ -77,4 +96,8 @@ class OtiNanaiMemory {
    private Logger logger;
    private HashMap<String,KeyWordTracker> keyTrackerMap;
    private short recType;
+   private static final short GAUGE = 0;
+   private static final short COUNTER = 1;
+   private static final short FREQ = 2;
+
 }

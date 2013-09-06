@@ -277,12 +277,13 @@ class OtiNanaiWeb implements Runnable {
    }
 
    private String draw(String[] keyList) {
-      logger.info("[Web]: Drawing Output for keywords");
+      logger.info("[Web]: Drawing output for keywords");
 		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
       ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
       String fullString = new String();
       for (String key : keyList) {
          key=key.toLowerCase();
+         logger.info("[Web]: looking for keyword: " + key);
          if (allKWs.containsKey(key)) {
             graphMe.add(allKWs.get(key));
             fullString = fullString+key+" ";
