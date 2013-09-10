@@ -3,7 +3,7 @@ import java.util.*;
 
 class KeyWordTracker {
 	public KeyWordTracker(String key, Logger l) {
-		mean = 0;
+		mean = 0f;
 		thirtySecCount = 0;
 		fiveMinCount = 0;
 		thirtyMinCount = 0;
@@ -43,23 +43,47 @@ class KeyWordTracker {
 
 	private void flush(long ts) {
       float perSec;
-      if (thirtySecDataCount < 0 ) {
+      /*
+       * thirtySecDataCount is set to -1 by default, which means that the tracker tracks the amount of events.
+       * In the event it's a "metric", it will be 1 or more.
+       * Inthe event it's a metric but has no new data, it's 0.
+       */
+      if (thirtySecDataCount > 0 ) {
+         logger.fine("[KeyWordTracker]: thirtySecFloat = " +thirtySecFloat);
+         perSec = (thirtySecFloat / thirtySecDataCount);
+         thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+
+      } else if (thirtySecDataCount < 0 ) {
          logger.fine("[KeyWordTracker]: thirtySecCount = " +thirtySecCount);
          perSec = ((float)thirtySecCount / 30);
          logger.fine("[KeyWordTracker]: perSec = " +perSec);
          thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
-      } else if (thirtySecDataCount > 0 ) {
-         logger.fine("[KeyWordTracker]: thirtySecFloat = " +thirtySecFloat);
-         perSec = (thirtySecFloat / thirtySecDataCount);
-         thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
-         thirtySecDataCount = 0;
-      } 
+      }
+
+      if (thirtySecMemory.size() > 2) {
+         //ugly deduplication
+         String dato0 = thirtySecMemory.get(0);
+         String dato1 = thirtySecMemory.get(1);
+         String dato2 = thirtySecMemory.get(2);
+         dato0 = dato0.substring(dato0.indexOf(" ") +1);
+         dato1 = dato1.substring(dato1.indexOf(" ") +1);
+         dato2 = dato2.substring(dato2.indexOf(" ") +1);
+         if (dato0.equals(dato1)) {
+            if (dato1.equals(dato2)) {
+               thirtySecMemory.remove(1);
+            }
+         }
+      }
+      
 
       float lastMerge;
       String lastDatoString = new String();
       String lastts = new String();
       String lastDato = new String();
 
+      /*
+       * Aggregate old 30sec samples and make 5min samples
+       */
       if (thirtySecMemory.size() >= THIRTY_SEC_SAMPLES) {
          lastMerge = 0;
          for (int i=1; i<=THIRTY_S_TO_FIVE_M ; i++) {
@@ -75,6 +99,9 @@ class KeyWordTracker {
          fiveMinMemory.push(new String(lastts+" "+String.format("%.2f", finalSum)));
       }
 
+      /*
+       * Aggregate old 5min samples and make 30min samples
+       */
       if (fiveMinMemory.size() >= FIVE_MIN_SAMPLES) {
          lastMerge = 0;
          for (int i=1; i<=FIVE_M_TO_THIRTY_M ; i++) {
@@ -87,19 +114,42 @@ class KeyWordTracker {
          thirtyMinMemory.push(new String(lastts+" "+Math.round(lastMerge/FIVE_M_TO_THIRTY_M)));
       }
 
-      
 
-      if (sampleCount < MEANSAMPLES)
+
+      /*
+       * Alarm detection
+       */
+      if ( (sampleCount < MEANSAMPLES) && (thirtySecDataCount != 0) )
          sampleCount++;
 
-		if (mean == 0 ) {
+      if (mean == 0f ) {
          logger.fine("[KeyWordTracker]: mean is 0, setting new value");
-			mean = thirtySecCount;
+         logger.fine("[KeyWordTracker]: thirtySecDataCount: "+thirtySecDataCount);
+         if (thirtySecDataCount > 0 ) {
+            logger.fine("[KeyWordTracker]: GAUGE");
+            mean = thirtySecFloat;
+            logger.fine("[KeyWordTracker]: m: "+mean);
+         } else if (thirtySecDataCount < 0 ) {
+            logger.fine("[KeyWordTracker]: FREQ");
+            mean = thirtySecCount;
+            logger.fine("[KeyWordTracker]: m: "+mean);
+         }
          sampleCount = 1;
-		} else {
+      } else {
          logger.fine("[KeyWordTracker]: Calculating new mean");
-			float deviation = (thirtySecCount - mean)/mean;
-			mean += (thirtySecCount - mean)/MEANSAMPLES;
+         logger.fine("[KeyWordTracker]: thirtySecDataCount: "+thirtySecDataCount);
+         float deviation = 0f;
+         if (thirtySecDataCount > 0 ) {
+            logger.fine("[KeyWordTracker]: GAUGE");
+            deviation = (thirtySecFloat - mean)/mean;
+            mean += (thirtySecFloat - mean)/MEANSAMPLES;
+            logger.fine("[KeyWordTracker]: d: "+deviation+" - m: "+mean);
+         } else if (thirtySecDataCount < 0 ) {
+            logger.fine("[KeyWordTracker]: FREQ");
+            deviation = (thirtySecCount - mean)/mean;
+            mean += (thirtySecCount - mean)/MEANSAMPLES;
+            logger.fine("[KeyWordTracker]: d: "+deviation+" - m: "+mean);
+         }
 
          if ((sampleCount >= MEANSAMPLES) && (deviation >= ERROR_DEVIATION)) {
             logger.info("[KeyWordTracker]: Error conditions met for " + keyWord);
@@ -109,6 +159,7 @@ class KeyWordTracker {
 
       thirtySecCount = 0;
       thirtySecFloat = 0f;
+      thirtySecDataCount = 0;
 	}
 
 	public long getAlarm() {
