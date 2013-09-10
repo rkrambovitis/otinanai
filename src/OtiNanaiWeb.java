@@ -326,7 +326,10 @@ class OtiNanaiWeb implements Runnable {
       if (keyWords.size() == 0) {
          return new String("No KeyWords");
       }
-      for (String kw : keyWords ) {
+      //TreeSet<String> sortedKeys = new TreeSet<String>(keyWords);
+      TreeSet<String> sortedKeys = new TreeSet<String>();
+      sortedKeys.addAll(keyWords);
+      for (String kw : sortedKeys) {
          //String first = kw.substring(0,kw.indexOf(" "));
         // output = output + "<li><a href = \""+first+"\">"+kw+"</a></li>\n";
          output = output + "<li><a href = \""+kw+"\">"+kw+"</a></li>\n";

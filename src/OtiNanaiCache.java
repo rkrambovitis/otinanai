@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.*;
 import java.util.logging.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 class OtiNanaiCache {
 	public OtiNanaiCache (Long exp, int max, Logger l) {
@@ -13,7 +14,7 @@ class OtiNanaiCache {
          limit = 50;
       }
       theCache = new HashMap<String,String>(limit*2);
-      cacheTime = new HashMap<String, Long>(limit*2);
+      cacheTime = new ConcurrentHashMap<String, Long>(limit*2);
       logger.config("[Cacher]: New OtiNanaiCache Initialized (time: "+exp+" items: "+limit+")");
 	}
 
@@ -30,7 +31,7 @@ class OtiNanaiCache {
       if (theCache.size() >= limit ) {
          logger.warning("[Cacher]: Nuking cache ("+theCache.size()+" items)");
          theCache = new HashMap<String,String>(limit);
-         cacheTime = new HashMap<String, Long>(limit);
+         cacheTime = new ConcurrentHashMap<String, Long>(limit);
       }
       counter = 0;
    }
@@ -60,7 +61,7 @@ class OtiNanaiCache {
       return null;
    }
 
-   private HashMap<String, Long> cacheTime;
+   private ConcurrentHashMap<String, Long> cacheTime;
    private HashMap<String,String> theCache;
    private Long expiry;
    private int limit;
