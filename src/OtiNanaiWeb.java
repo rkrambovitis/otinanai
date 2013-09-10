@@ -64,6 +64,8 @@ class OtiNanaiWeb implements Runnable {
                      +"<hr>Keys:"
                      +"<li><a href=\"k\">k</a> : show keywords"
                      +"<li><a href=\"a\">a</a> : show alarms"
+                     +"<li>word1 word2, word3 : search keywords"
+                     +"<li>words -badWords : You get the point"
                      +"</body></html>";
 						sendToClient(bogus.getBytes(), "text/html", false, connectionSocket);
 						break;
@@ -372,6 +374,27 @@ class OtiNanaiWeb implements Runnable {
                logger.fine("[Web]: : Matched: "+test);
                kws.add(test);
                break;
+            }
+         }
+      }
+
+      logger.fine("[Web]: removing \"-\" keywords");
+      String firstChar;
+      String rest;
+      ArrayList<String> kwsClone = new ArrayList<String>();
+      kwsClone.addAll(kws);
+      for (String word : keyList) {
+         if (word.equals("")) {
+            logger.finest("[Web]: Skipping blank word (3)");
+            continue;
+         }
+         firstChar = word.substring(0,1);
+         rest = word.substring(1);
+         if (firstChar.equals("-")) {
+            for (String key : kwsClone) {
+               if (key.contains(rest)) {
+                  kws.remove(key);
+               }
             }
          }
       }
