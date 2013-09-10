@@ -60,20 +60,20 @@ class OtiNanaiMemory {
    }
 
    public boolean getAlarm(long ts) {
-      if ((ts - alarm) > alarmLife)
+
+      if ((alarm != 0L) && ((ts - alarm) < alarmLife))
          return true;
 
       Set<String> allKeys = keyTrackerMap.keySet();
       long hostAlarm = 0L;
       for (String host : allKeys) {
-         logger.fine("[Memory]: checking for alarms for "+keyWord+" @ "+host);
          hostAlarm = keyTrackerMap.get(host).getAlarm();
-         logger.fine("[Memory]: got "+hostAlarm);
+         logger.fine("[Memory]: checking for alarms for "+keyWord+" @ "+host+" : got "+hostAlarm);
          if (hostAlarm > alarm) {
             alarm = hostAlarm;
          }
       }
-      if ((ts - alarm) > alarmLife)
+      if ((alarm != 0L) && ((ts - alarm) < alarmLife))
          return true;
       return false;
    }

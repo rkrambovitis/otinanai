@@ -85,7 +85,7 @@ class OtiNanaiWeb implements Runnable {
 						Integer metric = new Integer(-10);
 						for (String word : request) {
 							if (word.equals("")) {
-                           logger.fine("[Web]: Skipping blank word");
+                           logger.finest("[Web]: Skipping blank word");
 									continue;
                      }
 							try {
@@ -289,21 +289,25 @@ class OtiNanaiWeb implements Runnable {
             fullString = fullString+key+" ";
          }
       }
-      String output = onc.getCached(fullString);
-      if (output == null) {
-         logger.fine("[Web]: Not cached, will generate \"" + fullString+"\"");
-         output = new String("<html><head>\n");
-         output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
-            + timeGraphHead(graphMe)
-            + "</head><body>\n"
-            + timeGraphBody(graphMe)
-            + "</body></html>";
-         onc.cache(fullString, output);
-         return output;
+      if (graphMe.size() == 0) {
       } else {
-         logger.fine("[Web]: Cached data for \"" + fullString + "\"");
-         return output;
+         String output = onc.getCached(fullString);
+         if (output == null) {
+            logger.fine("[Web]: Not cached, will generate \"" + fullString+"\"");
+            output = new String("<html><head>\n");
+            output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+               + timeGraphHead(graphMe)
+               + "</head><body>\n"
+               + timeGraphBody(graphMe)
+               + "</body></html>";
+            onc.cache(fullString, output);
+            return output;
+         } else {
+            logger.fine("[Web]: Cached data for \"" + fullString + "\"");
+            return output;
+         }
       }
+      return showKeyWords(keyList);
    }
 
 	private String getAlarms() {
@@ -344,6 +348,32 @@ class OtiNanaiWeb implements Runnable {
       ArrayList<String> kws = new ArrayList<String>();
       for (OtiNanaiMemory onm : allOMs ) {
          kws.add(onm.getKeyWord());//+" "+onm.getFiveMinCount()+" "+onm.getThirtyMinCount());
+      }
+      output = output + listKeyWords(kws);
+		output = output + "</body></html>";
+      return output;
+	}
+
+	private String showKeyWords(String[] keyList) {
+      logger.fine("[Web]: Searching for keywords");
+		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
+		String output = new String("<html><body>");
+      ArrayList<String> kws = new ArrayList<String>();
+      boolean matched;
+      for (OtiNanaiMemory onm : allOMs ) {
+         for (String word : keyList) {
+            if (word.equals("")) {
+               logger.finest("[Web]: Skipping blank word (2)");
+               continue;
+            }
+            logger.fine("[Web]: Searching for keywords containing: \""+word+"\"");
+            String test = onm.getKeyWord();
+            if (test.contains(word)) {
+               logger.fine("[Web]: : Matched: "+test);
+               kws.add(test);
+               break;
+            }
+         }
       }
       output = output + listKeyWords(kws);
 		output = output + "</body></html>";
