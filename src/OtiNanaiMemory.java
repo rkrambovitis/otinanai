@@ -2,14 +2,15 @@ import java.util.logging.*;
 import java.util.*;
 
 class OtiNanaiMemory {
-   public OtiNanaiMemory(String key, long al, Logger l, short rT, String host, float theValue) {
+   public OtiNanaiMemory(String key, long al, Logger l, short rT, int ps, String host, float theValue) {
       keyWord = key;
       recType = rT;
       logger = l;
       alarmLife = al;
+      previewSamples = ps;
       alarm = 0L;
       keyTrackerMap = new HashMap<String,KeyWordTracker> (20);
-      KeyWordTracker defaultKWT = new KeyWordTracker(key, logger);
+      KeyWordTracker defaultKWT = new KeyWordTracker(key, previewSamples, logger);
       defKey = new String("All_Hosts_Combined");
       keyTrackerMap.put(defKey, defaultKWT);
       if (rT == GAUGE) {
@@ -26,7 +27,7 @@ class OtiNanaiMemory {
          keyTrackerMap.get(defKey).put();
       } else {
          logger.info("[Memory]: Creating new "+host+" -> "+keyWord+" tracker.");
-         KeyWordTracker nkt = new KeyWordTracker(keyWord, logger);
+         KeyWordTracker nkt = new KeyWordTracker(keyWord, previewSamples, logger);
          nkt.put();
          keyTrackerMap.get(defKey).put();
          keyTrackerMap.put(host, nkt);
@@ -40,7 +41,7 @@ class OtiNanaiMemory {
          keyTrackerMap.get(defKey).put(value);
       } else {
          logger.info("[Memory]: Creating new "+host+" -> "+keyWord+" tracker.");
-         KeyWordTracker nkt = new KeyWordTracker(keyWord, logger);
+         KeyWordTracker nkt = new KeyWordTracker(keyWord, previewSamples, logger);
          nkt.put(value);
          keyTrackerMap.get(defKey).put(value);
          keyTrackerMap.put(host, nkt);
@@ -82,6 +83,14 @@ class OtiNanaiMemory {
       return keyTrackerMap.keySet();
    }
 
+   public LinkedList<String> getPreview(String host) {
+      if (keyTrackerMap.containsKey(host)) {
+         return keyTrackerMap.get(host).getPreview();
+      } else {
+         return null;
+      }
+   }
+
    public LinkedList<String> getMemory(String host) {
       if (keyTrackerMap.containsKey(host)) {
          return keyTrackerMap.get(host).getMemory();
@@ -95,6 +104,7 @@ class OtiNanaiMemory {
    private long alarmLife;
    private String keyWord;
    private Logger logger;
+   private int previewSamples;
    private HashMap<String,KeyWordTracker> keyTrackerMap;
    private short recType;
    private static final short GAUGE = 0;

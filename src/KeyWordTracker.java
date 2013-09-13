@@ -2,12 +2,14 @@ import java.util.logging.*;
 import java.util.*;
 
 class KeyWordTracker {
-	public KeyWordTracker(String key, Logger l) {
+	public KeyWordTracker(String key, int ps, Logger l) {
 		mean = 0f;
 		thirtySecCount = 0;
 		fiveMinCount = 0;
 		thirtyMinCount = 0;
+      previewSamples = ps;
       thirtySecMemory = new LinkedList<String> ();
+      previewMemory = new LinkedList<String> ();
       fiveMinMemory = new LinkedList<String> ();
       thirtyMinMemory = new LinkedList<String> ();
 		keyWord = new String(key);
@@ -52,13 +54,16 @@ class KeyWordTracker {
          logger.fine("[KeyWordTracker]: thirtySecFloat = " +thirtySecFloat);
          perSec = (thirtySecFloat / thirtySecDataCount);
          thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+         previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
 
       } else if (thirtySecDataCount < 0 ) {
          logger.fine("[KeyWordTracker]: thirtySecCount = " +thirtySecCount);
          perSec = ((float)thirtySecCount / 30);
          logger.fine("[KeyWordTracker]: perSec = " +perSec);
          thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+         previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
       }
+
 
       if (thirtySecMemory.size() > 2) {
          //ugly deduplication
@@ -71,8 +76,15 @@ class KeyWordTracker {
          if (dato0.equals(dato1)) {
             if (dato1.equals(dato2)) {
                thirtySecMemory.remove(1);
+               previewMemory.remove(1);
             }
          }
+      }
+
+      logger.fine("[KeyWordTracker]: size of previewSamples for "+keyWord+" : "+previewMemory.size()+" (limit "+previewSamples+")");
+      if (previewMemory.size() > previewSamples) {
+         logger.fine("[KeyWordTracker]: previewSamples limit exceeded. Trimming last value");
+         previewMemory.remove(previewSamples);
       }
       
 
@@ -159,12 +171,17 @@ class KeyWordTracker {
 
       thirtySecCount = 0;
       thirtySecFloat = 0f;
-      thirtySecDataCount = 0;
+      if (thirtySecDataCount > 0)
+         thirtySecDataCount = 0;
 	}
 
 	public long getAlarm() {
 		return alarm;
 	}
+
+   public LinkedList<String> getPreview() {
+      return previewMemory;
+   }
 
    public LinkedList<String> getMemory() {
       LinkedList<String> returner = new LinkedList<String>();
@@ -207,9 +224,11 @@ class KeyWordTracker {
    private int thirtySecDataCount;
    private float thirtySecFloat;
    private LinkedList<String> thirtySecMemory;
+   private LinkedList<String> previewMemory;
    private LinkedList<String> fiveMinMemory;
    private LinkedList<String> thirtyMinMemory;
    private Logger logger;
+   private int previewSamples;
 
 	private static final int COUNT = 0;
 	private static final int METRIC = 1;

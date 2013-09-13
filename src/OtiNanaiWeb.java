@@ -64,8 +64,7 @@ class OtiNanaiWeb implements Runnable {
                      +"<hr>Keys:"
                      +"<li><a href=\"k\">k</a> : show keywords"
                      +"<li><a href=\"a\">a</a> : show alarms"
-                     +"<li>word1 word2, word3 : search keywords"
-                     +"<li>words -badWords : You get the point"
+                     +"<li>word1 word2, +word3, -word4 : search keywords"
                      +"</body></html>";
 						sendToClient(bogus.getBytes(), "text/html", false, connectionSocket);
 						break;
@@ -148,8 +147,8 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-   private String toGraph(OtiNanaiMemory onm) {
-      logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+onm.getKeyWord());
+   private String toGraph(OtiNanaiMemory onm, short type) {
+      logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+onm.getKeyWord() +" type: "+type);
 		String output = new String("\n");
       SomeRecord sr;
       int i=0;
@@ -158,7 +157,13 @@ class OtiNanaiWeb implements Runnable {
       if (gahSize == 2)
          gahSize = 1;
       for (String host : gah) {
-         LinkedList<String> data = onm.getMemory(host);
+         LinkedList<String> data = new LinkedList<String>();
+         if (type == GRAPH_FULL) {
+            data = onm.getMemory(host);
+         } else if (type == GRAPH_PREVIEW) {
+            data = onm.getPreview(host);
+         }
+         logger.fine("[Web]: graphing host: "+host);
          if (data.size() == 0 ) {
             output = output + "[new Date(2013,07,30,0,0,0)";
             for (int j=0; j<gahSize; j++) {
@@ -237,13 +242,29 @@ class OtiNanaiWeb implements Runnable {
 		return output;
 	}
 
-   private String timeGraphHead(ArrayList<OtiNanaiMemory> kws) {
+   private String timeGraphHeadString(ArrayList<String> keyList, short type) {
+      ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
+		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
+      for (String key : keyList) {
+         key=key.toLowerCase();
+         if (allKWs.containsKey(key)) {
+            graphMe.add(allKWs.get(key));
+         }
+      }
+      return timeGraphHead(graphMe, type);
+   }
+
+
+   private String timeGraphHead(ArrayList<OtiNanaiMemory> kws, short type) {
       String output = new String("");
 		for (OtiNanaiMemory onm : kws) {
-         output = output + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
-            + "<script type=\"text/javascript\">\n"
-            + "google.load(\"visualization\", \"1\", {packages:[\"annotatedtimeline\"]});\n"
-            + "google.setOnLoadCallback(drawChart);\n"
+         output = output + "<script type=\"text/javascript\">\n";
+         if (type == GRAPH_FULL) {
+            output = output + "google.load(\"visualization\", \"1\", {packages:[\"annotatedtimeline\"]});\n";
+         } else {
+            output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
+         }
+         output = output + "google.setOnLoadCallback(drawChart);\n"
             + "function drawChart() {\n"
             + "var data = new google.visualization.DataTable();\n"
             + "data.addColumn('datetime', 'Date');\n";
@@ -254,15 +275,18 @@ class OtiNanaiWeb implements Runnable {
             }
             output = output + "data.addColumn('number', '"+host+"');\n";
          }
-//            + "data.addColumn('string', 'Host');\n";
-//            + "data.addColumn('number', '"+onm.getKeyWord()+"');\n"
          output = output + "data.addRows(["
-            + toGraph(onm)
-            //+ toGraph(onm.getMemory(), onm.getKeyWord())
-            + "]);\n"
-            + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n"
-            + "var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('myGraph'));\n"
-            + "chart.draw(data, options);\n"
+            + toGraph(onm, type)
+            + "]);\n";
+
+         if (type == GRAPH_FULL) {
+            output = output + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n"
+               + "var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('"+onm.getKeyWord()+"'));\n";
+         } else {
+            output = output + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"1\" }};\n"
+               + "var chart = new google.visualization.AreaChart(document.getElementById('"+onm.getKeyWord()+"'));\n";
+         }
+         output = output + "chart.draw(data, options);\n"
             + "}\n"
             + "</script>\n";
       }
@@ -272,7 +296,7 @@ class OtiNanaiWeb implements Runnable {
    private String timeGraphBody(ArrayList<OtiNanaiMemory> kws) {
       String output = new String("");
       for (OtiNanaiMemory onm : kws) {
-         output = output + "<div id=\"myGraph\"></div><br>\n";
+         output = output + "<div id=\""+onm.getKeyWord()+"\" class=\"myGraph\"></div><br>\n";
          output = output + drawText(onm.getKeyWord());
       }
       return output;
@@ -298,7 +322,8 @@ class OtiNanaiWeb implements Runnable {
             logger.fine("[Web]: Not cached, will generate \"" + fullString+"\"");
             output = new String("<html><head>\n");
             output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
-               + timeGraphHead(graphMe)
+               + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
+               + timeGraphHead(graphMe, GRAPH_FULL)
                + "</head><body>\n"
                + timeGraphBody(graphMe)
                + "</body></html>";
@@ -315,15 +340,20 @@ class OtiNanaiWeb implements Runnable {
 	private String getAlarms() {
       logger.finest("[Web]: Generating Alarms Output");
 		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
-		String output = new String("<html><body>");
       ArrayList<String> kws = new ArrayList<String> ();
       for (OtiNanaiMemory onm : allOMs ) {
          if (onm.getAlarm(System.currentTimeMillis())) {
             kws.add(onm.getKeyWord());//+" "+onm.getFiveMinCount()+" "+onm.getThirtyMinCount());
          }
       }
-      output = output + listKeyWords(kws);
-		output = output + "</body></html>";
+
+		String output = new String("<html><head>\n");
+      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+         + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
+         + timeGraphHeadString(kws, GRAPH_PREVIEW)
+         + "</head><body>\n"
+         + listKeyWords(kws)
+         + "</body></html>";
       return output;
    }
 
@@ -332,13 +362,11 @@ class OtiNanaiWeb implements Runnable {
       if (keyWords.size() == 0) {
          return new String("No KeyWords");
       }
-      //TreeSet<String> sortedKeys = new TreeSet<String>(keyWords);
       TreeSet<String> sortedKeys = new TreeSet<String>();
       sortedKeys.addAll(keyWords);
       for (String kw : sortedKeys) {
-         //String first = kw.substring(0,kw.indexOf(" "));
-        // output = output + "<li><a href = \""+first+"\">"+kw+"</a></li>\n";
          output = output + "<li><a href = \""+kw+"\">"+kw+"</a></li>\n";
+         output = output + "<div id=\""+kw+"\" class=\"previewGraph\"></div>\n";
       }
       return output;
    }
@@ -346,20 +374,23 @@ class OtiNanaiWeb implements Runnable {
 	private String showKeyWords() {
       logger.finest("[Web]: Generating List of KeyWords");
 		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
-		String output = new String("<html><body>");
       ArrayList<String> kws = new ArrayList<String>();
       for (OtiNanaiMemory onm : allOMs ) {
          kws.add(onm.getKeyWord());//+" "+onm.getFiveMinCount()+" "+onm.getThirtyMinCount());
       }
-      output = output + listKeyWords(kws);
-		output = output + "</body></html>";
+		String output = new String("<html><head>\n");
+      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+         + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
+         + timeGraphHeadString(kws, GRAPH_PREVIEW)
+         + "</head><body>\n"
+         + listKeyWords(kws)
+         + "</body></html>";
       return output;
 	}
 
 	private String showKeyWords(String[] keyList) {
       logger.fine("[Web]: Searching for keywords");
 		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
-		String output = new String("<html><body>");
       ArrayList<String> kws = new ArrayList<String>();
       boolean matched;
       for (OtiNanaiMemory onm : allOMs ) {
@@ -378,7 +409,7 @@ class OtiNanaiWeb implements Runnable {
          }
       }
 
-      logger.fine("[Web]: removing \"-\" keywords");
+      logger.fine("[Web]: removing \"+/-\" keywords");
       String firstChar;
       String rest;
       ArrayList<String> kwsClone = new ArrayList<String>();
@@ -396,10 +427,23 @@ class OtiNanaiWeb implements Runnable {
                   kws.remove(key);
                }
             }
+         } else if (firstChar.equals("+")) {
+            for (String key : kwsClone) {
+               if (!key.contains(rest)) {
+                  kws.remove(key);
+               }
+            }
          }
       }
-      output = output + listKeyWords(kws);
-		output = output + "</body></html>";
+		String output = new String("<html><head>\n");
+      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+         + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
+         + timeGraphHeadString(kws, GRAPH_PREVIEW)
+         + "</head><body>\n"
+         + listKeyWords(kws)
+         + "</body></html>";
+     // output = output + listKeyWords(kws);
+	//	output = output + "</body></html>";
       return output;
 	}
 
@@ -422,5 +466,7 @@ class OtiNanaiWeb implements Runnable {
 	private ServerSocket listenSocket;
 	private Logger logger;
    private static int MAX_LOG_OUTPUT=20;
+   private static short GRAPH_FULL=1;
+   private static short GRAPH_PREVIEW=2;
    private OtiNanaiCache onc;
 }

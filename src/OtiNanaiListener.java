@@ -10,11 +10,13 @@ class OtiNanaiListener implements Runnable {
 	/**
 	 * Primary constructor, for singular listener.
 	 * @param	lp	the port to listen on
+    * @param   al Time diff for alarm to still be active
+    * @param   ps Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
-	 */
-	public OtiNanaiListener(int lp, long al, Logger l) throws SocketException {
+	public OtiNanaiListener(int lp, long al, int ps, Logger l) throws SocketException {
 		logger = l;
       alarmLife = al;
+      previewSamples = ps;
 		keyMaps = new HashMap<String,ArrayList<String>>(500);
 		storageMap = new HashMap<String,SomeRecord>(10000);
 		memoryMap = new HashMap<String, OtiNanaiMemory>(500);
@@ -23,18 +25,22 @@ class OtiNanaiListener implements Runnable {
 		dataSocket = new DatagramSocket(lp);
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
 	}
+	 */
 
 	/**
 	 * Multithread constructor
 	 * @param	ds	the DatagraSocket to be used
+    * @param   al Time diff for alarm to still be active
+    * @param   ps Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, long al, Logger l) {
+	public OtiNanaiListener(DatagramSocket ds, long al, int ps, Logger l) {
 		logger = l;
       alarmLife = al;
-		keyMaps = new HashMap<String,ArrayList<String>>(500);
-		storageMap = new HashMap<String,SomeRecord>(10000);
-		memoryMap = new HashMap<String, OtiNanaiMemory>(500);
+      previewSamples = ps;
+		keyMaps = new HashMap<String,ArrayList<String>>(200);
+		storageMap = new HashMap<String,SomeRecord>(5000);
+		memoryMap = new HashMap<String, OtiNanaiMemory>(200);
       keyWords = new ArrayList<String>();
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
@@ -110,7 +116,7 @@ class OtiNanaiListener implements Runnable {
 				nanoList.add(newRecord.getTimeNano());
 				keyMaps.put(kw, nanoList);
             keyWords.add(kw);
-				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, logger, recType, newRecord.getHostName(), newRecord.getMetric()));
+				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, logger, recType, previewSamples, newRecord.getHostName(), newRecord.getMetric()));
 			}
 		}
 		logger.finest("[Listener]: Storing to storageMap");
@@ -157,6 +163,7 @@ class OtiNanaiListener implements Runnable {
 	private HashMap<String,ArrayList<String>> keyMaps;
 	private HashMap<String,OtiNanaiMemory> memoryMap; 
 	private int port;
+   private int previewSamples;
    private long alarmLife;
 	private DatagramSocket dataSocket;
 	private Logger logger;

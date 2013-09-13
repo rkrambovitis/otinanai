@@ -19,14 +19,14 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, String logFile, String logLevel){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, int previewSamples, String logFile, String logLevel){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
 			logger.config("[Init]: Setting up new DatagramSocket Listener on port "+listenerPort);
 			logger.config("[Init]: Deviation Alarm life: "+alarmLife + "s");
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, logger);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, previewSamples, logger);
 			new Thread(onl).start();
 
          // Ticker
@@ -108,6 +108,7 @@ class OtiNanai {
 		int udpPort = 9876;
 		int tcpPort = 1010;
 		int listenerThreads = 5;
+      int previewSamples = 10;
       Long cacheTime = 120000L;
       Long alarmLife = 86400000L;
       int cacheItems = 50; 
@@ -149,6 +150,11 @@ class OtiNanai {
 						alarmLife = 1000*(Long.parseLong(args[i]));
 						System.out.println("alarmLife = " + alarmLife);
 						break;
+               case "-ps":
+                  i++;
+                  previewSamples = Integer.parseInt(args[i]);
+                  System.out.println("previewSamples = " + previewSamples);
+                  break;
 					case "-lf":
 						i++;
 						logFile = args[i];
@@ -160,7 +166,7 @@ class OtiNanai {
 						System.out.println("logLevel = " + logLevel);
 						break;
 					default:
-						System.out.println("-wp <webPort> -lp <listenerPort> -wt <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s>) -lf <logFile> -ll <logLevel>");
+						System.out.println("-wp <webPort> -lp <listenerPort> -wt <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s>) -lf <logFile> -ll <logLevel> -ps <previewSamples");
                   System.exit(0);
 						break;
 				}
@@ -169,7 +175,7 @@ class OtiNanai {
 			System.out.println(e);
 			System.exit(1);
 		}
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, logFile, logLevel);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, previewSamples, logFile, logLevel);
 	}
 
 	/**

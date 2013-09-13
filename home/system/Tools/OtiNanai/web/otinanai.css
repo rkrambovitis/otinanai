@@ -14,11 +14,18 @@ body {
    width: 85%; 
    margin: 0 auto; 
 }
-#mygraph { 
+.mygraph { 
    height: 50%;
    border-bottom: 1px solid #ccc; 
    padding-bottom: 20px; 
    margin-bottom: 20px; 
+}
+.previewGraph {
+   width: 50%;
+   height: 120px;
+   border-bottom: 1px solid #ccc;
+   padding-bottom: 15px;
+   margin-bottom: 10px;
 }
 .date { 
    color: green; 
