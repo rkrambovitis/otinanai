@@ -1,5 +1,7 @@
 package gr.phaistosnetworks.admin.otinanai;
 
+import com.basho.riak.client.*;
+
 import java.util.logging.*;
 import java.util.*;
 
