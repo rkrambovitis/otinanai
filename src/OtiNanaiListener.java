@@ -1,3 +1,5 @@
+package gr.phaistosnetworks.admin.otinanai;
+
 import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;

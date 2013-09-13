@@ -1,3 +1,5 @@
+package gr.phaistosnetworks.admin.otinanai;
+
 import java.net.ServerSocket;
 import java.net.DatagramSocket;
 import java.util.logging.*;

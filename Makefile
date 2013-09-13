@@ -1,5 +1,5 @@
 SRC= src
-DST= home/system/Tools/OtiNanai
+DST= gr/phaistosnetworks/admin/otinanai
 
 all:
 	cd $(SRC) && make ;
