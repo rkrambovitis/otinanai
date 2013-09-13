@@ -150,6 +150,7 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
+   /*
    private String toGraph(OtiNanaiMemory onm, short type) {
       logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+onm.getKeyWord() +" type: "+type);
 		String output = new String("\n");
@@ -194,6 +195,28 @@ class OtiNanaiWeb implements Runnable {
       }
       return output;
    }
+*/
+   private String toGraph(OtiNanaiMemory onm, short type) {
+      logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+onm.getKeyWord() +" type: "+type);
+		String output = new String("\n");
+      SomeRecord sr;
+      LinkedList<String> data = new LinkedList<String>();
+      if (type == GRAPH_FULL) {
+         data = onm.getMemory();
+      } else if (type == GRAPH_PREVIEW) {
+         data = onm.getPreview();
+      }
+      if (data.size() == 0 ) {
+         output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
+      } else {
+         for (String dato : data) {
+            output = output + "[";
+            String[] twowords = dato.split("\\s");
+            output = output + calcDate(twowords[0]) + "," + twowords[1] + "],\n";
+         }
+      }
+      return output;
+   }
 
 	private String toGraph(LinkedList<String> data, String title) {
       logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+title);
@@ -206,8 +229,7 @@ class OtiNanaiWeb implements Runnable {
          for (String dato : data) {
             output = output + "[";
             String[] twowords = dato.split("\\s");
-            output = output + calcDate(twowords[0]) + "," + twowords[1];
-            output = output + "],\n";
+            output = output + calcDate(twowords[0]) + "," + twowords[1] + "],\n";
          }
       }
       return output;
@@ -270,14 +292,9 @@ class OtiNanaiWeb implements Runnable {
          output = output + "google.setOnLoadCallback(drawChart);\n"
             + "function drawChart() {\n"
             + "var data = new google.visualization.DataTable();\n"
-            + "data.addColumn('datetime', 'Date');\n";
-         for (String host : onm.getAllHosts()) {
-            if (onm.getAllHosts().size() == 2) {
-               output = output + "data.addColumn('number', '"+onm.getKeyWord()+"');\n";
-               break;
-            }
-            output = output + "data.addColumn('number', '"+host+"');\n";
-         }
+            + "data.addColumn('datetime', 'Date');\n"
+            + "data.addColumn('number', '"+onm.getKeyWord()+"');\n";
+            //output = output + "data.addColumn('number', '"+host+"');\n";
          output = output + "data.addRows(["
             + toGraph(onm, type)
             + "]);\n";
