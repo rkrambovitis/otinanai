@@ -53,7 +53,7 @@ class OtiNanaiCache {
    public String getCached(String keyWord) {
       if (theCache.containsKey(keyWord)) {
          if ((System.currentTimeMillis() - cacheTime.get(keyWord)) > expiry) {
-            logger.fine("[Cacher]: keyWord expired ing cache: "+keyWord);
+            logger.fine("[Cacher]: keyWord expired, removing from cache: "+keyWord);
             return null;
          }
          logger.fine("[Cacher]: keyWord found in cache: "+keyWord);

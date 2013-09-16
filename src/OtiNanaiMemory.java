@@ -1,21 +1,24 @@
 package gr.phaistosnetworks.admin.otinanai;
 
-
 import java.util.logging.*;
 import java.util.*;
 
+import com.basho.riak.client.bucket.*;
+
 class OtiNanaiMemory {
-   public OtiNanaiMemory(String key, long al, Logger l, short rT, int ps, float theValue) {
+   public OtiNanaiMemory(String key, long al, int alarmSamples, float alarmThreshold, Logger l, short rT, int previewSamples, float theValue, short storageType, Bucket bucket) {
       keyWord = key;
       recType = rT;
       logger = l;
-      alarmLife = al;
-      previewSamples = ps;
       alarm = 0L;
-      kwt = new KeyWordTracker(key, previewSamples, logger);
-      if (rT == GAUGE) {
+      if (storageType == OtiNanai.MEM) {
+         kwt = new MemTracker(key, previewSamples, alarmSamples, alarmThreshold, logger);
+      } else if (storageType == OtiNanai.RIAK) {
+         kwt = new RiakTracker(key, previewSamples, alarmSamples, alarmThreshold, logger, bucket);
+      }
+      if (rT == OtiNanai.GAUGE) {
          put(theValue);
-      } else if (rT == FREQ) {
+      } else if (rT == OtiNanai.FREQ) {
          put();
       }
    }
@@ -37,7 +40,6 @@ class OtiNanaiMemory {
    }
 
    public boolean getAlarm(long ts) {
-
       if ((alarm != 0L) && ((ts - alarm) < alarmLife))
          return true;
 
@@ -46,10 +48,6 @@ class OtiNanaiMemory {
       if ((alarm != 0L) && ((ts - alarm) < alarmLife))
          return true;
       return false;
-   }
-
-   public Set<String> getAllHosts() {
-      return null;
    }
 
    public LinkedList<String> getPreview() {
@@ -65,11 +63,6 @@ class OtiNanaiMemory {
    private long alarmLife;
    private String keyWord;
    private Logger logger;
-   private int previewSamples;
    private KeyWordTracker kwt;
    private short recType;
-   private static final short GAUGE = 0;
-   private static final short COUNTER = 1;
-   private static final short FREQ = 2;
-
 }

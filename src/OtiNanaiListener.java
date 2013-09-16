@@ -1,5 +1,9 @@
 package gr.phaistosnetworks.admin.otinanai;
 
+import com.basho.riak.client.*;
+import com.basho.riak.client.bucket.*;
+
+
 import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
@@ -10,40 +14,46 @@ import java.util.logging.*;
 class OtiNanaiListener implements Runnable {
 
 	/**
-	 * Primary constructor, for singular listener.
-	 * @param	lp	the port to listen on
-    * @param   al Time diff for alarm to still be active
-    * @param   ps Number of samples to keep for preview graphs
-	 * @param	l	the logger to log to
-	public OtiNanaiListener(int lp, long al, int ps, Logger l) throws SocketException {
-		logger = l;
-      alarmLife = al;
-      previewSamples = ps;
-		keyMaps = new HashMap<String,ArrayList<String>>(500);
-		storageMap = new HashMap<String,SomeRecord>(10000);
-		memoryMap = new HashMap<String, OtiNanaiMemory>(500);
-      keyWords = new ArrayList<String>();
-		port = lp;
-		dataSocket = new DatagramSocket(lp);
-		logger.finest("[Listener]: New OtiNanaiListener Initialized");
-	}
-	 */
-
-	/**
 	 * Multithread constructor
 	 * @param	ds	the DatagraSocket to be used
     * @param   al Time diff for alarm to still be active
     * @param   ps Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, long al, int ps, Logger l) {
+	public OtiNanaiListener(DatagramSocket ds, long al, int as, float at, int ps, Logger l, short st) {
 		logger = l;
       alarmLife = al;
+      alarmSamples = as;
+      alarmThreshold = at;
       previewSamples = ps;
+      storageType = st;
+      riakBucket = null;
+      keyWords = new LLString();
+      keyWordRiakString = new String("KeyWords_keyword");
+
+      if (st == OtiNanai.RIAK) {
+         try {
+            logger.config("[Listener]: Setting up Riak");
+
+            IRiakClient riakClient = RiakFactory.pbcClient(); //or RiakFactory.httpClient();                   
+            riakBucket = riakClient.createBucket("OtiNanai").execute();
+/*
+            logger.fine("[Listener]: fetching existing keyWords List");
+            keyWords = riakBucket.fetch(keyWordRiakString, LLString.class).execute();
+            if (keyWords == null) {
+               logger.fine("[Listener]: null. Creating new keyWords List");
+               keyWords = new LLString();
+            }
+            */
+         } catch (RiakException re) {
+            logger.severe("[Listener]: "+re);
+            System.exit(1);
+         }
+      }
 		keyMaps = new HashMap<String,ArrayList<String>>(200);
 		storageMap = new HashMap<String,SomeRecord>(5000);
 		memoryMap = new HashMap<String, OtiNanaiMemory>(200);
-      keyWords = new ArrayList<String>();
+
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
 	}
@@ -61,7 +71,7 @@ class OtiNanaiListener implements Runnable {
 				dataSocket.receive(receivePacket);
 			} catch (IOException ioer) {
 				System.out.println(ioer);
-				logger.severe("[Listener]: "+ioer.getMessage());
+				logger.severe("[Listener]: "+ioer.getStackTrace());
 				continue;
 			}
 			String sentence = new String(receivePacket.getData());
@@ -81,13 +91,13 @@ class OtiNanaiListener implements Runnable {
 	private void parseData(InetAddress hip, String theDato) {
 		logger.finest("[Listener]: + Attempting to parse: \""+theDato+"\" from "+hip);
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
-      short recType = FREQ;
+      short recType = OtiNanai.FREQ;
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 		for (String kw : theKeys) {
          
          if (newRecord.isMetric()) {
             kw = kw + "_";
-            recType = GAUGE;
+            recType = OtiNanai.GAUGE;
          }
          
          kw = kw.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]", "");
@@ -107,7 +117,7 @@ class OtiNanaiListener implements Runnable {
             } else {
                memoryMap.get(kw).put();
             }
-            if (keyMaps.get(kw).size() >= MAXSAMPLES) {
+            if (keyMaps.get(kw).size() >= OtiNanai.MAXSAMPLES) {
                String uid = keyMaps.get(kw).get(0);
                keyMaps.get(kw).remove(uid);
                storageMap.remove(uid);
@@ -118,7 +128,12 @@ class OtiNanaiListener implements Runnable {
 				nanoList.add(newRecord.getTimeNano());
 				keyMaps.put(kw, nanoList);
             keyWords.add(kw);
-				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, logger, recType, previewSamples, newRecord.getMetric()));
+				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, alarmSamples, alarmThreshold, logger, recType, previewSamples, newRecord.getMetric(), storageType, riakBucket));
+            try {
+               riakBucket.store(keyWordRiakString, keyWords).execute();
+            } catch (RiakRetryFailedException rrfe) {
+               logger.severe("[Lisener]: Failed to store keyWords List to Riak");
+            }
 			}
 		}
 		logger.finest("[Listener]: Storing to storageMap");
@@ -155,22 +170,25 @@ class OtiNanaiListener implements Runnable {
 
    public void tick() {
       long now=System.currentTimeMillis();
-      for (String kw : keyWords) {
+      LLString tempKW = new LLString();
+      tempKW.addAll(keyWords);
+      for (String kw : tempKW) {
          memoryMap.get(kw).tick(now);
       }
    }
 
-   private ArrayList<String> keyWords;
+   private LLString keyWords;
 	private HashMap<String,SomeRecord> storageMap;
 	private HashMap<String,ArrayList<String>> keyMaps;
 	private HashMap<String,OtiNanaiMemory> memoryMap; 
 	private int port;
    private int previewSamples;
    private long alarmLife;
+   private int alarmSamples;
+   private float alarmThreshold;
 	private DatagramSocket dataSocket;
 	private Logger logger;
-   private static final int MAXSAMPLES = 20;
-   private static final short GAUGE = 0;
-   private static final short COUNTER = 1;
-   private static final short FREQ = 2;
+   private short storageType;
+   private Bucket riakBucket;
+   private String keyWordRiakString;
 }

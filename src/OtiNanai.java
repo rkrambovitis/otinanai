@@ -21,14 +21,27 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, int previewSamples, String logFile, String logLevel){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, int alarmSamples, float alarmThreshold, int previewSamples, String logFile, String logLevel, short storageEngine){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
-			logger.config("[Init]: Setting up new DatagramSocket Listener on port "+listenerPort);
-			logger.config("[Init]: Deviation Alarm life: "+alarmLife + "s");
+			logger.config("[Init]: Setting up new DatagramSocket Listener");
+         logger.config("[Init]: listenerPort "+listenerPort);
+			logger.config("[Init]: listenerThreads "+listenerThreads);
+			logger.config("[Init]: webPort "+webPort);
+			logger.config("[Init]: webThreads "+webThreads);
+			logger.config("[Init]: cacheTime "+cacheTime + "ms");
+			logger.config("[Init]: cacheItems "+cacheItems);
+			logger.config("[Init]: alarmLife: "+alarmLife + "ms");
+			logger.config("[Init]: alarmSamples: "+alarmSamples);
+			logger.config("[Init]: alarmThreshold: "+alarmThreshold);
+			logger.config("[Init]: previewSamples: "+previewSamples);
+			logger.config("[Init]: logFile: "+logFile);
+			logger.config("[Init]: logLevel: "+logLevel);
+			logger.config("[Init]: storageEngine: "+storageEngine);
+
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, previewSamples, logger);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, alarmSamples, alarmThreshold, previewSamples, logger, storageEngine);
 			new Thread(onl).start();
 
          // Ticker
@@ -37,7 +50,7 @@ class OtiNanai {
          new Thread(ont).start();
 
          // Cacher
-         logger.config("[Init]: Setting up cacher (life: " +cacheTime+ "items: "+cacheItems+")");
+         logger.config("[Init]: Setting up cacher (life: " +cacheTime+ " items: "+cacheItems+")");
          OtiNanaiCache onc = new OtiNanaiCache(cacheTime, cacheItems, logger);
 
 			// Web Interface
@@ -50,7 +63,7 @@ class OtiNanai {
 			}
 		} catch (java.lang.Exception e) {
 			System.err.println(e);
-			logger.severe(e.getMessage());
+			logger.severe("[Init]: "+e.getStackTrace());
 			System.exit(1);
 		}
 		//OtiNanaiCommander onc = new OtiNanaiCommander(onl);
@@ -111,8 +124,11 @@ class OtiNanai {
 		int tcpPort = 1010;
 		int listenerThreads = 5;
       int previewSamples = 10;
+      short storageEngine = OtiNanai.MEM;
       Long cacheTime = 120000L;
       Long alarmLife = 86400000L;
+      int alarmSamples = 20;
+      float alarmThreshold = 3.0f;
       int cacheItems = 50; 
       String logFile = new String("/var/log/otinanai.log");
       String logLevel = new String("INFO");
@@ -149,8 +165,18 @@ class OtiNanai {
 						break;
 					case "-al":
 						i++;
-						alarmLife = 1000*(Long.parseLong(args[i]));
+						alarmLife = Long.parseLong(args[i]);
 						System.out.println("alarmLife = " + alarmLife);
+						break;
+					case "-as":
+						i++;
+						alarmSamples = Integer.parseInt(args[i]);
+						System.out.println("alarmSamples = " + alarmSamples);
+						break;
+					case "-at":
+						i++;
+						alarmThreshold = Float.parseFloat(args[i]);
+						System.out.println("alarmThreshold = " + alarmThreshold);
 						break;
                case "-ps":
                   i++;
@@ -167,8 +193,12 @@ class OtiNanai {
 						logLevel = args[i];
 						System.out.println("logLevel = " + logLevel);
 						break;
+					case "-riak":
+						System.out.println("storageEnging = Riak");
+                  storageEngine = OtiNanai.RIAK;
+						break;
 					default:
-						System.out.println("-wp <webPort> -lp <listenerPort> -wt <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s>) -lf <logFile> -ll <logLevel> -ps <previewSamples");
+						System.out.println("-wp <webPort> -lp <listenerPort> -wt <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s)> -as <alarmSamples> -at <alarmThreshold> -lf <logFile> -ll <logLevel> -ps <previewSamples> -riak");
                   System.exit(0);
 						break;
 				}
@@ -177,7 +207,7 @@ class OtiNanai {
 			System.out.println(e);
 			System.exit(1);
 		}
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, previewSamples, logFile, logLevel);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, alarmSamples, alarmThreshold, previewSamples, logFile, logLevel, storageEngine);
 	}
 
 	/**
@@ -210,4 +240,23 @@ class OtiNanai {
 	}
 
 	private Logger logger;
+
+	public static final int THIRTY_SEC_SAMPLES = 300;
+	public static final int THIRTY_S_TO_FIVE_M = 10;
+	public static final int FIVE_MIN_SAMPLES = 2880;
+	public static final int FIVE_M_TO_THIRTY_M = 6;
+
+	public static final int MAXSAMPLES = 20;
+	public static final short GAUGE = 0;
+	public static final short COUNTER = 1;
+	public static final short FREQ = 2;
+	public static final short MEM = 1;
+	public static final short RIAK = 2;
+
+	public static int MAX_LOG_OUTPUT=20;
+	public static short GRAPH_FULL=1;
+	public static short GRAPH_PREVIEW=2;
+
+	public static final int TICKER_INTERVAL = 30000;
+
 }

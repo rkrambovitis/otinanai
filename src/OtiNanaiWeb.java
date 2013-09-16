@@ -46,7 +46,7 @@ class OtiNanaiWeb implements Runnable {
 					requestMessageLine = inFromClient.readLine().replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1", "");
 					logger.fine("[Web]: Got Web request for : \""+requestMessageLine+"\"");
 				} catch (NullPointerException npe) {
-					logger.warning("[Web]: "+npe.getMessage());
+					logger.warning("[Web]: "+npe);
 					continue;
 				}
 				boolean alarms=false;
@@ -127,7 +127,7 @@ class OtiNanaiWeb implements Runnable {
 				}
 			}
 		} catch (IOException ioe) {
-			logger.severe("[Web]: "+ioe.getMessage());
+			logger.severe("[Web]: "+ioe);
 		}
 	}
 
@@ -145,7 +145,7 @@ class OtiNanaiWeb implements Runnable {
 			connectionSocket.close();
 			return true;
 		} catch (IOException ioe) {
-			logger.severe("[Web]: "+ioe.getMessage());
+			logger.severe("[Web]: "+ioe);
 			return false;
 		}
 	}
@@ -162,9 +162,9 @@ class OtiNanaiWeb implements Runnable {
          gahSize = 1;
       for (String host : gah) {
          LinkedList<String> data = new LinkedList<String>();
-         if (type == GRAPH_FULL) {
+         if (type == OtiNanai.GRAPH_FULL) {
             data = onm.getMemory(host);
-         } else if (type == GRAPH_PREVIEW) {
+         } else if (type == OtiNanai.GRAPH_PREVIEW) {
             data = onm.getPreview(host);
          }
          logger.fine("[Web]: graphing host: "+host);
@@ -201,19 +201,24 @@ class OtiNanaiWeb implements Runnable {
 		String output = new String("\n");
       SomeRecord sr;
       LinkedList<String> data = new LinkedList<String>();
-      if (type == GRAPH_FULL) {
+      if (type == OtiNanai.GRAPH_FULL) {
          data = onm.getMemory();
-      } else if (type == GRAPH_PREVIEW) {
+      } else if (type == OtiNanai.GRAPH_PREVIEW) {
          data = onm.getPreview();
       }
-      if (data.size() == 0 ) {
-         output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
-      } else {
-         for (String dato : data) {
-            output = output + "[";
-            String[] twowords = dato.split("\\s");
-            output = output + calcDate(twowords[0]) + "," + twowords[1] + "],\n";
+      try {
+         if (data.size() == 0 ) {
+            output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
+         } else {
+            for (String dato : data) {
+               output = output + "[";
+               String[] twowords = dato.split("\\s");
+               output = output + calcDate(twowords[0]) + "," + twowords[1] + "],\n";
+            }
          }
+      } catch (NullPointerException npe) {
+         logger.severe("[Web]: "+npe);
+         output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
       }
       return output;
    }
@@ -256,9 +261,9 @@ class OtiNanaiWeb implements Runnable {
                + sr.getRecord()
                + "</span></div>\n";
          } catch (NullPointerException npe) {
-            logger.severe(npe.getMessage());
+            logger.severe("[Web]: "+npe);
          }
-         if (c >= MAX_LOG_OUTPUT) {
+         if (c >= OtiNanai.MAX_LOG_OUTPUT) {
             break;
          }
          c++;
@@ -284,7 +289,7 @@ class OtiNanaiWeb implements Runnable {
       String output = new String("");
 		for (OtiNanaiMemory onm : kws) {
          output = output + "<script type=\"text/javascript\">\n";
-         if (type == GRAPH_FULL) {
+         if (type == OtiNanai.GRAPH_FULL) {
             output = output + "google.load(\"visualization\", \"1\", {packages:[\"annotatedtimeline\"]});\n";
          } else {
             output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
@@ -299,7 +304,7 @@ class OtiNanaiWeb implements Runnable {
             + toGraph(onm, type)
             + "]);\n";
 
-         if (type == GRAPH_FULL) {
+         if (type == OtiNanai.GRAPH_FULL) {
             output = output + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n"
                + "var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('"+onm.getKeyWord()+"'));\n";
          } else {
@@ -343,7 +348,7 @@ class OtiNanaiWeb implements Runnable {
             output = new String("<html><head>\n");
             output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
                + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
-               + timeGraphHead(graphMe, GRAPH_FULL)
+               + timeGraphHead(graphMe, OtiNanai.GRAPH_FULL)
                + "</head><body>\n"
                + timeGraphBody(graphMe)
                + "</body></html>";
@@ -370,7 +375,7 @@ class OtiNanaiWeb implements Runnable {
 		String output = new String("<html><head>\n");
       output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
          + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
-         + timeGraphHeadString(kws, GRAPH_PREVIEW)
+         + timeGraphHeadString(kws, OtiNanai.GRAPH_PREVIEW)
          + "</head><body>\n"
          + listKeyWords(kws)
          + "</body></html>";
@@ -401,7 +406,7 @@ class OtiNanaiWeb implements Runnable {
 		String output = new String("<html><head>\n");
       output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
          + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
-         + timeGraphHeadString(kws, GRAPH_PREVIEW)
+         + timeGraphHeadString(kws, OtiNanai.GRAPH_PREVIEW)
          + "</head><body>\n"
          + listKeyWords(kws)
          + "</body></html>";
@@ -458,7 +463,7 @@ class OtiNanaiWeb implements Runnable {
 		String output = new String("<html><head>\n");
       output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
          + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
-         + timeGraphHeadString(kws, GRAPH_PREVIEW)
+         + timeGraphHeadString(kws, OtiNanai.GRAPH_PREVIEW)
          + "</head><body>\n"
          + listKeyWords(kws)
          + "</body></html>";
@@ -485,8 +490,5 @@ class OtiNanaiWeb implements Runnable {
 	private int port;
 	private ServerSocket listenSocket;
 	private Logger logger;
-   private static int MAX_LOG_OUTPUT=20;
-   private static short GRAPH_FULL=1;
-   private static short GRAPH_PREVIEW=2;
    private OtiNanaiCache onc;
 }
