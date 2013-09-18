@@ -165,7 +165,7 @@ class OtiNanai {
 						break;
 					case "-al":
 						i++;
-						alarmLife = Long.parseLong(args[i]);
+						alarmLife = 1000*(Long.parseLong(args[i]));
 						System.out.println("alarmLife = " + alarmLife);
 						break;
 					case "-as":

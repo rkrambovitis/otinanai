@@ -53,6 +53,7 @@ class OtiNanaiWeb implements Runnable {
 				boolean graph=false;
             boolean timeGraph=false;
             boolean showKeyWords=false;
+            boolean mergeKeyWords=false;
             boolean draw=false;
             Path path;
             byte[] data;
@@ -83,38 +84,60 @@ class OtiNanaiWeb implements Runnable {
 						data = Files.readAllBytes(path);
 						sendToClient(data, "text/css", true, connectionSocket);
 						break;
+					case " crossfilter.min.js ":
+                  logger.info("[Web]: Sending crossfilter.min.js");
+						path = Paths.get("web/crossfilter.min.js");
+						data = Files.readAllBytes(path);
+						sendToClient(data, "application/x-javascript", true, connectionSocket);
+						break;
+					case " d3.v3.min.js ":
+                  logger.info("[Web]: Sending d3.v3.min.js");
+						path = Paths.get("web/d3.v3.min.js");
+						data = Files.readAllBytes(path);
+						sendToClient(data, "application/x-javascript", true, connectionSocket);
+						break;
 					default:
 						String[] request = requestMessageLine.split("[ ,]|%20");
-						StringBuilder title = new StringBuilder();
-						Integer metric = new Integer(-10);
+                  String rest = new String("");
 						for (String word : request) {
+                     /*
 							if (word.equals("")) {
                            logger.finest("[Web]: Skipping blank word");
 									continue;
                      }
-							try {
-								metric = Integer.parseInt(word);
-                        logger.fine("[Web]: word is metric");
-							} catch (NumberFormatException nfe) {
-                        logger.fine("[Web]: word is not a metric");
-								switch (word) {
-                           case "a":
-                              logger.info("[Web]: getAlarms matched");
-										alarms=true;
-										break;
-                           case "k":
-                              logger.info("[Web]: showKeyWords matched");
-                              showKeyWords = true;
-                              break;
-                           default:
-                              logger.info("[Web]: Draw matched");
-                              draw = true;
-                              break;
-								}
+                     */
+                     switch (word) {
+                        case "":
+                           logger.info("[Web]: Skipping blank word");
+                           break;
+                        case "A":
+                           logger.info("[Web]: getAlarms matched");
+                           alarms=true;
+                           break;
+                        case "k":
+                           logger.info("[Web]: showKeyWords matched");
+                           showKeyWords = true;
+                           break;
+                        case "K":
+                           logger.info("[Web]: mergeKeyWords matched");
+                           mergeKeyWords = true;
+                           break;
+                        default:
+                           logger.info("[Web]: Draw matched");
+                           draw = true;
+                           if (rest.equals("")) {
+                              rest = word;
+                           } else {
+                              rest = rest + " " + word;
+                           }
+                           break;
 							}
 						}
 						String text = new String();
-                  if (showKeyWords) {
+                  if (mergeKeyWords) {
+                     logger.fine("[Web]: rest of text is: \""+rest+"\"");
+                     text = mergeKeyWords(rest);
+                  } else if (showKeyWords) {
                      text = showKeyWords();
                   } else if (alarms) {
 							text = getAlarms();
@@ -275,7 +298,11 @@ class OtiNanaiWeb implements Runnable {
    private String timeGraphHeadString(ArrayList<String> keyList, short type) {
       ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
 		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
-      for (String key : keyList) {
+
+      TreeSet<String> sortedKeys = new TreeSet<String>();
+      sortedKeys.addAll(keyList);
+
+      for (String key : sortedKeys) {
          key=key.toLowerCase();
          if (allKWs.containsKey(key)) {
             graphMe.add(allKWs.get(key));
@@ -287,6 +314,7 @@ class OtiNanaiWeb implements Runnable {
 
    private String timeGraphHead(ArrayList<OtiNanaiMemory> kws, short type) {
       String output = new String("");
+      int i=0;
 		for (OtiNanaiMemory onm : kws) {
          output = output + "<script type=\"text/javascript\">\n";
          if (type == OtiNanai.GRAPH_FULL) {
@@ -314,6 +342,8 @@ class OtiNanaiWeb implements Runnable {
          output = output + "chart.draw(data, options);\n"
             + "}\n"
             + "</script>\n";
+         if (++i >= 10)
+            break;
       }
       return output;
    }
@@ -389,10 +419,63 @@ class OtiNanaiWeb implements Runnable {
       }
       TreeSet<String> sortedKeys = new TreeSet<String>();
       sortedKeys.addAll(keyWords);
+      int i=0;
       for (String kw : sortedKeys) {
          output = output + "<li><a href = \""+kw+"\">"+kw+"</a></li>\n";
          output = output + "<div id=\""+kw+"\" class=\"previewGraph\"></div>\n";
+         if (++i >= 10) 
+            break;
       }
+      return output;
+   }
+
+   private String mergeKeyWords(String start) {
+      logger.finest("[Web]: Generating merged keywords starting with: \""+start+"\"");
+      TreeMap<String, Integer> sortedKeys = new TreeMap<String, Integer>();
+		Collection<OtiNanaiMemory> allOMs = new LinkedList<OtiNanaiMemory>();
+      allOMs.addAll(onl.getMemoryMap().values());
+      String test = new String();
+      for (OtiNanaiMemory onm : allOMs ) {
+         logger.fine("[Web]: Merging word: "+onm.getKeyWord());
+         test = onm.getKeyWord();
+         if (start.equals("") || test.startsWith(start)) {
+            if (start.equals("")) {
+               test = test.substring(0,test.indexOf("."));
+            } else if (start.equals(test)) {
+                  logger.fine("[Web]: Excact Match for: "+test);
+                  String[] whatever = new String [1] ;
+                  whatever[0] = test;
+                  return draw(whatever);
+            } else {
+               test = test.replaceFirst(start,"");
+               test = test.substring(1);
+               if (test.contains(".")) {
+                  logger.fine("[Web]: containstest: "+test+" indexOf('.') "+test.indexOf("."));
+                  test = test.substring(0, test.indexOf("."));
+               }
+            }
+
+            logger.fine("[Web]: Word Matched !");
+            int sofar = 0;
+            if (sortedKeys.containsKey(test)) {
+               sofar = sortedKeys.get(test);
+            } 
+            sortedKeys.put(test, ++sofar);
+            logger.fine("[Web]: Merged: "+test+" "+sofar);
+         } else {
+            logger.fine("[Web]: "+test+" does not start with "+start);
+         }
+      }
+
+      if (!start.equals(""))
+         start = start + ".";
+		String output = new String("<html><head>\n");
+      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+         +"</head><body>\n";
+      for (String key : sortedKeys.keySet()) {
+         output = output + "<li><a href=\"K,"+start+key+"\">"+start+key+" "+sortedKeys.get(key)+"</a></li>\n";
+      }
+      output = output + "</body></html>";
       return output;
    }
 
