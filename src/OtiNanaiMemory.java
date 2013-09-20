@@ -6,7 +6,7 @@ import java.util.*;
 import com.basho.riak.client.bucket.*;
 
 class OtiNanaiMemory {
-   public OtiNanaiMemory(String key, long al, int alarmSamples, float alarmThreshold, Logger l, short rT, int previewSamples, float theValue, short storageType, Bucket bucket) {
+   public OtiNanaiMemory(String key, long al, int alarmSamples, float alarmThreshold, Logger l, short rT, int previewSamples, float theGauge, long theCounter, short storageType, Bucket bucket) {
       keyWord = key;
       recType = rT;
       logger = l;
@@ -17,8 +17,13 @@ class OtiNanaiMemory {
          kwt = new RiakTracker(key, previewSamples, alarmSamples, alarmThreshold, logger, bucket);
       }
       if (rT == OtiNanai.GAUGE) {
-         put(theValue);
+         logger.fine("[Memory]: GAUGE detected");
+         put(theGauge);
+      }else if (rT == OtiNanai.COUNTER) {
+         logger.fine("[Memory]: COUNTER detected");
+         put(theCounter);
       } else if (rT == OtiNanai.FREQ) {
+         logger.fine("[Memory]: FREQ detected");
          put();
       }
    }
@@ -28,6 +33,10 @@ class OtiNanaiMemory {
    }
 
    public void put(float value) {
+      kwt.put(value);
+   }
+
+   public void put(long value) {
       kwt.put(value);
    }
 

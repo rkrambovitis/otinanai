@@ -46,6 +46,10 @@ class RiakTracker implements KeyWordTracker {
       logger.finest("[RiakTracker]: thirtySecFloat is now " +thirtySecFloat);
    }
 
+   public void put(long value) {
+      logger.severe("[RiakTracker]: Counters Not Implemented yet in Riak");
+   }
+
    public void tick(long ts) {
       logger.fine("[RiakTracker]: ticking " + keyWord );
       try {

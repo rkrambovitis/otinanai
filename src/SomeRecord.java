@@ -23,13 +23,14 @@ class SomeRecord {
 		myip = ip;
 		theRecord = data;
       keyWords = new ArrayList<String>();
-      IAmMetric = false;
-      process(data.replaceAll("[\r\n]",""), 3, 48);
+      IAmGauge = false;
+      IAmCounter = false;
+      process(data.replaceAll("[\r\n]",""), 3, 128);
    }
 
    private void process(String str, int min, int max) {
       storeMetric(str, min, max);
-      if (!IAmMetric) {
+      if (!IAmGauge && !IAmCounter) {
          findKeyWords(str, min, max);
       }
    }
@@ -43,16 +44,22 @@ class SomeRecord {
 	 */
 	private void storeMetric(String str, int min, int max) {
       str = str.toLowerCase();
-      String[] Tokens = str.split("[ \t]");
-      if (Tokens.length == 2) {
-         if (isKeyWord(Tokens[0], min, max)) {
-            Float w2 = toMetric(Tokens[1]);
-            if (w2 != null) {
-               theMetric = w2;
-               IAmMetric = true;
-               //masterKey=Tokens[0];
-               keyWords.add(Tokens[0]);
-            }
+      String[] tokens = str.split("[ \t]");
+      if (tokens.length == 2 && isKeyWord(tokens[0], min, max)) {
+         System.out.println("Record: Gauge");
+         Float w2 = toFloat(tokens[1]);
+         if (w2 != null) {
+            theGauge = w2;
+            IAmGauge = true;
+            keyWords.add(tokens[0]);
+         }
+      } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[1].equals("counter")) {
+         System.out.println("Record: Counter");
+         Long w3 = toLong(tokens[2]);
+         if (w3 != null) {
+            theCounter = w3;
+            IAmCounter = true;
+            keyWords.add(tokens[0]);
          }
       }
 	}
@@ -64,33 +71,46 @@ class SomeRecord {
 	 * @param	str	the data to be broken down
 	 */
 	private void findKeyWords(String str, int min, int max) {
+      str = str.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]", "");
       str = str.toLowerCase();
-		String[] Tokens = str.split("[ \t]");
+		String[] tokens = str.split("[ \t]");
       int i=0;
       boolean indexAll = false;
-      if (Tokens[i].equals("index")) {
+      if (tokens[i].equals("index")) {
          indexAll = true;
          i++;
       }
-		for (; i<Tokens.length; i++ ) {
-			String tok = Tokens[i];
-         if (toMetric(tok) == null && isKeyWord(tok, min, max)) {
+		for (; i<tokens.length; i++ ) {
+			String tok = tokens[i];
+         if (toFloat(tok) == null && isKeyWord(tok, min, max)) {
             keyWords.add(tok);
             if (!indexAll)
                break;
 			}
 		}
-		Tokens = str.split("\\s");
-		masterKey = Tokens[0];
+		tokens = str.split("\\s");
+		masterKey = tokens[0];
 	}
 
    /**
-    * Returns trus if a word is a metric
+    * Returns true if a word is a metric
     * @param   str   the word
     */
-   private Float toMetric(String str) {
+   private Float toFloat(String str) {
       try {
          return Float.parseFloat(str);
+      } catch (NumberFormatException nfe) {
+         return null;
+      }
+   }
+
+   /**
+    * Returns true if a word is a long
+    * @param   str   the word
+    */
+   private Long toLong(String str) {
+      try {
+         return Long.parseLong(str);
       } catch (NumberFormatException nfe) {
          return null;
       }
@@ -214,27 +234,44 @@ class SomeRecord {
    /**
     * Access Method
     */
-   public boolean isMetric() {
-      return IAmMetric;
+   public boolean isGauge() {
+      return IAmGauge;
    }
 
    /**
     * Access Method
     */
-   public Float getMetric() {
-      if (IAmMetric)
-         return theMetric;
-      return CRAPVALUE;
+   public boolean isCounter() {
+      return IAmCounter;
+   }
+
+   /**
+    * Access Method
+    */
+   public Float getGauge() {
+      if (IAmGauge)
+         return theGauge;
+      return -666f;
+   }
+
+   /**
+    * Access Method
+    */
+   public Long getCounter() {
+      if (IAmCounter)
+         return theCounter;
+      return 0l;
    }
 
 	private long timeStamp;
 	private String timeNano;
 	private InetAddress myip;
 	private String theRecord;
-   private Float theMetric;
-   private boolean IAmMetric;
+   private Float theGauge;
+   private Long theCounter;
+   private boolean IAmGauge;
+   private boolean IAmCounter;
 	private String theDate;
 	private ArrayList<String> keyWords;
 	private String masterKey;
-   private static final Float CRAPVALUE = -666.0f;
 }

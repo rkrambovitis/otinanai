@@ -21,6 +21,8 @@ class MemTracker implements KeyWordTracker {
 		sampleCount = 1;
       thirtySecDataCount = -1;
       thirtySecFloat = 0f;
+      thirtySecLong = 0l;
+      thirtySecPrev = 0l;
 		alarm = 0L;
       logger.finest("[MemTracker]: new MemTracker initialized for \"" +keyWord+"\"");
 	}
@@ -32,6 +34,11 @@ class MemTracker implements KeyWordTracker {
 	public void put() {
       thirtySecCount ++;
       logger.finest("[MemTracker]: thirtySecCount is now " +thirtySecCount);
+   }
+
+	public void put(long value) {
+      thirtySecLong = value;
+      logger.finest("[MemTracker]: thirtySecLong is now " +thirtySecCount);
    }
 
    public void put(float value) {
@@ -48,9 +55,10 @@ class MemTracker implements KeyWordTracker {
    }
 
 	private void flush(long ts) {
-      float perSec;
+      float perSec = 0f;
       /*
        * thirtySecDataCount is set to -1 by default, which means that the tracker tracks the amount of events.
+       * thirtySecLong is the "COUNT" counter. If more than 0, then we are a "COUNT" type.
        * In the event it's a "metric", it will be 1 or more.
        * Inthe event it's a metric but has no new data, it's 0.
        */
@@ -60,6 +68,18 @@ class MemTracker implements KeyWordTracker {
          thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
          previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
 
+      } else if (thirtySecLong > 0) {
+         logger.fine("[MemTracker]: thirtySecLong = " + thirtySecLong);
+         if (thirtySecPrev == 0l || thirtySecPrev > thirtySecLong) {
+            logger.fine("Last count is 0 or decrementing. Setting and Skipping");
+            thirtySecPrev = thirtySecLong;
+            lastTimeStamp = ts;
+         } else {
+            long timeDiff = ts - lastTimeStamp;
+            perSec = ((float)(thirtySecLong - thirtySecPrev)*1000/timeDiff);
+            thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+            previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+         }
       } else if (thirtySecDataCount < 0 ) {
          logger.fine("[MemTracker]: thirtySecCount = " +thirtySecCount);
          perSec = ((float)thirtySecCount / 30);
@@ -135,24 +155,35 @@ class MemTracker implements KeyWordTracker {
       /*
        * Alarm detection
        */
-      if ( (sampleCount < alarmSamples) && (thirtySecDataCount != 0) )
+      //if ( (sampleCount < alarmSamples) && (thirtySecDataCount != 0) )
+      if ( sampleCount < alarmSamples)
          sampleCount++;
 
-      if (mean == 0f ) {
+      if (mean == 0f && perSec != 0f) {
          logger.fine("[MemTracker]: mean is 0, setting new value");
+         mean = perSec;
+         /*
          logger.fine("[MemTracker]: thirtySecDataCount: "+thirtySecDataCount);
          if (thirtySecDataCount > 0 ) {
             logger.fine("[MemTracker]: GAUGE");
             mean = thirtySecFloat;
             logger.fine("[MemTracker]: m: "+mean);
+         } else if (thirtySecPrev > 0 ) {
+            logger.gine("[MemTracker]: COUNTER");
          } else if (thirtySecDataCount < 0 ) {
             logger.fine("[MemTracker]: FREQ");
             mean = thirtySecCount;
             logger.fine("[MemTracker]: m: "+mean);
          }
+         */
          sampleCount = 1;
-      } else {
+      } else if (perSec != 0f) {
          logger.fine("[MemTracker]: Calculating new mean");
+         float deviation = (perSec-mean)/mean;
+         mean += (perSec-mean)/alarmSamples;
+         logger.fine("MemTracker]: d: "+deviation+" m: "+mean);
+
+         /*
          logger.fine("[MemTracker]: thirtySecDataCount: "+thirtySecDataCount);
          float deviation = 0f;
          if (thirtySecDataCount > 0 ) {
@@ -166,6 +197,7 @@ class MemTracker implements KeyWordTracker {
             mean += (thirtySecCount - mean)/alarmSamples;
             logger.fine("[MemTracker]: d: "+deviation+" - m: "+mean);
          }
+         */
 
          if ((sampleCount >= alarmSamples) && (deviation >= alarmThreshold)) {
             logger.info("[MemTracker]: Error conditions met for " + keyWord);
@@ -219,6 +251,9 @@ class MemTracker implements KeyWordTracker {
 	private int sampleCount;
    private int thirtySecDataCount;
    private float thirtySecFloat;
+   private long thirtySecLong;
+   private long thirtySecPrev;
+   private long lastTimeStamp;
    private LinkedList<String> thirtySecMemory;
    private LinkedList<String> previewMemory;
    private LinkedList<String> fiveMinMemory;

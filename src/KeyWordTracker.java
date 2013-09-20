@@ -12,6 +12,8 @@ interface KeyWordTracker {
 
    public void put(float value) ;
 
+   public void put(long value) ;
+
    public void tick(long ts) ;
 
 	public long getAlarm() ;

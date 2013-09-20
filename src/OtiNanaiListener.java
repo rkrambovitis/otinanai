@@ -137,25 +137,30 @@ class OtiNanaiListener implements Runnable {
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 		for (String kw : theKeys) {
          
-         if (newRecord.isMetric()) {
+         if (newRecord.isGauge()) {
             kw = kw + "_";
             recType = OtiNanai.GAUGE;
-         }
-         
-         kw = kw.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]", "");
-         try { 
-            Float.parseFloat(kw);
-            logger.finest("[Listener]: Number, ignored");
-            continue;
-         } catch (NumberFormatException e) {}
-			if (kw.equals("")) {
-				logger.finest("[Listener]: Blank Keyword, ignored");
-				continue;
-			} else if (keyMaps.containsKey(kw)) {
+         } else if (newRecord.isCounter()) {
+            kw = kw + "_c";
+            recType = OtiNanai.COUNTER;
+         } else {
+            try { 
+               Float.parseFloat(kw);
+               logger.finest("[Listener]: Number, ignored");
+               continue;
+            } catch (NumberFormatException e) {}
+            if (kw.equals("")) {
+               logger.finest("[Listener]: Blank Keyword, ignored");
+               continue;
+            }
+			} 
+         if (keyMaps.containsKey(kw)) {
 				logger.finest("[Listener]: Existing keyword detected. Adding to list : " + kw);
 				keyMaps.get(kw).add(newRecord.getTimeNano());
-            if (newRecord.isMetric()) {
-               memoryMap.get(kw).put(newRecord.getMetric());
+            if (newRecord.isGauge()) {
+               memoryMap.get(kw).put(newRecord.getGauge());
+            } else if (newRecord.isCounter()) {
+               memoryMap.get(kw).put(newRecord.getCounter());
             } else {
                memoryMap.get(kw).put();
             }
@@ -170,12 +175,14 @@ class OtiNanaiListener implements Runnable {
 				nanoList.add(newRecord.getTimeNano());
 				keyMaps.put(kw, nanoList);
             keyWords.add(kw);
-				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, alarmSamples, alarmThreshold, logger, recType, previewSamples, newRecord.getMetric(), storageType, riakBucket));
+				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, alarmSamples, alarmThreshold, logger, recType, previewSamples, newRecord.getGauge(), newRecord.getCounter(), storageType, riakBucket));
+            /*
             try {
                riakBucket.store(keyWordRiakString, keyWords).execute();
             } catch (RiakRetryFailedException rrfe) {
                logger.severe("[Lisener]: Failed to store keyWords List to Riak");
             }
+            */
 			}
 		}
 		logger.finest("[Listener]: Storing to storageMap");
