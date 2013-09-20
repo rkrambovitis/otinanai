@@ -119,16 +119,7 @@ class OtiNanaiWeb implements Runnable {
 							}
 						}
 						String text = new String();
-                  /*
-                  if (mergeKeyWords) {
-                     logger.fine("[Web]: rest of text is: \""+rest+"\"");
-                     text = mergeKeyWords(rest);
-                     */
-                  if (showKeyWords) {
-                     String [] foo = new String[1];
-                     foo[0] = new String("*");
-                     text = showKeyWords(foo);
-                  } else if (alarms) {
+                  if (alarms) {
 							text = getAlarms();
                   } else if (draw) {
                      text = draw(request);
@@ -188,25 +179,6 @@ class OtiNanaiWeb implements Runnable {
       }
       return output;
    }
-
-   /*
-	private String toGraph(LinkedList<String> data, String title) {
-      logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+title);
-		String output = new String("\n");
-
-		SomeRecord sr;
-      if (data.size() == 0 ) {
-				output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
-      } else {
-         for (String dato : data) {
-            output = output + "[";
-            String[] twowords = dato.split("\\s");
-            output = output + calcDate(twowords[0]) + "," + twowords[1] + "],\n";
-         }
-      }
-      return output;
-	}
-   */
 
 	private String drawText(String keyword) {
       ArrayList<String> results = new ArrayList<String>();
@@ -272,7 +244,6 @@ class OtiNanaiWeb implements Runnable {
             + "var data = new google.visualization.DataTable();\n"
             + "data.addColumn('datetime', 'Date');\n"
             + "data.addColumn('number', '"+onm.getKeyWord()+"');\n";
-            //output = output + "data.addColumn('number', '"+host+"');\n";
          output = output + "data.addRows(["
             + toGraph(onm, type)
             + "]);\n";
@@ -287,8 +258,6 @@ class OtiNanaiWeb implements Runnable {
          output = output + "chart.draw(data, options);\n"
             + "}\n"
             + "</script>\n";
-         //if (++i >= OtiNanai.MAXPERPAGE)
-         //   break;
       }
       return output;
    }
@@ -343,7 +312,7 @@ class OtiNanaiWeb implements Runnable {
       ArrayList<String> kws = new ArrayList<String> ();
       for (OtiNanaiMemory onm : allOMs ) {
          if (onm.getAlarm(System.currentTimeMillis())) {
-            kws.add(onm.getKeyWord());//+" "+onm.getFiveMinCount()+" "+onm.getThirtyMinCount());
+            kws.add(onm.getKeyWord());
          }
       }
 
@@ -367,15 +336,47 @@ class OtiNanaiWeb implements Runnable {
       for (String kw : sortedKeys) {
          output = output + "<li><a href = \""+kw+"\">"+kw+"</a></li>\n";
          output = output + "<div id=\""+kw+"\" class=\"previewGraph\"></div>\n";
-
-         //if (++i >= OtiNanai.MAXPERPAGE) 
-         //   break;
       }
       return output;
    }
 
-   private String kwTree(ArrayList<String> kws, String[] keyList) {
+   private TreeMap<String, Integer> subTree(ArrayList<String> kws, String start) {
       TreeMap<String, Integer> sortedKeys = new TreeMap<String, Integer>();
+      String portion = new String();
+      for (String kw : kws) {
+
+         if (!start.equals("")) {
+            if (kw.startsWith(start))
+               kw = kw.replaceFirst(start, "");
+
+            if (kw.startsWith("."))
+               kw = kw.substring(1);
+         }
+
+         if (kw.contains(".")) {
+            portion = kw.substring(0, kw.indexOf("."));
+         } else {
+            portion = kw;
+         }
+         if (!start.equals("")) 
+            portion = start + "." + portion;
+
+         int sofar = 0;
+         if (sortedKeys.containsKey(portion)) {
+            sofar = sortedKeys.get(portion);
+         } 
+         sortedKeys.put(portion, ++sofar);
+      }
+      return sortedKeys;
+   }
+
+   private String kwTree(ArrayList<String> kws, String[] existingKeyWords) {
+      TreeMap<String, Integer> sortedKeys = new TreeMap<String, Integer>();
+      sortedKeys = subTree(kws, "");
+      while (sortedKeys.size() == 1) {
+         sortedKeys = subTree(kws, sortedKeys.firstKey());
+      }
+      /*
       String portion = new String();
       for (String kw : kws) {
          if (kw.contains(".")) {
@@ -390,9 +391,10 @@ class OtiNanaiWeb implements Runnable {
          } 
          sortedKeys.put(portion, ++sofar);
       }
+      */
 
       String oldKeys = new String();
-      for (String foo : keyList) {
+      for (String foo : existingKeyWords) {
          oldKeys = oldKeys + foo + " ";
       }
       oldKeys = oldKeys.substring(0,oldKeys.length()-1);
@@ -405,83 +407,7 @@ class OtiNanaiWeb implements Runnable {
       output = output + commonHTML(OtiNanai.ENDBODY);
       return output;
    }
-   /*
-   private String mergeKeyWords(String start) {
-      logger.finest("[Web]: Generating merged keywords starting with: \""+start+"\"");
-      TreeMap<String, Integer> sortedKeys = new TreeMap<String, Integer>();
-		Collection<OtiNanaiMemory> allOMs = new LinkedList<OtiNanaiMemory>();
-      allOMs.addAll(onl.getMemoryMap().values());
-      String test = new String();
-      int sum = 0;
-      for (OtiNanaiMemory onm : allOMs ) {
-         logger.fine("[Web]: Merging word: "+onm.getKeyWord());
-         test = onm.getKeyWord();
-         if (start.equals("") || test.startsWith(start)) {
-            if (start.equals("")) {
-               test = test.substring(0,test.indexOf("."));
-            } else if (start.equals(test)) {
-                  logger.fine("[Web]: Excact Match for: "+test);
-                  String[] whatever = new String [1] ;
-                  whatever[0] = test;
-                  return draw(whatever);
-            } else {
-               test = test.replaceFirst(start,"");
-               test = test.substring(1);
-               if (test.contains(".")) {
-                  logger.fine("[Web]: containstest: "+test+" indexOf('.') "+test.indexOf("."));
-                  test = test.substring(0, test.indexOf("."));
-               }
-            }
-
-            logger.fine("[Web]: Word Matched !");
-            int sofar = 0;
-            if (sortedKeys.containsKey(test)) {
-               sofar = sortedKeys.get(test);
-            } 
-            sortedKeys.put(test, ++sofar);
-            logger.fine("[Web]: Merged: "+test+" "+sofar);
-            sum++;
-         } else {
-            logger.fine("[Web]: "+test+" does not start with "+start);
-         }
-      }
-
-      if (sum <= OtiNanai.MAXPERPAGE) {
-         String[] whatever = new String [1] ;
-         whatever[0] = start;
-         return (draw(whatever));
-      }
-      if (!start.equals(""))
-         start = start + ".";
-		String output = new String("<html><head>\n");
-      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
-         +"</head><body>\n";
-      for (String key : sortedKeys.keySet()) {
-         output = output + "<li><a href=\"K,"+start+key+"\">"+start+key+" "+sortedKeys.get(key)+"</a></li>\n";
-      }
-      output = output + "</body></html>";
-      return output;
-   }
-   */
-
-   /*
-	private String showKeyWords() {
-      logger.finest("[Web]: Generating List of KeyWords");
-		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
-      ArrayList<String> kws = new ArrayList<String>();
-      for (OtiNanaiMemory onm : allOMs ) {
-         kws.add(onm.getKeyWord());//+" "+onm.getFiveMinCount()+" "+onm.getThirtyMinCount());
-      }
-		String output = new String("<html><head>\n");
-      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
-         + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
-         + timeGraphHeadString(kws, OtiNanai.GRAPH_PREVIEW)
-         + "</head><body>\n"
-         + listKeyWords(kws)
-         + "</body></html>";
-      return output;
-	}
-   */
+   
    private String commonHTML(short out) {
       if (out == OtiNanai.HEADER) {
          return new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n");
@@ -499,13 +425,6 @@ class OtiNanaiWeb implements Runnable {
       logger.fine("[Web]: Searching for keywords");
 		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
       ArrayList<String> kws = new ArrayList<String>();
-      /*
-      if (keyList[0].equals("*")) {
-         for (OtiNanaiMemory onm : allOMs ) {
-            kws.add(onm.getKeyWord());//+" "+onm.getFiveMinCount()+" "+onm.getThirtyMinCount());
-         }
-      } else {
-      */
       boolean matched;
       for (OtiNanaiMemory onm : allOMs ) {
          for (String word : keyList) {
