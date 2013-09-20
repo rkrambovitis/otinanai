@@ -261,4 +261,10 @@ class OtiNanai {
 
 	public static final int TICKER_INTERVAL = 30000;
 
+   public static final short HEADER = 1;
+   public static final short GOOGLE = 2;
+   public static final short ENDHEAD = 3;
+   public static final short ENDBODY = 3;
+
+
 }

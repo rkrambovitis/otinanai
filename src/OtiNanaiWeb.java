@@ -60,15 +60,14 @@ class OtiNanaiWeb implements Runnable {
 					case " / ":
 					case "  ":
                   logger.info("[Web]: Sending default blank webpage");
-						String bogus = new String();
-                  bogus = bogus 
-                     +"<html><body>"
+						String bogus = commonHTML(OtiNanai.HEADER) 
+                     + commonHTML(OtiNanai.ENDHEAD)
                      +"<h3>Robert's random piece of junk.</h3>"
                      +"<hr>Keys:"
                      +"<li><a href=\"A\">A</a> : show alarms"
                      +"<li><a href=\"*\">*</a> : show all keywords"
                      +"<li>word1 word2, +word3, -word4 : search keywords"
-                     +"</body></html>";
+                     + commonHTML(OtiNanai.ENDBODY);
 						sendToClient(bogus.getBytes(), "text/html", false, connectionSocket);
 						break;
 					case " favicon.ico ":
@@ -322,13 +321,12 @@ class OtiNanaiWeb implements Runnable {
          String output = onc.getCached(fullString);
          if (output == null) {
             logger.fine("[Web]: Not cached, will generate \"" + fullString+"\"");
-            output = new String("<html><head>\n");
-            output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
-               + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
+            output = commonHTML(OtiNanai.HEADER) 
+               + commonHTML(OtiNanai.GOOGLE)
                + timeGraphHead(graphMe, OtiNanai.GRAPH_FULL)
-               + "</head><body>\n"
+               + commonHTML(OtiNanai.ENDHEAD)
                + timeGraphBody(graphMe)
-               + "</body></html>";
+               + commonHTML(OtiNanai.ENDBODY);
             onc.cache(fullString, output);
             return output;
          } else {
@@ -349,13 +347,12 @@ class OtiNanaiWeb implements Runnable {
          }
       }
 
-		String output = new String("<html><head>\n");
-      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
-         + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
+      String output = commonHTML(OtiNanai.HEADER) 
+         + commonHTML(OtiNanai.GOOGLE)
          + timeGraphHeadString(kws, OtiNanai.GRAPH_PREVIEW)
-         + "</head><body>\n"
+         + commonHTML(OtiNanai.ENDHEAD)
          + listKeyWords(kws)
-         + "</body></html>";
+         + commonHTML(OtiNanai.ENDBODY);
       return output;
    }
 
@@ -400,13 +397,12 @@ class OtiNanaiWeb implements Runnable {
       }
       oldKeys = oldKeys.substring(0,oldKeys.length()-1);
 
-		String output = new String("<html><head>\n");
-      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
-         +"</head><body>\n";
+      String output = commonHTML(OtiNanai.HEADER) 
+         + commonHTML(OtiNanai.ENDHEAD);
       for (String key : sortedKeys.keySet()) {
          output = output + "<li><a href=\""+oldKeys + " +"+key+"\">"+key+" "+sortedKeys.get(key)+"</a></li>\n";
       }
-      output = output + "</body></html>";
+      output = output + commonHTML(OtiNanai.ENDBODY);
       return output;
    }
    /*
@@ -468,6 +464,7 @@ class OtiNanaiWeb implements Runnable {
    }
    */
 
+   /*
 	private String showKeyWords() {
       logger.finest("[Web]: Generating List of KeyWords");
 		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
@@ -484,6 +481,19 @@ class OtiNanaiWeb implements Runnable {
          + "</body></html>";
       return output;
 	}
+   */
+   private String commonHTML(short out) {
+      if (out == OtiNanai.HEADER) {
+         return new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n");
+      } else if (out == OtiNanai.GOOGLE) {
+         return new String("<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n");
+      } else if (out == OtiNanai.ENDHEAD) {
+         return new String("</head></body>");
+      } else if (out == OtiNanai.ENDBODY) {
+         return new String("</body></html>");
+      }
+      return new String();
+   }
 
 	private String showKeyWords(String[] keyList) {
       logger.fine("[Web]: Searching for keywords");
@@ -543,13 +553,12 @@ class OtiNanaiWeb implements Runnable {
          logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
          return kwTree(kws, keyList);
       }
-		String output = new String("<html><head>\n");
-      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
-         + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
+		String output = commonHTML(OtiNanai.HEADER) 
+         + commonHTML(OtiNanai.GOOGLE)
          + timeGraphHeadString(kws, OtiNanai.GRAPH_PREVIEW)
-         + "</head><body>\n"
+         + commonHTML(OtiNanai.ENDHEAD)
          + listKeyWords(kws)
-         + "</body></html>";
+         + commonHTML(OtiNanai.ENDBODY);
       return output;
 	}
 
