@@ -1,6 +1,5 @@
 package gr.phaistosnetworks.admin.otinanai;
 
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -66,8 +65,8 @@ class OtiNanaiWeb implements Runnable {
                      +"<html><body>"
                      +"<h3>Robert's random piece of junk.</h3>"
                      +"<hr>Keys:"
-                     +"<li><a href=\"k\">k</a> : show keywords"
-                     +"<li><a href=\"a\">a</a> : show alarms"
+                     +"<li><a href=\"A\">A</a> : show alarms"
+                     +"<li><a href=\"*\">*</a> : show all keywords"
                      +"<li>word1 word2, +word3, -word4 : search keywords"
                      +"</body></html>";
 						sendToClient(bogus.getBytes(), "text/html", false, connectionSocket);
@@ -100,27 +99,14 @@ class OtiNanaiWeb implements Runnable {
 						String[] request = requestMessageLine.split("[ ,]|%20");
                   String rest = new String("");
 						for (String word : request) {
-                     /*
-							if (word.equals("")) {
-                           logger.finest("[Web]: Skipping blank word");
-									continue;
-                     }
-                     */
                      switch (word) {
                         case "":
                            logger.info("[Web]: Skipping blank word");
                            break;
+                        case "a":
                         case "A":
                            logger.info("[Web]: getAlarms matched");
                            alarms=true;
-                           break;
-                        case "k":
-                           logger.info("[Web]: showKeyWords matched");
-                           showKeyWords = true;
-                           break;
-                        case "K":
-                           logger.info("[Web]: mergeKeyWords matched");
-                           mergeKeyWords = true;
                            break;
                         default:
                            logger.info("[Web]: Draw matched");
@@ -134,11 +120,15 @@ class OtiNanaiWeb implements Runnable {
 							}
 						}
 						String text = new String();
+                  /*
                   if (mergeKeyWords) {
                      logger.fine("[Web]: rest of text is: \""+rest+"\"");
                      text = mergeKeyWords(rest);
-                  } else if (showKeyWords) {
-                     text = showKeyWords();
+                     */
+                  if (showKeyWords) {
+                     String [] foo = new String[1];
+                     foo[0] = new String("*");
+                     text = showKeyWords(foo);
                   } else if (alarms) {
 							text = getAlarms();
                   } else if (draw) {
@@ -173,52 +163,6 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-   /*
-   private String toGraph(OtiNanaiMemory onm, short type) {
-      logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+onm.getKeyWord() +" type: "+type);
-		String output = new String("\n");
-      SomeRecord sr;
-      int i=0;
-      Set<String> gah = onm.getAllHosts();
-      int gahSize = gah.size();
-      if (gahSize == 2)
-         gahSize = 1;
-      for (String host : gah) {
-         LinkedList<String> data = new LinkedList<String>();
-         if (type == OtiNanai.GRAPH_FULL) {
-            data = onm.getMemory(host);
-         } else if (type == OtiNanai.GRAPH_PREVIEW) {
-            data = onm.getPreview(host);
-         }
-         logger.fine("[Web]: graphing host: "+host);
-         if (data.size() == 0 ) {
-            output = output + "[new Date(2013,07,30,0,0,0)";
-            for (int j=0; j<gahSize; j++) {
-               output=output + ",undefined";
-            }
-            output = output + "],\n";
-         } else {
-            for (String dato : data) {
-               output = output + "[";
-               String[] twowords = dato.split("\\s");
-               output = output + calcDate(twowords[0]) + ",";
-               for (int j=0;j<i;j++) {
-                  output=output + "undefined,";
-               }
-               output = output + twowords[1];
-               for (int j=i+1; j<gahSize; j++) {
-                  output=output + ",undefined";
-               }
-               output = output + "],\n";
-            }
-         }
-         if (gahSize == 1)
-            break;
-         i++;
-      }
-      return output;
-   }
-*/
    private String toGraph(OtiNanaiMemory onm, short type) {
       logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+onm.getKeyWord() +" type: "+type);
 		String output = new String("\n");
@@ -246,6 +190,7 @@ class OtiNanaiWeb implements Runnable {
       return output;
    }
 
+   /*
 	private String toGraph(LinkedList<String> data, String title) {
       logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+title);
 		String output = new String("\n");
@@ -262,6 +207,7 @@ class OtiNanaiWeb implements Runnable {
       }
       return output;
 	}
+   */
 
 	private String drawText(String keyword) {
       ArrayList<String> results = new ArrayList<String>();
@@ -342,8 +288,8 @@ class OtiNanaiWeb implements Runnable {
          output = output + "chart.draw(data, options);\n"
             + "}\n"
             + "</script>\n";
-         if (++i >= 10)
-            break;
+         //if (++i >= OtiNanai.MAXPERPAGE)
+         //   break;
       }
       return output;
    }
@@ -362,6 +308,7 @@ class OtiNanaiWeb implements Runnable {
 		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
       ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
       String fullString = new String();
+
       for (String key : keyList) {
          key=key.toLowerCase();
          logger.info("[Web]: looking for keyword: " + key);
@@ -423,18 +370,53 @@ class OtiNanaiWeb implements Runnable {
       for (String kw : sortedKeys) {
          output = output + "<li><a href = \""+kw+"\">"+kw+"</a></li>\n";
          output = output + "<div id=\""+kw+"\" class=\"previewGraph\"></div>\n";
-         if (++i >= 10) 
-            break;
+
+         //if (++i >= OtiNanai.MAXPERPAGE) 
+         //   break;
       }
       return output;
    }
 
+   private String kwTree(ArrayList<String> kws, String[] keyList) {
+      TreeMap<String, Integer> sortedKeys = new TreeMap<String, Integer>();
+      String portion = new String();
+      for (String kw : kws) {
+         if (kw.contains(".")) {
+            portion = kw.substring(0, kw.indexOf("."));
+         } else {
+            portion = kw;
+         }
+
+         int sofar = 0;
+         if (sortedKeys.containsKey(portion)) {
+            sofar = sortedKeys.get(portion);
+         } 
+         sortedKeys.put(portion, ++sofar);
+      }
+
+      String oldKeys = new String();
+      for (String foo : keyList) {
+         oldKeys = oldKeys + foo + " ";
+      }
+      oldKeys = oldKeys.substring(0,oldKeys.length()-1);
+
+		String output = new String("<html><head>\n");
+      output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+         +"</head><body>\n";
+      for (String key : sortedKeys.keySet()) {
+         output = output + "<li><a href=\""+oldKeys + " +"+key+"\">"+key+" "+sortedKeys.get(key)+"</a></li>\n";
+      }
+      output = output + "</body></html>";
+      return output;
+   }
+   /*
    private String mergeKeyWords(String start) {
       logger.finest("[Web]: Generating merged keywords starting with: \""+start+"\"");
       TreeMap<String, Integer> sortedKeys = new TreeMap<String, Integer>();
 		Collection<OtiNanaiMemory> allOMs = new LinkedList<OtiNanaiMemory>();
       allOMs.addAll(onl.getMemoryMap().values());
       String test = new String();
+      int sum = 0;
       for (OtiNanaiMemory onm : allOMs ) {
          logger.fine("[Web]: Merging word: "+onm.getKeyWord());
          test = onm.getKeyWord();
@@ -462,11 +444,17 @@ class OtiNanaiWeb implements Runnable {
             } 
             sortedKeys.put(test, ++sofar);
             logger.fine("[Web]: Merged: "+test+" "+sofar);
+            sum++;
          } else {
             logger.fine("[Web]: "+test+" does not start with "+start);
          }
       }
 
+      if (sum <= OtiNanai.MAXPERPAGE) {
+         String[] whatever = new String [1] ;
+         whatever[0] = start;
+         return (draw(whatever));
+      }
       if (!start.equals(""))
          start = start + ".";
 		String output = new String("<html><head>\n");
@@ -478,6 +466,7 @@ class OtiNanaiWeb implements Runnable {
       output = output + "</body></html>";
       return output;
    }
+   */
 
 	private String showKeyWords() {
       logger.finest("[Web]: Generating List of KeyWords");
@@ -500,6 +489,13 @@ class OtiNanaiWeb implements Runnable {
       logger.fine("[Web]: Searching for keywords");
 		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
       ArrayList<String> kws = new ArrayList<String>();
+      /*
+      if (keyList[0].equals("*")) {
+         for (OtiNanaiMemory onm : allOMs ) {
+            kws.add(onm.getKeyWord());//+" "+onm.getFiveMinCount()+" "+onm.getThirtyMinCount());
+         }
+      } else {
+      */
       boolean matched;
       for (OtiNanaiMemory onm : allOMs ) {
          for (String word : keyList) {
@@ -509,7 +505,7 @@ class OtiNanaiWeb implements Runnable {
             }
             logger.fine("[Web]: Searching for keywords containing: \""+word+"\"");
             String test = onm.getKeyWord();
-            if (test.contains(word)) {
+            if (test.contains(word) || word.equals("*")) {
                logger.fine("[Web]: : Matched: "+test);
                kws.add(test);
                break;
@@ -543,6 +539,10 @@ class OtiNanaiWeb implements Runnable {
             }
          }
       }
+      if (kws.size() > OtiNanai.MAXPERPAGE) {
+         logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
+         return kwTree(kws, keyList);
+      }
 		String output = new String("<html><head>\n");
       output = output + "<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
          + "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n"
@@ -550,8 +550,6 @@ class OtiNanaiWeb implements Runnable {
          + "</head><body>\n"
          + listKeyWords(kws)
          + "</body></html>";
-     // output = output + listKeyWords(kws);
-	//	output = output + "</body></html>";
       return output;
 	}
 

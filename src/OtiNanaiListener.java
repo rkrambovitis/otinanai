@@ -2,6 +2,9 @@ package gr.phaistosnetworks.admin.otinanai;
 
 import com.basho.riak.client.*;
 import com.basho.riak.client.bucket.*;
+import com.basho.riak.client.cap.*;
+import com.basho.riak.client.raw.*;
+import com.basho.riak.client.raw.pbc.*;
 
 
 import java.io.*;
@@ -36,7 +39,46 @@ class OtiNanaiListener implements Runnable {
             logger.config("[Listener]: Setting up Riak");
 
             IRiakClient riakClient = RiakFactory.pbcClient(); //or RiakFactory.httpClient();                   
-            riakBucket = riakClient.createBucket("OtiNanai").execute();
+            riakBucket = riakClient.createBucket("OtiNanai").nVal(1).r(1).disableSearch().lastWriteWins(true).backend("leveldb").execute();
+            /*
+            try {
+               Retrier dr = new DefaultRetrier(2);
+               RawClient pbca = new PBClientAdapter("127.0.0.1", 8087);
+               WriteBucket riakWB = new WriteBucket(pbca,riakBucket,dr);
+               riakWB.nVal(1);
+               riakWB.lastWriteWins(true);
+               riakWB.backend("bitcask");
+               riakWB.disableSearch();
+               //riakWB.enableForSearch();
+               riakWB.dw(1);
+               riakWB.pr(1);
+               riakWB.pw(1);
+               riakWB.rw(1);
+               riakWB.r(1);
+               riakWB.w(1);
+            } catch (IOException ioe) {
+               logger.severe("[Listener]: Failed to set Riak settings\n" + ioe);
+            }
+            */
+            /*
+             Bucket existingBucket = riakClient.fetchBucket("TestBucket").execute();
+             existingBucket = riakClient.updateBucket(existingBucket).nVal(3).r(2).execute();
+             */
+            logger.config("[Listener]: Riak.getAllowSiblings = " + riakBucket.getAllowSiblings());
+            logger.config("[Listener]: Riak.getBackend = " + riakBucket.getBackend());
+            logger.config("[Listener]: Riak.getBasicQuorum = " + riakBucket.getBasicQuorum());
+            logger.config("[Listener]: Riak.getBigVClock = " + riakBucket.getBigVClock());
+            logger.config("[Listener]: Riak.getSmallVClock = " + riakBucket.getSmallVClock());
+            logger.config("[Listener]: Riak.getOldVClock = " + riakBucket.getOldVClock());
+            logger.config("[Listener]: Riak.getChashKeyFunction = " + riakBucket.getChashKeyFunction());
+            logger.config("[Listener]: Riak.getLastWriteWins = " + riakBucket.getLastWriteWins());
+            logger.config("[Listener]: Riak.getNVal = " + riakBucket.getNVal());
+            logger.config("[Listener]: Riak.getDW = " + riakBucket.getDW().getIntValue());
+            logger.config("[Listener]: Riak.getPR = " + riakBucket.getPR().getIntValue());
+            logger.config("[Listener]: Riak.getPW = " + riakBucket.getPW().getIntValue());
+            logger.config("[Listener]: Riak.getRW = " + riakBucket.getRW().getIntValue());
+            logger.config("[Listener]: Riak.getR = " + riakBucket.getR().getIntValue());
+            logger.config("[Listener]: Riak.getW = " + riakBucket.getW().getIntValue());
 /*
             logger.fine("[Listener]: fetching existing keyWords List");
             keyWords = riakBucket.fetch(keyWordRiakString, LLString.class).execute();

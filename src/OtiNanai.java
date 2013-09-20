@@ -257,6 +257,8 @@ class OtiNanai {
 	public static short GRAPH_FULL=1;
 	public static short GRAPH_PREVIEW=2;
 
+	public static short MAXPERPAGE=15;
+
 	public static final int TICKER_INTERVAL = 30000;
 
 }
