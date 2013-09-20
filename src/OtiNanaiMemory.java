@@ -12,9 +12,9 @@ class OtiNanaiMemory {
       logger = l;
       alarm = 0L;
       if (storageType == OtiNanai.MEM) {
-         kwt = new MemTracker(key, previewSamples, alarmSamples, alarmThreshold, logger);
+         kwt = new MemTracker(key, previewSamples, alarmSamples, alarmThreshold, rT, logger);
       } else if (storageType == OtiNanai.RIAK) {
-         kwt = new RiakTracker(key, previewSamples, alarmSamples, alarmThreshold, logger, bucket);
+         kwt = new RiakTracker(key, previewSamples, alarmSamples, alarmThreshold, rT, logger, bucket);
       }
       if (rT == OtiNanai.GAUGE) {
          logger.fine("[Memory]: GAUGE detected");

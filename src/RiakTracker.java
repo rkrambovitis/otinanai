@@ -7,7 +7,7 @@ import java.util.logging.*;
 import java.util.*;
 
 class RiakTracker implements KeyWordTracker {
-	public RiakTracker(String key, int ps, int as, float at, Logger l, Bucket bucket) {
+	public RiakTracker(String key, int ps, int as, float at, short rt, Logger l, Bucket bucket) {
 		mean = 0f;
 		thirtySecCount = 0;
 		fiveMinCount = 0;
@@ -25,6 +25,9 @@ class RiakTracker implements KeyWordTracker {
 		sampleCount = 1;
       thirtySecDataCount = -1;
       thirtySecFloat = 0f;
+      thirtySecLong = 0l;
+      thirtySecPrev = 0l;
+      recordType = rt;
 		alarm = 0L;
       logger.finest("[RiakTracker]: new RiakTracker initialized for \"" +keyWord+"\"");
 	}
@@ -38,16 +41,17 @@ class RiakTracker implements KeyWordTracker {
       logger.finest("[RiakTracker]: thirtySecCount is now " +thirtySecCount);
    }
 
+	public void put(long value) {
+      thirtySecLong = value;
+      logger.finest("[MemTracker]: thirtySecLong is now " +thirtySecCount);
+   }
+
    public void put(float value) {
       thirtySecFloat += value;
       thirtySecDataCount ++;
       if (thirtySecDataCount == 0)
          thirtySecDataCount++;
       logger.finest("[RiakTracker]: thirtySecFloat is now " +thirtySecFloat);
-   }
-
-   public void put(long value) {
-      logger.severe("[RiakTracker]: Counters Not Implemented yet in Riak");
    }
 
    public void tick(long ts) {
@@ -60,8 +64,7 @@ class RiakTracker implements KeyWordTracker {
    }
 
 	private void flush(long ts) throws RiakRetryFailedException{
-
-      float perSec;
+      float perSec = 0f;
       /*
        * thirtySecDataCount is set to -1 by default, which means that the tracker tracks the amount of events.
        * In the event it's a "metric", it will be 1 or more.
@@ -97,6 +100,20 @@ class RiakTracker implements KeyWordTracker {
          thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
          previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
 
+      } else if (thirtySecLong > 0) {
+         if (thirtySecLong != thirtySecPrev) {
+            logger.fine("[RiakTracker]: thirtySecLong = " + thirtySecLong);
+            if (thirtySecPrev == 0l || thirtySecPrev > thirtySecLong) {
+               logger.fine("Last count is 0 or decrementing. Setting and Skipping");
+            } else {
+               long timeDiff = ts - lastTimeStamp;
+               perSec = ((float)(thirtySecLong - thirtySecPrev)*1000/timeDiff);
+               thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+               previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+            }
+            thirtySecPrev = thirtySecLong;
+            lastTimeStamp = ts;
+         }
       } else if (thirtySecDataCount < 0 ) {
          logger.fine("[RiakTracker]: thirtySecCount = " +thirtySecCount);
          perSec = ((float)thirtySecCount / 30);
@@ -195,37 +212,18 @@ class RiakTracker implements KeyWordTracker {
       /*
        * Alarm detection
        */
-      if ( (sampleCount < alarmSamples) && (thirtySecDataCount != 0) )
+      if (sampleCount < alarmSamples)
          sampleCount++;
 
-      if (mean == 0f ) {
+      if (mean == 0f && perSec != 0f) {
          logger.fine("[RiakTracker]: mean is 0, setting new value");
-         logger.fine("[RiakTracker]: thirtySecDataCount: "+thirtySecDataCount);
-         if (thirtySecDataCount > 0 ) {
-            logger.fine("[RiakTracker]: GAUGE");
-            mean = thirtySecFloat;
-            logger.fine("[RiakTracker]: m: "+mean);
-         } else if (thirtySecDataCount < 0 ) {
-            logger.fine("[RiakTracker]: FREQ");
-            mean = thirtySecCount;
-            logger.fine("[RiakTracker]: m: "+mean);
-         }
+         mean = perSec;
          sampleCount = 1;
-      } else {
+      } else if (perSec != 0f) {
          logger.fine("[RiakTracker]: Calculating new mean");
-         logger.fine("[RiakTracker]: thirtySecDataCount: "+thirtySecDataCount);
-         float deviation = 0f;
-         if (thirtySecDataCount > 0 ) {
-            logger.fine("[RiakTracker]: GAUGE");
-            deviation = (thirtySecFloat - mean)/mean;
-            mean += (thirtySecFloat - mean)/alarmSamples;
-            logger.fine("[RiakTracker]: d: "+deviation+" - m: "+mean);
-         } else if (thirtySecDataCount < 0 ) {
-            logger.fine("[RiakTracker]: FREQ");
-            deviation = (thirtySecCount - mean)/mean;
-            mean += (thirtySecCount - mean)/alarmSamples;
-            logger.fine("[RiakTracker]: d: "+deviation+" - m: "+mean);
-         }
+         float deviation = (perSec-mean)/mean;
+         mean += (perSec-mean)/alarmSamples;
+         logger.fine("[RiakTracker]: d: "+deviation+" m: "+mean);
 
          if ((sampleCount >= alarmSamples) && (deviation >= alarmThreshold)) {
             logger.info("[RiakTracker]: Error conditions met for " + keyWord);
@@ -298,6 +296,9 @@ class RiakTracker implements KeyWordTracker {
 	private int sampleCount;
    private int thirtySecDataCount;
    private float thirtySecFloat;
+   private long thirtySecLong;
+   private long thirtySecPrev;
+   private long lastTimeStamp;
    private String thirtySecKey;
    private String fiveMinKey;
    private String thirtyMinKey;
@@ -307,5 +308,6 @@ class RiakTracker implements KeyWordTracker {
    private int alarmSamples;
    private float alarmThreshold;
    private Bucket riakBucket;
+   private short recordType;
 }
 

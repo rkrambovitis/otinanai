@@ -46,7 +46,7 @@ class SomeRecord {
       str = str.toLowerCase();
       String[] tokens = str.split("[ \t]");
       if (tokens.length == 2 && isKeyWord(tokens[0], min, max)) {
-         System.out.println("Record: Gauge");
+         //System.out.println("Record: Gauge");
          Float w2 = toFloat(tokens[1]);
          if (w2 != null) {
             theGauge = w2;
@@ -54,7 +54,7 @@ class SomeRecord {
             keyWords.add(tokens[0]);
          }
       } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[1].equals("counter")) {
-         System.out.println("Record: Counter");
+         //System.out.println("Record: Counter");
          Long w3 = toLong(tokens[2]);
          if (w3 != null) {
             theCounter = w3;

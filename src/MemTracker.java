@@ -4,7 +4,7 @@ import java.util.logging.*;
 import java.util.*;
 
 class MemTracker implements KeyWordTracker {
-	public MemTracker(String key, int ps, int as, float at, Logger l) {
+	public MemTracker(String key, int ps, int as, float at, short rt, Logger l) {
 		mean = 0f;
 		thirtySecCount = 0;
 		fiveMinCount = 0;
@@ -23,6 +23,7 @@ class MemTracker implements KeyWordTracker {
       thirtySecFloat = 0f;
       thirtySecLong = 0l;
       thirtySecPrev = 0l;
+      recordType = rt;
 		alarm = 0L;
       logger.finest("[MemTracker]: new MemTracker initialized for \"" +keyWord+"\"");
 	}
@@ -69,16 +70,18 @@ class MemTracker implements KeyWordTracker {
          previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
 
       } else if (thirtySecLong > 0) {
-         logger.fine("[MemTracker]: thirtySecLong = " + thirtySecLong);
-         if (thirtySecPrev == 0l || thirtySecPrev > thirtySecLong) {
-            logger.fine("Last count is 0 or decrementing. Setting and Skipping");
+         if (thirtySecLong != thirtySecPrev) {
+            logger.fine("[MemTracker]: thirtySecLong = " + thirtySecLong);
+            if (thirtySecPrev == 0l || thirtySecPrev > thirtySecLong) {
+               logger.fine("Last count is 0 or decrementing. Setting and Skipping");
+            } else {
+               long timeDiff = ts - lastTimeStamp;
+               perSec = ((float)(thirtySecLong - thirtySecPrev)*1000/timeDiff);
+               thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+               previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+            }
             thirtySecPrev = thirtySecLong;
             lastTimeStamp = ts;
-         } else {
-            long timeDiff = ts - lastTimeStamp;
-            perSec = ((float)(thirtySecLong - thirtySecPrev)*1000/timeDiff);
-            thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
-            previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
          }
       } else if (thirtySecDataCount < 0 ) {
          logger.fine("[MemTracker]: thirtySecCount = " +thirtySecCount);
@@ -181,7 +184,7 @@ class MemTracker implements KeyWordTracker {
          logger.fine("[MemTracker]: Calculating new mean");
          float deviation = (perSec-mean)/mean;
          mean += (perSec-mean)/alarmSamples;
-         logger.fine("MemTracker]: d: "+deviation+" m: "+mean);
+         logger.fine("[MemTracker]: d: "+deviation+" m: "+mean);
 
          /*
          logger.fine("[MemTracker]: thirtySecDataCount: "+thirtySecDataCount);
@@ -262,4 +265,5 @@ class MemTracker implements KeyWordTracker {
    private int previewSamples;
    private int alarmSamples;
    private float alarmThreshold;
+   private short recordType;
 }
