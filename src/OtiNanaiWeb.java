@@ -72,6 +72,7 @@ class OtiNanaiWeb implements Runnable {
 						break;
 					case " favicon.ico ":
 					case " otinanai.css ":
+               case " otinanai.flot.js ":
 					case " jquery.js ":
 					case " jquery.flot.js ":
 					case " jquery.flot.time.js ":
@@ -240,7 +241,7 @@ class OtiNanaiWeb implements Runnable {
       if (type == OtiNanai.GRAPH_MERGED) {
          output = output + commonHTML(OtiNanai.FLOT)
             + commonHTML(OtiNanai.JS)
-            + "$(function() {\nvar datasets = {\n";
+            + "var datasets = {\n";
          for (OtiNanaiMemory onm : kws) {
             output = output + "\""+onm.getKeyWord()+"\": {\n"
                + "label: \""+onm.getKeyWord()+"\",\n"
@@ -249,66 +250,6 @@ class OtiNanaiWeb implements Runnable {
                + "]},\n\n";
          }
          output = output + "};\n"
-            +"var i = 0;\n"
-            +"$.each(datasets, function(key, val) {val.color = i;++i;});\n\n"
-
-            +"var choiceContainer = $(\"#choices\");\n\n"
-
-            +"$.each(datasets, function(key, val) {"
-            +"choiceContainer.append(\"<br/><input type='checkbox' name='\" + key + \"' checked='checked' id='id\" + key + \"'></input>\" + \"<label for='id\" + key + \"'>\" + val.label + \"</label>\");"
-            +"});\n\n"
-
-            +"choiceContainer.find(\"input\").click(plotAccordingToChoices);"
-            +"\n\n"
-
-            +"var legends = $(\"#placeholder .legendLabel\");\n"
-            +"legends.each(function () {$(this).css('width', $(this).width());});\n\n"
-
-            +"var updateLegendTimeout = null;\n"
-            +"var latestPosition = null;\n\n"
-
-            +"var myplot = null;"
-            +"updatePlot(datasets);"
-
-            +"function updateLegend() {\n"
-            +"updateLegendTimeout = null;\n"
-            +"var pos = latestPosition;\n"
-            +"var axes = myplot.getAxes();\n"
-            +"if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max ||"
-            +"pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {return;}\n"
-            +"var i, j, dataset = myplot.getData();\n"
-            +"for (i = 0; i < dataset.length; ++i) {\n"
-            +"var series = dataset[i];\n"
-            +"for (j = 0; j < series.data.length; ++j) {\n"
-            +"if (series.data[j][0] > pos.x) {break;}}\n"
-            +"var y,p1 = series.data[j - 1],p2 = series.data[j];\n"
-            +"if (p1 == null) {y = p2[1];} else if (p2 == null) {y = p1[1];} else {y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);}\n"
-            +"legends.eq(i).text(series.label.replace(/=.*/, \"= \" + y.toFixed(2)));}};\n\n"
-
-            +"$(\"#placeholder\").bind(\"plothover\",  function (event, pos, item) {latestPosition = pos;\n"
-            +"if (!updateLegendTimeout) {updateLegendTimeout = setTimeout(updateLegend, 50);}});\n\n"
-
-            +"function updatePlot(data) {\n"
-            +"if (data.length > 0) {\n"
-            +"currentData=data;\n"
-            +"myplot=$.plot(\"#placeholder\", data, {\n"
-            +"legend: { position: \"sw\" },\n"
-            +"xaxis: {mode: \"time\", tickDecimals: 0},\n"
-            +"series: {lines: {show: true}},\n"
-            +"crosshair: {mode: \"x\"},"
-            +"grid: {hoverable: true,autoHighlight: false}}\n"
-            +");}}\n\n"
-
-            +"function plotAccordingToChoices() {\n"
-            +"var data = [];\n"
-            +"choiceContainer.find(\"input:checked\").each(function () {\n"
-            +"var key = $(this).attr(\"name\");\n"
-            +"if (key && datasets[key]) {\n"
-            +"data.push(datasets[key]);}});\n"
-            +"updatePlot(data);}\n\n"
-
-            +"plotAccordingToChoices();\n"
-            +"});\n\n"
             + commonHTML(OtiNanai.ENDJS);
       } else {
          output = output + commonHTML(OtiNanai.GOOGLE);
@@ -500,7 +441,8 @@ class OtiNanaiWeb implements Runnable {
          String op = new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.js\"></script>\n");
          op = op + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.js\"></script>\n"
             + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.js\"></script>\n"
-            + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.js\"></script>\n";
+            + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.js\"></script>\n"
+            + "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.js\"></script>\n";
 
          return op;
       } else if ( out == OtiNanai.JS) {
