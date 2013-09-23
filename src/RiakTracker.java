@@ -7,19 +7,17 @@ import java.util.logging.*;
 import java.util.*;
 
 class RiakTracker implements KeyWordTracker {
-	public RiakTracker(String key, int ps, int as, float at, short rt, Logger l, Bucket bucket) {
+	public RiakTracker(String key, int as, float at, short rt, Logger l, Bucket bucket) {
 		mean = 0f;
 		thirtySecCount = 0;
 		fiveMinCount = 0;
 		thirtyMinCount = 0;
-      previewSamples = ps;
       alarmSamples = as;
       alarmThreshold = at;
 		keyWord = new String(key);
       thirtySecKey = keyWord + "thirtySec";
       fiveMinKey = keyWord + "fiveMin";
       thirtyMinKey = keyWord + "thirtyMin";
-      previewKey = keyWord + "preview";
       riakBucket = bucket;
       logger = l;
 		sampleCount = 1;
@@ -70,22 +68,13 @@ class RiakTracker implements KeyWordTracker {
        * In the event it's a "metric", it will be 1 or more.
        * Inthe event it's a metric but has no new data, it's 0.
        */
-      //LLString previewMemory = riakBucket.fetch(previewKey, LLString.class).execute();
       //LLString thirtySecMemory = riakBucket.fetch(thirtySecKey, LLString.class).execute();
       //LLString fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).execute();
       //LLString thirtyMinMemory = riakBucket.fetch(thirtyMinKey, LLString.class).execute();
 
-      LLString previewMemory = new LLString();
       LLString thirtySecMemory = new LLString();
       LLString fiveMinMemory = new LLString();
       LLString thirtyMinMemory = new LLString();
-
-      logger.fine("[RiakTracker]: fetching existing " + previewKey);
-      previewMemory = riakBucket.fetch(previewKey, LLString.class).execute();
-      if (previewMemory == null) {
-         logger.fine("[RiakTracker]: null. Creating new " + previewKey);
-         previewMemory = new LLString();
-      }
 
       logger.fine("[RiakTracker]: fetching existing " + thirtySecKey);
       thirtySecMemory = riakBucket.fetch(thirtySecKey, LLString.class).execute();
@@ -98,7 +87,6 @@ class RiakTracker implements KeyWordTracker {
          logger.fine("[RiakTracker]: thirtySecFloat = " +thirtySecFloat);
          perSec = (thirtySecFloat / thirtySecDataCount);
          thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
-         previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
 
       } else if (thirtySecLong > 0) {
          if (thirtySecLong != thirtySecPrev) {
@@ -109,7 +97,6 @@ class RiakTracker implements KeyWordTracker {
                long timeDiff = ts - lastTimeStamp;
                perSec = ((float)(thirtySecLong - thirtySecPrev)*1000/timeDiff);
                thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
-               previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
             }
             thirtySecPrev = thirtySecLong;
             lastTimeStamp = ts;
@@ -119,12 +106,10 @@ class RiakTracker implements KeyWordTracker {
          perSec = ((float)thirtySecCount / 30);
          logger.fine("[RiakTracker]: perSec = " +perSec);
          thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
-         previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
       }
 
       if (thirtySecMemory.size() > 2) {
          logger.fine("[RiakTracker]: thirtySecMemory.size() = "+thirtySecMemory.size());
-         logger.fine("[RiakTracker]: previewMemory.size() = "+previewMemory.size());
          //ugly deduplication
          String dato0 = thirtySecMemory.get(0);
          String dato1 = thirtySecMemory.get(1);
@@ -135,21 +120,10 @@ class RiakTracker implements KeyWordTracker {
          if (dato0.equals(dato1)) {
             if (dato1.equals(dato2)) {
                thirtySecMemory.remove(1);
-               if (previewMemory.size() > 2) {
-                  previewMemory.remove(1);
-               }
             }
          }
       }
 
-
-      logger.fine("[RiakTracker]: size of previewSamples for "+keyWord+" : "+previewMemory.size()+" (limit "+previewSamples+")");
-      if (previewMemory.size() > previewSamples) {
-         logger.fine("[RiakTracker]: previewSamples limit exceeded. Trimming last value");
-         previewMemory.remove(previewSamples);
-      }
-
-      riakBucket.store(previewKey, previewMemory).execute();
 
       float lastMerge;
       String lastDatoString = new String();
@@ -241,16 +215,6 @@ class RiakTracker implements KeyWordTracker {
 		return alarm;
 	}
 
-   //public LinkedList<String> getPreview() {
-   public LLString getPreview() {
-      try {
-         return riakBucket.fetch(previewKey, LLString.class).execute();
-      } catch (RiakRetryFailedException rrfe) {
-         logger.severe("[RiakTracker]: getPreview: "+rrfe);
-      }
-      return null;
-   }
-
    public LLString getMemory() {
       LLString returner = new LLString();
       try {
@@ -302,9 +266,7 @@ class RiakTracker implements KeyWordTracker {
    private String thirtySecKey;
    private String fiveMinKey;
    private String thirtyMinKey;
-   private String previewKey;
    private Logger logger;
-   private int previewSamples;
    private int alarmSamples;
    private float alarmThreshold;
    private Bucket riakBucket;

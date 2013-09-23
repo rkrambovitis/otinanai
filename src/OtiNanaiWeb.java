@@ -71,28 +71,22 @@ class OtiNanaiWeb implements Runnable {
 						sendToClient(bogus.getBytes(), "text/html", false, connectionSocket);
 						break;
 					case " favicon.ico ":
-                  logger.info("[Web]: Sending favicon.ico");
-						path = Paths.get("web/favicon.ico");
-						data = Files.readAllBytes(path);
-						sendToClient(data, "image/x-icon", true, connectionSocket);
-						break;
 					case " otinanai.css ":
-                  logger.info("[Web]: Sending otinanai.css");
-						path = Paths.get("web/otinanai.css");
+					case " jquery.js ":
+					case " jquery.flot.js ":
+					case " jquery.flot.time.js ":
+					case " jquery.flot.crosshair.js ":
+                  String noSpaces = requestMessageLine.replaceAll(" ","");
+                  logger.info("[Web]: Sending "+noSpaces);
+						path = Paths.get("web/"+noSpaces);
 						data = Files.readAllBytes(path);
-						sendToClient(data, "text/css", true, connectionSocket);
-						break;
-					case " crossfilter.min.js ":
-                  logger.info("[Web]: Sending crossfilter.min.js");
-						path = Paths.get("web/crossfilter.min.js");
-						data = Files.readAllBytes(path);
-						sendToClient(data, "application/x-javascript", true, connectionSocket);
-						break;
-					case " d3.v3.min.js ":
-                  logger.info("[Web]: Sending d3.v3.min.js");
-						path = Paths.get("web/d3.v3.min.js");
-						data = Files.readAllBytes(path);
-						sendToClient(data, "application/x-javascript", true, connectionSocket);
+                  if (noSpaces.endsWith(".ico")) {
+                     sendToClient(data, "image/x-icon", true, connectionSocket);
+                  } else if (noSpaces.endsWith(".css")) {
+                     sendToClient(data, "text/css", true, connectionSocket);
+                  } else if (noSpaces.endsWith(".js")) {
+                     sendToClient(data, "application/x-javascript", true, connectionSocket);
+                  }
 						break;
 					default:
 						String[] request = requestMessageLine.split("[ ,]|%20");
@@ -158,24 +152,36 @@ class OtiNanaiWeb implements Runnable {
 		String output = new String("\n");
       SomeRecord sr;
       LinkedList<String> data = new LinkedList<String>();
+      data = onm.getMemory();
+      long now=System.currentTimeMillis();
+      /*
       if (type == OtiNanai.GRAPH_FULL) {
          data = onm.getMemory();
-      } else if (type == OtiNanai.GRAPH_PREVIEW) {
+      } else if (type == OtiNanai.GRAPH_PREVIEW || type == OtiNanai.GRAPH_MERGED) {
          data = onm.getPreview();
-      }
-      try {
-         if (data.size() == 0 ) {
-            output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
-         } else {
-            for (String dato : data) {
-               output = output + "[";
-               String[] twowords = dato.split("\\s");
-               output = output + calcDate(twowords[0]) + "," + twowords[1] + "],\n";
-            }
+      }       
+      */
+      if (type == OtiNanai.GRAPH_MERGED) {
+         for (String dato : data) {
+            String[] twowords = dato.split("\\s");
+            if ((now - Long.parseLong(twowords[0])) > OtiNanai.PREVIEWTIME)
+               break;
+            output = output + "[" + twowords[0] + "," + twowords[1] + "],\n";
          }
-      } catch (NullPointerException npe) {
-         logger.severe("[Web]: "+npe);
-         output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
+      } else {
+         try {
+            if (data.size() == 0 ) {
+               output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
+            } else {
+               for (String dato : data) {
+                  String[] twowords = dato.split("\\s");
+                  output = output + "[" + calcDate(twowords[0]) + "," + twowords[1] + "],\n";
+               }
+            }
+         } catch (NullPointerException npe) {
+            logger.severe("[Web]: "+npe);
+            output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
+         }
       }
       return output;
    }
@@ -228,48 +234,116 @@ class OtiNanaiWeb implements Runnable {
       return timeGraphHead(graphMe, type);
    }
 
-
    private String timeGraphHead(ArrayList<OtiNanaiMemory> kws, short type) {
       String output = new String("");
       int i=0;
-		for (OtiNanaiMemory onm : kws) {
-         output = output + "<script type=\"text/javascript\">\n";
-         if (type == OtiNanai.GRAPH_FULL) {
-            output = output + "google.load(\"visualization\", \"1\", {packages:[\"annotatedtimeline\"]});\n";
-         } else {
-            output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
+      if (type == OtiNanai.GRAPH_MERGED) {
+         output = output + commonHTML(OtiNanai.FLOT)
+            + commonHTML(OtiNanai.JS)
+            + "$(function() {\nvar datasets = {\n";
+         for (OtiNanaiMemory onm : kws) {
+            output = output + "\""+onm.getKeyWord()+"\": {\n"
+               + "label: \""+onm.getKeyWord()+"\",\n"
+               + "data: ["
+               + toGraph(onm, type)
+               + "]},\n\n";
          }
-         output = output + "google.setOnLoadCallback(drawChart);\n"
-            + "function drawChart() {\n"
-            + "var data = new google.visualization.DataTable();\n"
-            + "data.addColumn('datetime', 'Date');\n"
-            + "data.addColumn('number', '"+onm.getKeyWord()+"');\n";
-         output = output + "data.addRows(["
-            + toGraph(onm, type)
-            + "]);\n";
+         output = output + "};\n"
+            +"var i = 0;\n"
+            +"$.each(datasets, function(key, val) {val.color = i;++i;});\n\n"
 
-         if (type == OtiNanai.GRAPH_FULL) {
-            output = output + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n"
-               + "var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('"+onm.getKeyWord()+"'));\n";
-         } else {
-            output = output + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"1\" }};\n"
-               + "var chart = new google.visualization.AreaChart(document.getElementById('"+onm.getKeyWord()+"'));\n";
+            +"var choiceContainer = $(\"#choices\");\n\n"
+
+            +"$.each(datasets, function(key, val) {"
+            +"choiceContainer.append(\"<br/><input type='checkbox' name='\" + key + \"' checked='checked' id='id\" + key + \"'></input>\" + \"<label for='id\" + key + \"'>\" + val.label + \"</label>\");"
+            +"});\n\n"
+
+            +"choiceContainer.find(\"input\").click(plotAccordingToChoices);"
+            +"\n\n"
+
+            +"var legends = $(\"#placeholder .legendLabel\");\n"
+            +"legends.each(function () {$(this).css('width', $(this).width());});\n\n"
+
+            +"var updateLegendTimeout = null;\n"
+            +"var latestPosition = null;\n\n"
+
+            +"var myplot = null;"
+            +"updatePlot(datasets);"
+
+            +"function updateLegend() {\n"
+            +"updateLegendTimeout = null;\n"
+            +"var pos = latestPosition;\n"
+            +"var axes = myplot.getAxes();\n"
+            +"if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max ||"
+            +"pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {return;}\n"
+            +"var i, j, dataset = myplot.getData();\n"
+            +"for (i = 0; i < dataset.length; ++i) {\n"
+            +"var series = dataset[i];\n"
+            +"for (j = 0; j < series.data.length; ++j) {\n"
+            +"if (series.data[j][0] > pos.x) {break;}}\n"
+            +"var y,p1 = series.data[j - 1],p2 = series.data[j];\n"
+            +"if (p1 == null) {y = p2[1];} else if (p2 == null) {y = p1[1];} else {y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);}\n"
+            +"legends.eq(i).text(series.label.replace(/=.*/, \"= \" + y.toFixed(2)));}};\n\n"
+
+            +"$(\"#placeholder\").bind(\"plothover\",  function (event, pos, item) {latestPosition = pos;\n"
+            +"if (!updateLegendTimeout) {updateLegendTimeout = setTimeout(updateLegend, 50);}});\n\n"
+
+            +"function updatePlot(data) {\n"
+            +"if (data.length > 0) {\n"
+            +"currentData=data;\n"
+            +"myplot=$.plot(\"#placeholder\", data, {\n"
+            +"legend: { position: \"sw\" },\n"
+            +"xaxis: {mode: \"time\", tickDecimals: 0},\n"
+            +"series: {lines: {show: true}},\n"
+            +"crosshair: {mode: \"x\"},"
+            +"grid: {hoverable: true,autoHighlight: false}}\n"
+            +");}}\n\n"
+
+            +"function plotAccordingToChoices() {\n"
+            +"var data = [];\n"
+            +"choiceContainer.find(\"input:checked\").each(function () {\n"
+            +"var key = $(this).attr(\"name\");\n"
+            +"if (key && datasets[key]) {\n"
+            +"data.push(datasets[key]);}});\n"
+            +"updatePlot(data);}\n\n"
+
+            +"plotAccordingToChoices();\n"
+            +"});\n\n"
+            + commonHTML(OtiNanai.ENDJS);
+      } else {
+         output = output + commonHTML(OtiNanai.GOOGLE);
+
+         for (OtiNanaiMemory onm : kws) {
+            output = output + commonHTML(OtiNanai.JS);
+            if (type == OtiNanai.GRAPH_FULL) {
+               output = output + "google.load(\"visualization\", \"1\", {packages:[\"annotatedtimeline\"]});\n";
+            } else {
+               output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
+            }
+            output = output + "google.setOnLoadCallback(drawChart);\n"
+               + "function drawChart() {\n"
+               + "var data = new google.visualization.DataTable();\n"
+               + "data.addColumn('datetime', 'Date');\n"
+               + "data.addColumn('number', '"+onm.getKeyWord()+"');\n";
+            output = output + "data.addRows(["
+               + toGraph(onm, type)
+               + "]);\n";
+
+            if (type == OtiNanai.GRAPH_FULL) {
+               output = output + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n"
+                  + "var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('"+onm.getKeyWord()+"'));\n";
+            } else {
+               output = output + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"1\" }};\n"
+                  + "var chart = new google.visualization.AreaChart(document.getElementById('"+onm.getKeyWord()+"'));\n";
+            }
+            output = output + "chart.draw(data, options);\n"
+               + "}\n"
+               + commonHTML(OtiNanai.ENDJS);
          }
-         output = output + "chart.draw(data, options);\n"
-            + "}\n"
-            + "</script>\n";
       }
       return output;
    }
 
-   private String timeGraphBody(ArrayList<OtiNanaiMemory> kws) {
-      String output = new String("");
-      for (OtiNanaiMemory onm : kws) {
-         output = output + "<div id=\""+onm.getKeyWord()+"\" class=\"myGraph\"></div><br>\n";
-         output = output + drawText(onm.getKeyWord());
-      }
-      return output;
-   }
 
    private String draw(String[] keyList) {
       logger.info("[Web]: Drawing output for keywords");
@@ -291,7 +365,6 @@ class OtiNanaiWeb implements Runnable {
          if (output == null) {
             logger.fine("[Web]: Not cached, will generate \"" + fullString+"\"");
             output = commonHTML(OtiNanai.HEADER) 
-               + commonHTML(OtiNanai.GOOGLE)
                + timeGraphHead(graphMe, OtiNanai.GRAPH_FULL)
                + commonHTML(OtiNanai.ENDHEAD)
                + timeGraphBody(graphMe)
@@ -317,28 +390,51 @@ class OtiNanaiWeb implements Runnable {
       }
 
       String output = commonHTML(OtiNanai.HEADER) 
-         + commonHTML(OtiNanai.GOOGLE)
-         + timeGraphHeadString(kws, OtiNanai.GRAPH_PREVIEW)
+         + timeGraphHeadString(kws, OtiNanai.GRAPH_MERGED)
          + commonHTML(OtiNanai.ENDHEAD)
-         + listKeyWords(kws)
+         + timeGraphBody(kws, OtiNanai.GRAPH_MERGED)
          + commonHTML(OtiNanai.ENDBODY);
       return output;
-   }
+   };
 
-   private String listKeyWords(ArrayList<String> keyWords) {
+   /*
+      <div class="fullGraph">
+      <div id="placeholder" class="previewGraph" style="float:left; width:675px; height: 30%;"></div>
+      <p id="choices" style="float:right; width:135px;"></p>
+      </div>
+    */
+
+   private String timeGraphBody(ArrayList<String> keyWords, short type) {
       String output = new String();
       if (keyWords.size() == 0) {
          return new String("No KeyWords");
       }
       TreeSet<String> sortedKeys = new TreeSet<String>();
       sortedKeys.addAll(keyWords);
-      int i=0;
-      for (String kw : sortedKeys) {
-         output = output + "<li><a href = \""+kw+"\">"+kw+"</a></li>\n";
-         output = output + "<div id=\""+kw+"\" class=\"previewGraph\"></div>\n";
+      if (type == OtiNanai.GRAPH_MERGED) {
+         output = output
+            + "<div>"
+            + "<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
+            + "<p id=\"choices\" style=\"float:left;\"></p>"
+            + "</div>";
+      } else {
+         for (String kw : sortedKeys) {
+            output = output + "<li><a href = \""+kw+"\">"+kw+"</a></li>\n";
+            output = output + "<div id=\""+kw+"\" class=\"previewGraph\"></div>\n";
+         }
       }
       return output;
    }
+
+   private String timeGraphBody(ArrayList<OtiNanaiMemory> kws) {
+      String output = new String("");
+      for (OtiNanaiMemory onm : kws) {
+         output = output + "<div id=\""+onm.getKeyWord()+"\" class=\"myGraph\"></div><br>\n";
+         output = output + drawText(onm.getKeyWord());
+      }
+      return output;
+   }
+
 
    private TreeMap<String, Integer> subTree(ArrayList<String> kws, String start) {
       TreeMap<String, Integer> sortedKeys = new TreeMap<String, Integer>();
@@ -376,23 +472,6 @@ class OtiNanaiWeb implements Runnable {
       while (sortedKeys.size() == 1) {
          sortedKeys = subTree(kws, sortedKeys.firstKey());
       }
-      /*
-      String portion = new String();
-      for (String kw : kws) {
-         if (kw.contains(".")) {
-            portion = kw.substring(0, kw.indexOf("."));
-         } else {
-            portion = kw;
-         }
-
-         int sofar = 0;
-         if (sortedKeys.containsKey(portion)) {
-            sofar = sortedKeys.get(portion);
-         } 
-         sortedKeys.put(portion, ++sofar);
-      }
-      */
-
       String oldKeys = new String();
       for (String foo : existingKeyWords) {
          oldKeys = oldKeys + foo + " ";
@@ -414,9 +493,20 @@ class OtiNanaiWeb implements Runnable {
       } else if (out == OtiNanai.GOOGLE) {
          return new String("<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n");
       } else if (out == OtiNanai.ENDHEAD) {
-         return new String("</head></body>");
+         return new String("</head><body>\n");
       } else if (out == OtiNanai.ENDBODY) {
-         return new String("</body></html>");
+         return new String("</body></html>\n");
+      } else if (out == OtiNanai.FLOT) {
+         String op = new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.js\"></script>\n");
+         op = op + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.js\"></script>\n"
+            + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.js\"></script>\n"
+            + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.js\"></script>\n";
+
+         return op;
+      } else if ( out == OtiNanai.JS) {
+         return new String("<script type=\"text/javascript\">\n");
+      } else if (out == OtiNanai.ENDJS) {
+         return new String ("</script>\n");
       }
       return new String();
    }
@@ -473,10 +563,9 @@ class OtiNanaiWeb implements Runnable {
          return kwTree(kws, keyList);
       }
 		String output = commonHTML(OtiNanai.HEADER) 
-         + commonHTML(OtiNanai.GOOGLE)
-         + timeGraphHeadString(kws, OtiNanai.GRAPH_PREVIEW)
+         + timeGraphHeadString(kws, OtiNanai.GRAPH_MERGED)
          + commonHTML(OtiNanai.ENDHEAD)
-         + listKeyWords(kws)
+         + timeGraphBody(kws, OtiNanai.GRAPH_MERGED)
          + commonHTML(OtiNanai.ENDBODY);
       return output;
 	}

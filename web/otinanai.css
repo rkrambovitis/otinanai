@@ -20,6 +20,14 @@ body {
    padding-bottom: 20px; 
    margin-bottom: 20px; 
 }
+.mergedGraph { 
+   height: 70%;
+   width: 80%;
+   border-bottom: 1px solid #ccc; 
+   padding-bottom: 20px; 
+   margin-bottom: 20px; 
+   float: left;
+}
 .previewGraph {
    width: 50%;
    height: 120px;

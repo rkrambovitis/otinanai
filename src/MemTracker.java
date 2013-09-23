@@ -4,16 +4,14 @@ import java.util.logging.*;
 import java.util.*;
 
 class MemTracker implements KeyWordTracker {
-	public MemTracker(String key, int ps, int as, float at, short rt, Logger l) {
+	public MemTracker(String key, int as, float at, short rt, Logger l) {
 		mean = 0f;
 		thirtySecCount = 0;
 		fiveMinCount = 0;
 		thirtyMinCount = 0;
-      previewSamples = ps;
       alarmSamples = as;
       alarmThreshold = at;
       thirtySecMemory = new LinkedList<String> ();
-      previewMemory = new LinkedList<String> ();
       fiveMinMemory = new LinkedList<String> ();
       thirtyMinMemory = new LinkedList<String> ();
 		keyWord = new String(key);
@@ -67,7 +65,6 @@ class MemTracker implements KeyWordTracker {
          logger.fine("[MemTracker]: thirtySecFloat = " +thirtySecFloat);
          perSec = (thirtySecFloat / thirtySecDataCount);
          thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
-         previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
 
       } else if (thirtySecLong > 0) {
          if (thirtySecLong != thirtySecPrev) {
@@ -78,7 +75,6 @@ class MemTracker implements KeyWordTracker {
                long timeDiff = ts - lastTimeStamp;
                perSec = ((float)(thirtySecLong - thirtySecPrev)*1000/timeDiff);
                thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
-               previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
             }
             thirtySecPrev = thirtySecLong;
             lastTimeStamp = ts;
@@ -88,7 +84,6 @@ class MemTracker implements KeyWordTracker {
          perSec = ((float)thirtySecCount / 30);
          logger.fine("[MemTracker]: perSec = " +perSec);
          thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
-         previewMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
       }
 
 
@@ -103,17 +98,10 @@ class MemTracker implements KeyWordTracker {
          if (dato0.equals(dato1)) {
             if (dato1.equals(dato2)) {
                thirtySecMemory.remove(1);
-               previewMemory.remove(1);
             }
          }
       }
 
-      logger.fine("[MemTracker]: size of previewSamples for "+keyWord+" : "+previewMemory.size()+" (limit "+previewSamples+")");
-      if (previewMemory.size() > previewSamples) {
-         logger.fine("[MemTracker]: previewSamples limit exceeded. Trimming last value");
-         previewMemory.remove(previewSamples);
-      }
-      
 
       float lastMerge;
       String lastDatoString = new String();
@@ -218,10 +206,6 @@ class MemTracker implements KeyWordTracker {
 		return alarm;
 	}
 
-   public LinkedList<String> getPreview() {
-      return previewMemory;
-   }
-
    public LinkedList<String> getMemory() {
       LinkedList<String> returner = new LinkedList<String>();
       try {
@@ -258,11 +242,9 @@ class MemTracker implements KeyWordTracker {
    private long thirtySecPrev;
    private long lastTimeStamp;
    private LinkedList<String> thirtySecMemory;
-   private LinkedList<String> previewMemory;
    private LinkedList<String> fiveMinMemory;
    private LinkedList<String> thirtyMinMemory;
    private Logger logger;
-   private int previewSamples;
    private int alarmSamples;
    private float alarmThreshold;
    private short recordType;

@@ -6,15 +6,15 @@ import java.util.*;
 import com.basho.riak.client.bucket.*;
 
 class OtiNanaiMemory {
-   public OtiNanaiMemory(String key, long al, int alarmSamples, float alarmThreshold, Logger l, short rT, int previewSamples, float theGauge, long theCounter, short storageType, Bucket bucket) {
+   public OtiNanaiMemory(String key, long al, int alarmSamples, float alarmThreshold, Logger l, short rT, float theGauge, long theCounter, short storageType, Bucket bucket) {
       keyWord = key;
       recType = rT;
       logger = l;
       alarm = 0L;
       if (storageType == OtiNanai.MEM) {
-         kwt = new MemTracker(key, previewSamples, alarmSamples, alarmThreshold, rT, logger);
+         kwt = new MemTracker(key, alarmSamples, alarmThreshold, rT, logger);
       } else if (storageType == OtiNanai.RIAK) {
-         kwt = new RiakTracker(key, previewSamples, alarmSamples, alarmThreshold, rT, logger, bucket);
+         kwt = new RiakTracker(key, alarmSamples, alarmThreshold, rT, logger, bucket);
       }
       if (rT == OtiNanai.GAUGE) {
          logger.fine("[Memory]: GAUGE detected");
@@ -57,10 +57,6 @@ class OtiNanaiMemory {
       if ((alarm != 0L) && ((ts - alarm) < alarmLife))
          return true;
       return false;
-   }
-
-   public LinkedList<String> getPreview() {
-      return kwt.getPreview();
    }
 
    public LinkedList<String> getMemory() {

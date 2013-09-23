@@ -23,12 +23,11 @@ class OtiNanaiListener implements Runnable {
     * @param   ps Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, long al, int as, float at, int ps, Logger l, short st) {
+	public OtiNanaiListener(DatagramSocket ds, long al, int as, float at, Logger l, short st) {
 		logger = l;
       alarmLife = al;
       alarmSamples = as;
       alarmThreshold = at;
-      previewSamples = ps;
       storageType = st;
       riakBucket = null;
       keyWords = new LLString();
@@ -175,7 +174,7 @@ class OtiNanaiListener implements Runnable {
 				nanoList.add(newRecord.getTimeNano());
 				keyMaps.put(kw, nanoList);
             keyWords.add(kw);
-				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, alarmSamples, alarmThreshold, logger, recType, previewSamples, newRecord.getGauge(), newRecord.getCounter(), storageType, riakBucket));
+				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, alarmSamples, alarmThreshold, logger, recType,  newRecord.getGauge(), newRecord.getCounter(), storageType, riakBucket));
             /*
             try {
                riakBucket.store(keyWordRiakString, keyWords).execute();
@@ -231,7 +230,6 @@ class OtiNanaiListener implements Runnable {
 	private HashMap<String,ArrayList<String>> keyMaps;
 	private HashMap<String,OtiNanaiMemory> memoryMap; 
 	private int port;
-   private int previewSamples;
    private long alarmLife;
    private int alarmSamples;
    private float alarmThreshold;

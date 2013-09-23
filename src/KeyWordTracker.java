@@ -18,8 +18,6 @@ interface KeyWordTracker {
 
 	public long getAlarm() ;
 
-   public LinkedList<String> getPreview() ;
-
    public LinkedList<String> getMemory() ;
 
    public long getThirtySecCount() ;
