@@ -40,14 +40,20 @@ class OtiNanaiCache {
 
    public void cache(String keyword, String data) {
       logger.fine("[Cacher]: Adding keyword "+keyword);
-      counter++;
-      if (counter >= limit) {
-         if (theCache.size() >= limit ) {
-            tidy();
+      if (keyword.contains("*")) {
+         logger.fine("[Cacher]: matched wildcard, not caching");
+      } else if (keyword.contains("--delete")) {
+         logger.fine("[Cacher]: matched '--delete', not caching");
+      } else {
+         counter++;
+         if (counter >= limit) {
+            if (theCache.size() >= limit ) {
+               tidy();
+            }
          }
+         theCache.put(keyword, data);
+         cacheTime.put(keyword, System.currentTimeMillis());
       }
-      theCache.put(keyword, data);
-      cacheTime.put(keyword, System.currentTimeMillis());
    }
 
    public String getCached(String keyWord) {

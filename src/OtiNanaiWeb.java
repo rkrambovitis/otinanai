@@ -133,7 +133,7 @@ class OtiNanaiWeb implements Runnable {
       LinkedList<String> data = new LinkedList<String>();
       data = onm.getMemory();
       long now=System.currentTimeMillis();
-      if (type == OtiNanai.GRAPH_MERGED) {
+      if (type == OtiNanai.GRAPH_MERGED || type == OtiNanai.GRAPH_MERGED_AXES) {
          for (String dato : data) {
             String[] twowords = dato.split("\\s");
             if ((now - Long.parseLong(twowords[0])) > OtiNanai.PREVIEWTIME)
@@ -262,19 +262,11 @@ class OtiNanaiWeb implements Runnable {
 
 
    private String draw(String[] keyList) {
-      logger.info("[Web]: Drawing output for keywords");
+      logger.fine("[Web]: Drawing output for keywords");
 		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
       ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
       String fullString = new String();
 
-      for (String key : keyList) {
-         key=key.toLowerCase();
-         logger.info("[Web]: looking for keyword: " + key);
-         if (allKWs.containsKey(key)) {
-            graphMe.add(allKWs.get(key));
-            fullString = fullString+key+" ";
-         }
-      }
       if (graphMe.size() == 0) {
       } else {
          String output = onc.getCached(fullString);
@@ -465,31 +457,49 @@ class OtiNanaiWeb implements Runnable {
          }
          switch (word) {
             case "--delete":
-            case "--remove":
-            case "--wipe":
                wipe = true;
                break;
             case "--force":
                force = true;
                break;
             case "--merge":
+            case "--m":
             case "--combine":
                graphType = OtiNanai.GRAPH_MERGED;
                break;
             case "--axes":
             case "--axis":
+            case "--a":
+            case "--ma":
                graphType = OtiNanai.GRAPH_MERGED_AXES;
                break;
          }
       }
       if (wipe && force) {
-         logger.info("[Web]: Wipe command received with force. Deleting matched keywords Permanently");
+         logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");
+         OtiNanaiMemory onm;
+         String delOP = new String("RIP Data for keywords:");
+         for (String todel : kws) {
+            logger.info("[Web]: Deleting data for " + todel);
+            delOP = delOP + "<li>"+todel+"</li>";
+            onm = onl.getMemoryMap().get(todel);
+            onm.delete();
+            onl.getMemoryMap().remove(todel);
+         }
+         return delOP;
       } else if (wipe) {
-         logger.info("[Web]: Wipe command received. Sending Warning");
+         logger.fine("[Web]: Wipe command received. Sending Warning");
+         String delOP = new String("[WARNING] : You are about to permanently delete the following keywords<br>Add --force to actually delete"); 
+         for (String todel : kws) {
+            delOP = delOP + "<li><a href=\"" + todel + "\">"+todel+"</a></li>";
+         }
+         return delOP;
       }
       if (kws.size() > OtiNanai.MAXPERPAGE) {
          logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
          return kwTree(kws, keyList);
+      } else if (kws.size() == 1) {
+         graphType = OtiNanai.GRAPH_FULL;
       }
 		String output = commonHTML(OtiNanai.HEADER) 
          + timeGraphHeadString(kws, graphType)

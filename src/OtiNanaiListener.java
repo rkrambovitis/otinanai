@@ -23,7 +23,7 @@ class OtiNanaiListener implements Runnable {
     * @param   ps Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, long al, int as, float at, Logger l, short st) {
+	public OtiNanaiListener(DatagramSocket ds, long al, int as, float at, Logger l, short st, String bucketName, String riakHost, int riakPort) {
 		logger = l;
       alarmLife = al;
       alarmSamples = as;
@@ -37,8 +37,8 @@ class OtiNanaiListener implements Runnable {
          try {
             logger.config("[Listener]: Setting up Riak");
 
-            IRiakClient riakClient = RiakFactory.pbcClient(); //or RiakFactory.httpClient();                   
-            riakBucket = riakClient.createBucket("OtiNanai").nVal(1).r(1).disableSearch().lastWriteWins(true).backend("leveldb").execute();
+            IRiakClient riakClient = RiakFactory.pbcClient(riakHost, riakPort); //or RiakFactory.httpClient();                   
+            riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).backend("leveldb").execute();
             /*
             try {
                Retrier dr = new DefaultRetrier(2);

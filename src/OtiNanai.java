@@ -21,7 +21,7 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, int alarmSamples, float alarmThreshold, String logFile, String logLevel, short storageEngine){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, int alarmSamples, float alarmThreshold, String logFile, String logLevel, short storageEngine, String bucketName, String riakHost, int riakPort){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
@@ -38,9 +38,12 @@ class OtiNanai {
 			logger.config("[Init]: logFile: "+logFile);
 			logger.config("[Init]: logLevel: "+logLevel);
 			logger.config("[Init]: storageEngine: "+storageEngine);
+			logger.config("[Init]: bucketName: "+bucketName);
+			logger.config("[Init]: riakHost: "+riakHost);
+			logger.config("[Init]: riakPort: "+riakPort);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, alarmSamples, alarmThreshold, logger, storageEngine);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, alarmSamples, alarmThreshold, logger, storageEngine, bucketName, riakHost, riakPort);
 			new Thread(onl).start();
 
          // Ticker
@@ -128,8 +131,11 @@ class OtiNanai {
       int alarmSamples = 20;
       float alarmThreshold = 3.0f;
       int cacheItems = 50; 
+      String bucketName = new String("OtiNanai");
       String logFile = new String("/var/log/otinanai.log");
       String logLevel = new String("INFO");
+      String riakHost = new String("localhost");
+      int riakPort = 8087;
 		try {
 			for (int i=0; i<args.length; i++) {
 				arg = args[i];
@@ -187,11 +193,26 @@ class OtiNanai {
 						System.out.println("logLevel = " + logLevel);
 						break;
 					case "-riak":
-						System.out.println("storageEnging = Riak");
+						System.out.println("storageEngine = Riak");
                   storageEngine = OtiNanai.RIAK;
 						break;
+               case "-bn":
+                  i++;
+                  System.out.println("Bucket Name = " + args[i]);
+                  bucketName = args[i];
+                  break;
+               case "-rh":
+                  i++;
+                  System.out.println("riak host = " + args[i]);
+                  riakHost = args[i];
+                  break;
+               case "-rp":
+                  i++;
+                  System.out.println("riak port = " + args[i]);
+                  riakPort = Integer.parseInt(args[i]);
+                  break;
 					default:
-						System.out.println("-wp <webPort> -lp <listenerPort> -wt <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s)> -as <alarmSamples> -at <alarmThreshold> -lf <logFile> -ll <logLevel> -riak");
+						System.out.println("-wp <webPort> -lp <listenerPort> -wt <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s)> -as <alarmSamples> -at <alarmThreshold> -lf <logFile> -ll <logLevel> -riak -bn <bucketName> -rh <riakEndPoint> -rp <riakPort>");
                   System.exit(0);
 						break;
 				}
@@ -200,7 +221,7 @@ class OtiNanai {
 			System.out.println(e);
 			System.exit(1);
 		}
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, alarmSamples, alarmThreshold, logFile, logLevel, storageEngine);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, alarmSamples, alarmThreshold, logFile, logLevel, storageEngine, bucketName, riakHost, riakPort);
 	}
 
 	/**

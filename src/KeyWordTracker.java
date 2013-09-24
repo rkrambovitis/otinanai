@@ -10,6 +10,8 @@ interface KeyWordTracker {
 
 	public void put() ;
 
+   public void delete() ;
+
    public void put(float value) ;
 
    public void put(long value) ;

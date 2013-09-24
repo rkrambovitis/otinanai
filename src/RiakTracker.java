@@ -34,6 +34,24 @@ class RiakTracker implements KeyWordTracker {
 		return keyWord;
 	}
 
+   public void delete() {
+      try {
+         riakBucket.delete(thirtyMinKey).execute();
+      } catch (RiakException re) {
+         logger.severe("[RiakTracker]: Failed to delete "+thirtyMinKey);
+      }
+      try {
+         riakBucket.delete(fiveMinKey).execute();
+      } catch (RiakException re) {
+         logger.severe("[RiakTracker]: Failed to delete "+fiveMinKey);
+      }
+      try {
+         riakBucket.delete(thirtySecKey).execute();
+      } catch (RiakException re) {
+         logger.severe("[RiakTracker]: Failed to delete "+thirtySecKey);
+      }
+   }
+
 	public void put() {
       thirtySecCount ++;
       logger.finest("[RiakTracker]: thirtySecCount is now " +thirtySecCount);
@@ -68,16 +86,13 @@ class RiakTracker implements KeyWordTracker {
        * In the event it's a "metric", it will be 1 or more.
        * Inthe event it's a metric but has no new data, it's 0.
        */
-      //LLString thirtySecMemory = riakBucket.fetch(thirtySecKey, LLString.class).execute();
-      //LLString fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).execute();
-      //LLString thirtyMinMemory = riakBucket.fetch(thirtyMinKey, LLString.class).execute();
 
       LLString thirtySecMemory = new LLString();
       LLString fiveMinMemory = new LLString();
       LLString thirtyMinMemory = new LLString();
 
       logger.fine("[RiakTracker]: fetching existing " + thirtySecKey);
-      thirtySecMemory = riakBucket.fetch(thirtySecKey, LLString.class).execute();
+      thirtySecMemory = riakBucket.fetch(thirtySecKey, LLString.class).r(1).execute();
       if (thirtySecMemory == null ) {
          logger.fine("[RiakTracker]: null. Creating new " + thirtySecKey);
          thirtySecMemory = new LLString();
@@ -137,7 +152,7 @@ class RiakTracker implements KeyWordTracker {
          lastMerge = 0;
 
          logger.fine("[RiakTracker]: fetching existing " + fiveMinKey);
-         fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).execute();
+         fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).r(1).execute();
          logger.fine("[RiakTracker]: fiveMinMemory for "+fiveMinKey+" exists and has size: "+fiveMinMemory.size());
          if (fiveMinMemory == null) {
             logger.fine("[RiakTracker]: null. Creating new " + fiveMinKey);
@@ -161,10 +176,6 @@ class RiakTracker implements KeyWordTracker {
       }
       logger.fine("[RiakTracker]: Storing " + thirtySecKey);
       riakBucket.store(thirtySecKey, thirtySecMemory).execute();
-      //logger.fine("[RiakTracker]: Storing " + fiveMinKey);
-      //logger.fine("[RiakTracker]: fiveMinMemory for "+fiveMinKey+" now has size: "+fiveMinMemory.size());
-      //fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).execute();
-      //logger.fine("[RiakTracker]: fiveMinMemory for "+fiveMinKey+" now has size: "+fiveMinMemory.size());
 
       /*
        * Aggregate old 5min samples and make 30min samples
@@ -173,7 +184,7 @@ class RiakTracker implements KeyWordTracker {
          lastMerge = 0;
 
          logger.fine("[RiakTracker]: fetching existing " + thirtyMinKey);
-         thirtyMinMemory = riakBucket.fetch(thirtyMinKey, LLString.class).execute();
+         thirtyMinMemory = riakBucket.fetch(thirtyMinKey, LLString.class).r(1).execute();
          if (thirtyMinMemory == null) {
             logger.fine("[RiakTracker]: null. Creating new " + thirtyMinKey);
             thirtyMinMemory = new LLString();
@@ -227,14 +238,14 @@ class RiakTracker implements KeyWordTracker {
    public LLString getMemory() {
       LLString returner = new LLString();
       try {
-         LLString thirtySecMemory = riakBucket.fetch(thirtySecKey, LLString.class).execute();
+         LLString thirtySecMemory = riakBucket.fetch(thirtySecKey, LLString.class).r(1).execute();
          returner.addAll(thirtySecMemory);
       } catch (Exception e) {
          logger.severe("[RiakTracker]: getMemory(1): "+e);
       }
 
       try {
-         LLString fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).execute();
+         LLString fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).r(1).execute();
          logger.fine("[RiakTracker]: Got fiveMinMemory for " + fiveMinKey + " with size: " + fiveMinMemory.size());
          returner.addAll(fiveMinMemory);
          for (String foo : fiveMinMemory) {
@@ -245,7 +256,7 @@ class RiakTracker implements KeyWordTracker {
       }
       
       try {
-         LLString thirtyMinMemory = riakBucket.fetch(thirtyMinKey, LLString.class).execute();
+         LLString thirtyMinMemory = riakBucket.fetch(thirtyMinKey, LLString.class).r(1).execute();
          returner.addAll(thirtyMinMemory);
       } catch (Exception e) {
          logger.severe("[RiakTracker]: getMemory(3): "+e);

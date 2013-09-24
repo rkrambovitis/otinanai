@@ -43,6 +43,7 @@ $(function() {
             }
          }
 
+         /*
          var y,p1 = series.data[j - 1],p2 = series.data[j];
          if (p1 == null) {
             y = p2[1];
@@ -53,6 +54,9 @@ $(function() {
          
          }
          temp[i].innerHTML = series.label + " = " + addSuffix(y);//.toFixed(2);
+         */
+         var y = series.data[j][1];
+         temp[i].innerHTML = series.label + " = " + addSuffix(y);
       }
    };
 

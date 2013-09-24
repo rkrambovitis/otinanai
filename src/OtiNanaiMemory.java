@@ -32,6 +32,10 @@ class OtiNanaiMemory {
       kwt.put();
    }
 
+   public void delete() {
+      kwt.delete();
+   }
+
    public void put(float value) {
       kwt.put(value);
    }
