@@ -88,7 +88,7 @@ $(function() {
          myplot=$.plot("#placeholder", data, {
             legend: { position: "sw" },
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser"},
-            series: { lines: {show: true}},
+            series: { lines: {show: true, fill: true}},
             crosshair: { mode: "x"},
             yaxis: {show: false},
             grid: { hoverable: true, autoHighlight: false}

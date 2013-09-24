@@ -250,6 +250,7 @@ class OtiNanai {
 	public static short GRAPH_FULL=1;
 	public static short GRAPH_PREVIEW=2;
    public static short GRAPH_MERGED=3;
+   public static short GRAPH_MERGED_AXES=4;
 
 	public static short MAXPERPAGE=15;
 
