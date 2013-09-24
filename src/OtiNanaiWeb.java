@@ -59,7 +59,8 @@ class OtiNanaiWeb implements Runnable {
 				switch (requestMessageLine) {
 					case " / ":
 					case "  ":
-                  logger.info("[Web]: Sending default blank webpage");
+                  logger.info("[Web]: Sending default webpage");
+                  /*
 						String bogus = commonHTML(OtiNanai.HEADER) 
                      + commonHTML(OtiNanai.ENDHEAD)
                      +"<h3>Robert's random piece of junk.</h3>"
@@ -69,6 +70,10 @@ class OtiNanaiWeb implements Runnable {
                      +"<li>word1 word2, +word3, -word4 : search keywords"
                      + commonHTML(OtiNanai.ENDBODY);
 						sendToClient(bogus.getBytes(), "text/html", false, connectionSocket);
+                  */
+                  path = Paths.get("web/index.html");
+                  data = Files.readAllBytes(path);
+                  sendToClient(data, "text/html", true, connectionSocket);
 						break;
 					case " favicon.ico ":
 					case " otinanai.css ":
@@ -91,38 +96,6 @@ class OtiNanaiWeb implements Runnable {
 						break;
 					default:
 						String[] request = requestMessageLine.split("[ ,]|%20");
-                  /*
-                  String rest = new String("");
-						for (String word : request) {
-                     switch (word) {
-                        case "":
-                           logger.info("[Web]: Skipping blank word");
-                           break;
-                        case "a":
-                        case "A":
-                           logger.info("[Web]: getAlarms matched");
-                           alarms=true;
-                           break;
-                        default:
-                           logger.info("[Web]: Draw matched");
-                           draw = true;
-                           if (rest.equals("")) {
-                              rest = word;
-                           } else {
-                              rest = rest + " " + word;
-                           }
-                           break;
-							}
-						}
-						String text = new String();
-                           */
-                  /*
-                  if (alarms) {
-							text = getAlarms();
-                  } else if (draw) {
-                     text = draw(request);
-                  }
-                  */
                   String text = draw(request);
                   logger.fine("[Web]: got text, sending to client");
 						sendToClient(text.getBytes(), "text/html", false, connectionSocket);
@@ -322,12 +295,6 @@ class OtiNanaiWeb implements Runnable {
       return showKeyWords(keyList);
    }
 
-   /*
-      <div class="fullGraph">
-      <div id="placeholder" class="previewGraph" style="float:left; width:675px; height: 30%;"></div>
-      <p id="choices" style="float:right; width:135px;"></p>
-      </div>
-    */
 
    private String timeGraphBody(ArrayList<String> keyWords, short type) {
       String output = new String();
@@ -437,25 +404,6 @@ class OtiNanaiWeb implements Runnable {
       return new String();
    }
 
-   /*
-	private String getAlarms() {
-      logger.finest("[Web]: Generating Alarms Output");
-		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
-      ArrayList<String> kws = new ArrayList<String> ();
-      for (OtiNanaiMemory onm : allOMs ) {
-         if (onm.getAlarm(System.currentTimeMillis())) {
-            kws.add(onm.getKeyWord());
-         }
-      }
-
-      String output = commonHTML(OtiNanai.HEADER) 
-         + timeGraphHeadString(kws, OtiNanai.GRAPH_MERGED)
-         + commonHTML(OtiNanai.ENDHEAD)
-         + timeGraphBody(kws, OtiNanai.GRAPH_MERGED)
-         + commonHTML(OtiNanai.ENDBODY);
-      return output;
-   };
-   */
 
 	private String showKeyWords(String[] keyList) {
       logger.fine("[Web]: Searching for keywords");
