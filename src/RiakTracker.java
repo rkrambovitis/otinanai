@@ -138,10 +138,11 @@ class RiakTracker implements KeyWordTracker {
 
          logger.fine("[RiakTracker]: fetching existing " + fiveMinKey);
          fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).execute();
+         logger.fine("[RiakTracker]: fiveMinMemory for "+fiveMinKey+" exists and has size: "+fiveMinMemory.size());
          if (fiveMinMemory == null) {
+            logger.fine("[RiakTracker]: null. Creating new " + fiveMinKey);
             fiveMinMemory = new LLString();
          }
-
 
          for (int i=1; i<=OtiNanai.THIRTY_S_TO_FIVE_M ; i++) {
             lastDatoString=thirtySecMemory.get(OtiNanai.THIRTY_SEC_SAMPLES - i);
@@ -153,9 +154,17 @@ class RiakTracker implements KeyWordTracker {
          }
          float finalSum = lastMerge/OtiNanai.THIRTY_S_TO_FIVE_M;
          logger.fine("[RiakTracker]: Aggregated to : "+ lastMerge + "/"+OtiNanai.THIRTY_S_TO_FIVE_M+" = "+finalSum);
-         fiveMinMemory.push(new String(lastts+" "+String.format("%.2f", finalSum)));
+         String toPush = new String(lastts+" "+String.format("%.2f", finalSum));
+         logger.fine("[RiakTracker]: pushing: "+fiveMinKey+ " : " +toPush);
+         fiveMinMemory.push(toPush);
+         riakBucket.store(fiveMinKey, fiveMinMemory).execute();
       }
+      logger.fine("[RiakTracker]: Storing " + thirtySecKey);
       riakBucket.store(thirtySecKey, thirtySecMemory).execute();
+      //logger.fine("[RiakTracker]: Storing " + fiveMinKey);
+      //logger.fine("[RiakTracker]: fiveMinMemory for "+fiveMinKey+" now has size: "+fiveMinMemory.size());
+      //fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).execute();
+      //logger.fine("[RiakTracker]: fiveMinMemory for "+fiveMinKey+" now has size: "+fiveMinMemory.size());
 
       /*
        * Aggregate old 5min samples and make 30min samples
@@ -166,6 +175,7 @@ class RiakTracker implements KeyWordTracker {
          logger.fine("[RiakTracker]: fetching existing " + thirtyMinKey);
          thirtyMinMemory = riakBucket.fetch(thirtyMinKey, LLString.class).execute();
          if (thirtyMinMemory == null) {
+            logger.fine("[RiakTracker]: null. Creating new " + thirtyMinKey);
             thirtyMinMemory = new LLString();
          }
 
@@ -177,10 +187,9 @@ class RiakTracker implements KeyWordTracker {
             fiveMinMemory.remove(OtiNanai.FIVE_MIN_SAMPLES -i);
          }
          thirtyMinMemory.push(new String(lastts+" "+Math.round(lastMerge/OtiNanai.FIVE_M_TO_THIRTY_M)));
-         riakBucket.store(fiveMinKey, fiveMinMemory).execute();
          riakBucket.store(thirtyMinKey, thirtyMinMemory).execute();
+         riakBucket.store(fiveMinKey, fiveMinMemory).execute();
       }
-
 
 
       /*
@@ -226,7 +235,11 @@ class RiakTracker implements KeyWordTracker {
 
       try {
          LLString fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).execute();
+         logger.fine("[RiakTracker]: Got fiveMinMemory for " + fiveMinKey + " with size: " + fiveMinMemory.size());
          returner.addAll(fiveMinMemory);
+         for (String foo : fiveMinMemory) {
+            logger.finest("[RiakTracker]: fiveMinMemory listing: " +foo);
+         }
       } catch (Exception e) {
          logger.severe("[RiakTracker]: getMemory(2): "+e);
       }

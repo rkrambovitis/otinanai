@@ -22,11 +22,10 @@ body {
 }
 .mergedGraph { 
    height: 70%;
-   width: 80%;
+   width: 100%;
    border-bottom: 1px solid #ccc; 
    padding-bottom: 20px; 
    margin-bottom: 20px; 
-   float: left;
 }
 .previewGraph {
    width: 50%;

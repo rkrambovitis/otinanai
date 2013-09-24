@@ -245,6 +245,7 @@ class OtiNanaiWeb implements Runnable {
          for (OtiNanaiMemory onm : kws) {
             output = output + "\""+onm.getKeyWord()+"\": {\n"
                + "label: \""+onm.getKeyWord()+"\",\n"
+               + "yaxis: "+ ++i +",\n" 
                + "data: ["
                + toGraph(onm, type)
                + "]},\n\n";

@@ -210,8 +210,8 @@ class OtiNanai {
 		public String format(LogRecord rec) {
 			StringBuffer buf = new StringBuffer(1024);
 			buf.append(calcDate(rec.getMillis()));
-//			buf.append(" ");
-//			buf.append("["+rec.getLevel()+"]");
+			buf.append(" ");
+			buf.append("["+rec.getLevel()+"]");
 			buf.append(" : ");
 			buf.append(formatMessage(rec));
 			buf.append('\n');
@@ -219,7 +219,7 @@ class OtiNanai {
 		}
 
 		private String calcDate(long millisecs) {
-			SimpleDateFormat date_format = new SimpleDateFormat("MMM dd HH:mm");
+			SimpleDateFormat date_format = new SimpleDateFormat("MMM dd HH:mm:ss");
 			Date resultdate = new Date(millisecs);
 			return date_format.format(resultdate);
 		}

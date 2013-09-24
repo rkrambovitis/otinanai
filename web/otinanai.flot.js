@@ -8,7 +8,8 @@ $(function() {
 
    $.each(datasets, function(key, val) {
       choiceContainer.append("<br/><input type='checkbox' name='" + key + "' checked='checked' id='id" + key + "'></input>" 
-         + "<label for='id" + key + "'>" + val.label + "</label>");
+         + "<label for='id" + key + "'>" + val.label + "</label> "
+         + "<a href="+key+">(alone)</a>");
    });
 
    choiceContainer.find("input").click(plotAccordingToChoices);
@@ -51,10 +52,27 @@ $(function() {
             y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
          
          }
-         temp[i].innerHTML = series.label + " = " + y.toFixed(2);
-         //series.label.replace(/.*/, "= " + y.toFixed(2));
-         //console.log(series.label + " : " + y.toFixed(2));
+         temp[i].innerHTML = series.label + " = " + addSuffix(y);//.toFixed(2);
       }
+   };
+
+   function addSuffix(number) {
+      var suffix = "";
+      var result = number;
+      if (number > 500000000000) {
+         suffix = "P";
+         result = number / 1000000000000;
+      } else if (number > 500000000) {
+         suffix = "G";
+         result = number / 1000000000;
+      } else if (number > 500000) {
+         suffix = "M";
+         result = number / 1000000;
+      } else if (number > 500) {
+         suffix = "k";
+         result = number / 1000;
+      }
+      return result.toFixed(2)+suffix;
    };
 
    $("#placeholder").bind("plothover",  function (event, pos, item) {
@@ -69,9 +87,10 @@ $(function() {
          currentData=data;
          myplot=$.plot("#placeholder", data, {
             legend: { position: "sw" },
-            xaxis: { mode: "time", tickDecimals: 0},
+            xaxis: { mode: "time", tickDecimals: 0, timezone: "browser"},
             series: { lines: {show: true}},
             crosshair: { mode: "x"},
+            yaxis: {show: false},
             grid: { hoverable: true, autoHighlight: false}
          });
       }
@@ -90,4 +109,21 @@ $(function() {
    }
 
    plotAccordingToChoices();
+
+   $("#placeholder").bind("plotselected", function (event, ranges) {
+      if (ranges.xaxis.to - ranges.xaxis.from < 0.00001) {
+         ranges.xaxis.to = ranges.xaxis.from + 0.00001;
+      }
+
+      if (ranges.yaxis.to - ranges.yaxis.from < 0.00001) {
+         ranges.yaxis.to = ranges.yaxis.from + 0.00001;
+      }
+
+      plot = $.plot("#placeholder", getData(ranges.xaxis.from, ranges.xaxis.to),
+         $.extend(true, {}, options, {
+            xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+         yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+         })
+      );
+   });
 });
