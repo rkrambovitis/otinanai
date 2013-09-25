@@ -153,7 +153,6 @@ class RiakTracker implements KeyWordTracker {
 
          logger.fine("[RiakTracker]: fetching existing " + fiveMinKey);
          fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).r(1).execute();
-         logger.fine("[RiakTracker]: fiveMinMemory for "+fiveMinKey+" exists and has size: "+fiveMinMemory.size());
          if (fiveMinMemory == null) {
             logger.fine("[RiakTracker]: null. Creating new " + fiveMinKey);
             fiveMinMemory = new LLString();

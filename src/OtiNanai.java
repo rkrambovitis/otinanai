@@ -282,8 +282,10 @@ class OtiNanai {
    public static final short ENDBODY = 3;
    public static final short GOOGLE = 4;
    public static final short FLOT = 5;
-   public static final short JS = 6;
-   public static final short ENDJS = 7;
+   public static final short FLOT_MERGED = 6;
+   public static final short FLOT_PREVIEW = 7;
+   public static final short JS = 8;
+   public static final short ENDJS = 9;
 
    public static final long PREVIEWTIME = 3600000l;
 
