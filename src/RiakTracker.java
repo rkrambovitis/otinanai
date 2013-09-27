@@ -219,7 +219,7 @@ class RiakTracker implements KeyWordTracker {
          logger.fine("[RiakTracker]: d: "+deviation+" m: "+mean);
 
          if ((sampleCount >= alarmSamples) && (deviation >= alarmThreshold)) {
-            logger.info("[RiakTracker]: Error conditions met for " + keyWord);
+            logger.info("[RiakTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation);
             alarm=ts;
          }
       }

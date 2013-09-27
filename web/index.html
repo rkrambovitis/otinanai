@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8" />
+   <!--<meta charset="utf-8" /> -->
+   <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
 	<title>OtiNanai</title>
 	<link rel="stylesheet" href="" />
    <style>
@@ -52,16 +53,10 @@
 
 	<script>
 	search = function(q) {
-		//document.getElementById('bp').src = 'http://www.bestprice.gr/search?q=' + q;
 		document.getElementById('bp').src = q;
-
 		document.getElementById('q').value = decodeURIComponent(q);
-		//document.getElementById('q').select();
-
 		location.hash = '#' + encodeURIComponent(q);
-
 		document.title = q + ' - OtiNanai';
-
 		return false;
 	}
 
@@ -86,7 +81,7 @@
 <body>
    <div id="content">
       <form  onsubmit="return search(this.q.value)">
-         <input type="text" name="q" id="q" placeholder="query here" autofocus />
+         <input type="text" name="q" id="q" placeholder="search" autofocus />
       </form>
 
       <div class="section">

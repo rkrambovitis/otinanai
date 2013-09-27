@@ -8,7 +8,7 @@ import com.basho.riak.client.bucket.*;
 class OtiNanaiMemory {
    public OtiNanaiMemory(String key, long al, int alarmSamples, float alarmThreshold, Logger l, short rT, float theGauge, long theCounter, short storageType, Bucket bucket) {
       keyWord = key;
-      recType = rT;
+      recordType = rT;
       logger = l;
       alarm = 0L;
       if (storageType == OtiNanai.MEM) {
@@ -29,7 +29,10 @@ class OtiNanaiMemory {
    }
 
    public void put() {
-      kwt.put();
+      if (recordType == OtiNanai.FREQ)
+         kwt.put();
+      else
+         logger.fine("[Memory]: Ignoring put of wrong type (keyword is FREQ)");
    }
 
    public void delete() {
@@ -37,11 +40,17 @@ class OtiNanaiMemory {
    }
 
    public void put(float value) {
-      kwt.put(value);
+      if (recordType == OtiNanai.GAUGE)
+         kwt.put(value);
+      else
+         logger.fine("[Memory]: Ignoring put of wrong type (keyword is GAUGE)");
    }
 
    public void put(long value) {
-      kwt.put(value);
+      if (recordType == OtiNanai.COUNTER) 
+         kwt.put(value);
+      else
+         logger.fine("[Memory]: Ignoring put of wrong type (keyword is COUNTER)");
    }
 
    public void tick(long ts) {
@@ -73,5 +82,5 @@ class OtiNanaiMemory {
    private String keyWord;
    private Logger logger;
    private KeyWordTracker kwt;
-   private short recType;
+   private short recordType;
 }

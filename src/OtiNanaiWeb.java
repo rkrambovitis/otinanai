@@ -58,20 +58,9 @@ class OtiNanaiWeb implements Runnable {
 					case " / ":
 					case "  ":
                   logger.info("[Web]: Sending default webpage");
-                  /*
-						String bogus = commonHTML(OtiNanai.HEADER) 
-                     + commonHTML(OtiNanai.ENDHEAD)
-                     +"<h3>Robert's random piece of junk.</h3>"
-                     +"<hr>Keys:"
-                     +"<li><a href=\"A\">A</a> : show alarms"
-                     +"<li><a href=\"*\">*</a> : show all keywords"
-                     +"<li>word1 word2, +word3, -word4 : search keywords"
-                     + commonHTML(OtiNanai.ENDBODY);
-						sendToClient(bogus.getBytes(), "text/html", false, connectionSocket);
-                  */
                   path = Paths.get("web/index.html");
                   data = Files.readAllBytes(path);
-                  sendToClient(data, "text/html", true, connectionSocket);
+                  sendToClient(data, "text/html; charset=utf-8", true, connectionSocket);
 						break;
 					case " favicon.ico ":
 					case " otinanai.css ":
@@ -82,6 +71,7 @@ class OtiNanaiWeb implements Runnable {
 					case " jquery.flot.js ":
 					case " jquery.flot.time.js ":
 					case " jquery.flot.crosshair.js ":
+               case " jquery.flot.selection.js ":
                   String noSpaces = requestMessageLine.replaceAll(" ","");
                   logger.info("[Web]: Sending "+noSpaces);
 						path = Paths.get("web/"+noSpaces);
@@ -95,10 +85,9 @@ class OtiNanaiWeb implements Runnable {
                   }
 						break;
 					default:
-						//String[] request = requestMessageLine.split("[ ,]|%20");
                   String text = showKeyWords(requestMessageLine);
                   logger.fine("[Web]: got text, sending to client");
-						sendToClient(text.getBytes(), "text/html", false, connectionSocket);
+						sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket);
 						connectionSocket.close();
 				}
 			}
@@ -126,38 +115,19 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-   private String toGraph(OtiNanaiMemory onm, short type) {
+   private String toGraph(OtiNanaiMemory onm, short type, long time) {
       logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+onm.getKeyWord() +" type: "+type);
 		String output = new String("\n");
       SomeRecord sr;
       LinkedList<String> data = new LinkedList<String>();
       data = onm.getMemory();
       long now=System.currentTimeMillis();
- //     if (type == OtiNanai.GRAPH_MERGED || type == OtiNanai.GRAPH_MERGED_AXES || type == OtiNanai.GRAPH_PREVIEW) {
-         for (String dato : data) {
-            String[] twowords = dato.split("\\s");
-            if (type != OtiNanai.GRAPH_FULL && (now - Long.parseLong(twowords[0])) > OtiNanai.PREVIEWTIME)
-               break;
-            output = output + "[" + twowords[0] + "," + twowords[1] + "],\n";
-         }
-  /*    } else {
-         try {
-            if (data.size() == 0 ) {
-               output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
-            } else {
-               for (String dato : data) {
-                  String[] twowords = dato.split("\\s");
-                  if (type == OtiNanai.GRAPH_PREVIEW && (now - Long.parseLong(twowords[0])) > OtiNanai.PREVIEWTIME)
-                     break;
-                  output = output + "[" + calcDate(twowords[0]) + "," + twowords[1] + "],\n";
-               }
-            }
-         } catch (NullPointerException npe) {
-            logger.severe("[Web]: "+npe);
-            output = output + "[new Date(2013,07,30,0,0,0), 0],\n";
-         }
+      for (String dato : data) {
+         String[] twowords = dato.split("\\s");
+         if (type != OtiNanai.GRAPH_FULL && (now - Long.parseLong(twowords[0])) > time)
+            break;
+         output = output + "[" + twowords[0] + "," + twowords[1] + "],\n";
       }
-      */
       return output;
    }
 
@@ -193,7 +163,7 @@ class OtiNanaiWeb implements Runnable {
 		return output;
 	}
 
-   private String timeGraphHeadString(ArrayList<String> keyList, short type) {
+   private String timeGraphHeadString(ArrayList<String> keyList, short type, long time) {
       ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
 		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
 
@@ -206,16 +176,15 @@ class OtiNanaiWeb implements Runnable {
             graphMe.add(allKWs.get(key));
          }
       }
-      return timeGraphHead(graphMe, type);
+      return timeGraphHead(graphMe, type, time);
    }
 
-   private String timeGraphHead(ArrayList<OtiNanaiMemory> kws, short type) {
+   private String timeGraphHead(ArrayList<OtiNanaiMemory> kws, short type, long time) {
       String output = new String("");
       int i=0;
-//      if (type == OtiNanai.GRAPH_MERGED || type == OtiNanai.GRAPH_MERGED_AXES) {
       output = output + commonHTML(OtiNanai.FLOT);
 
-      if (type == OtiNanai.GRAPH_PREVIEW || type == OtiNanai.GRAPH_FULL)
+      if (type == OtiNanai.GRAPH_PREVIEW)
          output = output + commonHTML(OtiNanai.FLOT_PREVIEW);
       else 
          output = output + commonHTML(OtiNanai.FLOT_MERGED);
@@ -231,44 +200,11 @@ class OtiNanaiWeb implements Runnable {
             output = output + "yaxis: "+ ++i +",\n";
 
          output = output + "data: ["
-            + toGraph(onm, type)
+            + toGraph(onm, type, time)
             + "]},\n\n";
       }
       output = output + "};\n"
          + commonHTML(OtiNanai.ENDJS);
-         /*
-      } else {
-         output = output + commonHTML(OtiNanai.GOOGLE);
-
-         for (OtiNanaiMemory onm : kws) {
-            output = output + commonHTML(OtiNanai.JS);
-            if (type == OtiNanai.GRAPH_FULL) {
-               output = output + "google.load(\"visualization\", \"1\", {packages:[\"annotatedtimeline\"]});\n";
-            } else {
-               output = output + "google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});\n";
-            }
-            output = output + "google.setOnLoadCallback(drawChart);\n"
-               + "function drawChart() {\n"
-               + "var data = new google.visualization.DataTable();\n"
-               + "data.addColumn('datetime', 'Date');\n"
-               + "data.addColumn('number', '"+onm.getKeyWord()+"');\n";
-            output = output + "data.addRows(["
-               + toGraph(onm, type)
-               + "]);\n";
-
-            if (type == OtiNanai.GRAPH_FULL) {
-               output = output + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"-1\" }};\n"
-                  + "var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('"+onm.getKeyWord()+"'));\n";
-            } else {
-               output = output + "var options = { title: \""+onm.getKeyWord()+"\", hAxis: {direction: \"1\" }};\n"
-                  + "var chart = new google.visualization.AreaChart(document.getElementById('"+onm.getKeyWord()+"'));\n";
-            }
-            output = output + "chart.draw(data, options);\n"
-               + "}\n"
-               + commonHTML(OtiNanai.ENDJS);
-         }
-      }
-      */
       return output;
    }
 
@@ -281,16 +217,24 @@ class OtiNanaiWeb implements Runnable {
       }
       TreeSet<String> sortedKeys = new TreeSet<String>();
       sortedKeys.addAll(keyWords);
-      if (type == OtiNanai.GRAPH_MERGED || type == OtiNanai.GRAPH_MERGED_AXES) {
+      if (type == OtiNanai.GRAPH_MERGED || type == OtiNanai.GRAPH_MERGED_AXES || type == OtiNanai.GRAPH_FULL) {
          output = output
-            + "<div>"
-            + "<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
-            + "<p id=\"choices\" style=\"float:left;\"></p>"
-            + "</div>";
+            + "<div>\n"
+            + "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
+            + "</div>\n"
+            + "<div class=\"clearfix\">\n"
+            + "\t<div id=\"overview\" class=\"previewGraph\"></div>\n"
+            + "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
+            + "\t\t<p id=\"choices\"></p>\n"
+            + "\t</div>\n"
+            + "</div>\n";
       } else {
          for (String kw : sortedKeys) {
-            output = output + "<li><a href = \""+kw+"\">"+kw+"</a></li>\n";
-            output = output + "<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n";
+            output = output 
+               + "<div class=\"wrapper clearfix\">\n"
+               + "\t<li><a href = \""+kw+"\">"+kw+"</a></li>\n"
+               + "\t<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n"
+               + "</div>\n";
          }
       }
       return output;
@@ -349,9 +293,11 @@ class OtiNanaiWeb implements Runnable {
       oldKeys = oldKeys.substring(0,oldKeys.length()-1);
 
       String output = commonHTML(OtiNanai.HEADER) 
-         + commonHTML(OtiNanai.ENDHEAD);
+         + commonHTML(OtiNanai.ENDHEAD)
+         + "<li><a href=\""+oldKeys + " --sa\">Show All (slow) (--sa) "+kws.size()+"</a></li>\n";
+         
       for (String key : sortedKeys.keySet()) {
-         output = output + "<li><a href=\""+oldKeys + " +"+key+"\">"+key+" "+sortedKeys.get(key)+"</a></li>\n";
+         output = output + "<li><a href=\""+oldKeys + " +^"+key+"\">"+key+" "+sortedKeys.get(key)+"</a></li>\n";
       }
       output = output + commonHTML(OtiNanai.ENDBODY);
       return output;
@@ -359,7 +305,9 @@ class OtiNanaiWeb implements Runnable {
    
    private String commonHTML(short out) {
       if (out == OtiNanai.HEADER) {
-         return new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n");
+         String op = new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n");
+         op = op + "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>";
+         return op;
       } else if (out == OtiNanai.GOOGLE) {
          return new String("<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n");
       } else if (out == OtiNanai.ENDHEAD) {
@@ -371,6 +319,7 @@ class OtiNanaiWeb implements Runnable {
          op = op + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.js\"></script>\n"
             + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.js\"></script>\n"
             + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.js\"></script>\n"
+            + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.js\"></script>\n"
             + "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.common.js\"></script>\n";
          return op;
       } else if (out == OtiNanai.FLOT_MERGED) {
@@ -386,33 +335,6 @@ class OtiNanaiWeb implements Runnable {
    }
 
 
-      /*
-   private String draw(String[] keyList) {
-      logger.fine("[Web]: Drawing output for keywords");
-		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
-      ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
-      String fullString = new String();
-
-      if (graphMe.size() == 0) {
-      } else {
-         String output = onc.getCached(fullString);
-         if (output == null) {
-            output = commonHTML(OtiNanai.HEADER) 
-               + timeGraphHead(graphMe, OtiNanai.GRAPH_FULL)
-               + commonHTML(OtiNanai.ENDHEAD)
-               + timeGraphBody(graphMe)
-               + commonHTML(OtiNanai.ENDBODY);
-            onc.cache(fullString, output);
-            return output;
-         } else {
-            logger.fine("[Web]: Cached data for \"" + fullString + "\"");
-            return output;
-         }
-      }
-      return showKeyWords(keyList);
-   }*/
-
-
 	private String showKeyWords(String input) {
       String op = onc.getCached(input);
       if (op != null) {
@@ -424,6 +346,8 @@ class OtiNanaiWeb implements Runnable {
       logger.fine("[Web]: Searching for keywords");
 		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
       ArrayList<String> kws = new ArrayList<String>();
+
+      /*
       if (keyList.length == 2 && keyList[1].equals("a")){
          logger.fine("[Web]: Searching for alarms");
          for (OtiNanaiMemory onm : allOMs ) {
@@ -432,81 +356,195 @@ class OtiNanaiWeb implements Runnable {
             }
          }
       } else {
-         for (OtiNanaiMemory onm : allOMs ) {
-            for (String word : keyList) {
-               if (word.equals("")) {
-                  logger.finest("[Web]: Skipping blank word (2)");
-                  continue;
-               }
-               logger.fine("[Web]: Searching for keywords containing: \""+word+"\"");
-               String test = onm.getKeyWord();
-               if (test.contains(word) || word.equals("*")) {
-                  logger.fine("[Web]: : Matched: "+test);
-                  kws.add(test);
-                  break;
-               }
+      for (OtiNanaiMemory onm : allOMs ) {
+         for (String word : keyList) {
+            if (word.equals("")) {
+               logger.finest("[Web]: Skipping blank word (2)");
+               continue;
+            }
+            logger.fine("[Web]: Searching for keywords containing: \""+word+"\"");
+            String test = onm.getKeyWord();
+            if (test.contains(word)) {
+               logger.fine("[Web]: : Matched: "+test);
+               kws.add(test);
+               break;
             }
          }
       }
+      if (kws.size() == 0) {
+         for (OtiNanaiMemory onm : allOMs ) {
+            kws.add(onm.getKeyWord());
+         }
+      }
+      */
 
-      logger.fine("[Web]: removing \"+/-\" keywords");
-      String firstChar;
+      String firstChar = new String();
+      String secondChar = new String();
+      String lastChar = new String();
       String rest;
       boolean wipe = false;
       boolean force = false;
       boolean alarm = false;
       boolean showAll = false;
+      boolean showAlarms = false;
+      String kw = new String();
       short graphType = OtiNanai.GRAPH_PREVIEW;
-      ArrayList<String> kwsClone = new ArrayList<String>();
-      kwsClone.addAll(kws);
+      long time = OtiNanai.PREVIEWTIME;
+
       for (String word : keyList) {
-         if (word.equals("")) {
-            logger.finest("[Web]: Skipping blank word (3)");
-            continue;
-         }
-         firstChar = word.substring(0,1);
-         rest = word.substring(1);
-         if (firstChar.equals("-")) {
-            for (String key : kwsClone) {
-               if (key.contains(rest)) {
-                  kws.remove(key);
-               }
-            }
-         } else if (firstChar.equals("+")) {
-            for (String key : kwsClone) {
-               if (!key.contains(rest)) {
-                  kws.remove(key);
-               }
-            }
-         }
+         boolean removeKW = false;
+         boolean exclusiveKW = false;
+         boolean startsWithKW = false;
+         boolean endsWithKW = false;
+         boolean matched = false;
+         boolean setTime = false;
          switch (word) {
+            case "":
+               matched = true;
+               break;
             case "--showall":
             case "--sa":
             case "--show":
-            case "--s":
                showAll = true;
+               matched = true;
                break;
             case "--delete":
                wipe = true;
+               matched = true;
                break;
             case "--force":
                force = true;
+               matched = true;
                break;
             case "--merge":
             case "--m":
             case "--combine":
                graphType = OtiNanai.GRAPH_MERGED;
+               matched = true;
                break;
-            case "--axes":
-            case "--axis":
-            case "--a":
             case "--ma":
             case "--am":
                graphType = OtiNanai.GRAPH_MERGED_AXES;
+               matched = true;
+               break;
+            case "--a":
+            case "--alarms":
+            case "--alerts":
+               showAlarms = true;
+               matched = true;
+               logger.info("[Web]: Showing Alarms");
                break;
          }
+         if (matched)
+            continue;
+
+         word = word.replaceAll("%5E", "^");
+         word = word.replaceAll("%24", "$");
+         logger.fine("[Web]: word is: \""+word+"\"");
+         firstChar = word.substring(0,1);
+         rest = word.replaceAll("[\\+\\-\\^\\$\\@]", "");
+
+         if (rest.length() == 0)
+            continue;
+         if (word.length() > 1) {
+            secondChar = word.substring(1,2);
+            lastChar = word.substring(word.length()-1);
+         }
+         if (firstChar.equals("-"))
+            removeKW = true;
+         else if (firstChar.equals("+"))
+            exclusiveKW = true;
+         else if (firstChar.equals("@"))
+            setTime = true;
+         if (firstChar.equals("^") || secondChar.equals("^"))
+            startsWithKW = true;
+         if (lastChar.equals("$"))
+            endsWithKW = true;
+
+         logger.info("[Web]: removeKW: "+removeKW+" exclusiveKW: "+exclusiveKW+ " startsWithKW: "+startsWithKW+" endsWithKW: "+endsWithKW);
+         ArrayList<String> kwsClone = new ArrayList<String>();
+
+         kwsClone.addAll(kws);
+         logger.fine("[Web]: Current kws.size(): " + kws.size());
+         for (String key : kwsClone) {
+            if (removeKW) {
+               if (startsWithKW && endsWithKW) {
+                  if (key.startsWith(rest) && key.endsWith(rest))
+                     kws.remove(key);
+               } else if (startsWithKW) {
+                  if (key.startsWith(rest))
+                     kws.remove(key);
+               } else if (endsWithKW) {
+                  if (key.endsWith(rest))
+                     kws.remove(key);
+               } else {
+                  if (key.contains(rest)) {
+                     kws.remove(key);
+                     logger.info("Removing "+key);
+                  }
+               }
+            } else if (exclusiveKW) {
+               if (startsWithKW && endsWithKW) {
+                  if (!key.startsWith(rest) && !key.endsWith(rest))
+                     kws.remove(key);
+               } else if (startsWithKW) {
+                  if (!key.startsWith(rest))
+                     kws.remove(key);
+               } else if (endsWithKW) {
+                  if (!key.endsWith(rest))
+                     kws.remove(key);
+               } else {
+                  if (!key.contains(rest))
+                     kws.remove(key);
+               }
+            } else if (setTime) {
+               try {
+                  time = 3600000 * Long.parseLong(rest);
+               } catch (NumberFormatException nfe) {
+                  logger.severe("[Web]: Not a valid number\n"+nfe);
+               }
+            }
+         }
+         if (removeKW || exclusiveKW) 
+            continue;
+
+         if (startsWithKW && endsWithKW) {
+            for (OtiNanaiMemory onm : allOMs ) {
+               kw = onm.getKeyWord();
+               if (kw.startsWith(rest) && kw.endsWith(rest) && !kws.contains(kw))
+                  kws.add(kw);
+            }
+         } else if (startsWithKW) {
+            for (OtiNanaiMemory onm : allOMs ) {
+               kw = onm.getKeyWord();
+               if (kw.startsWith(rest) && !kws.contains(kw))
+                  kws.add(kw);
+            }
+         } else if (endsWithKW) {
+            for (OtiNanaiMemory onm : allOMs ) {
+               kw = onm.getKeyWord();
+               if (kw.endsWith(rest) && !kws.contains(kw)) 
+                  kws.add(kw);
+            }
+         } else {
+            for (OtiNanaiMemory onm : allOMs ) {
+               kw = onm.getKeyWord();
+               if ((kw.contains(word) || rest.equals("*")) && !kws.contains(kw)) 
+                  kws.add(kw);
+            }
+         }
       }
-      if (wipe && force) {
+      if (showAlarms) {
+         logger.info("[Web]: kws.size() = "+kws.size());
+         for (OtiNanaiMemory onm : allOMs ) {
+            if (!onm.getAlarm(System.currentTimeMillis())) {
+               logger.info("[Web]: No alarm for "+onm.getKeyWord()+ " - Removing");
+               kws.remove(onm.getKeyWord());
+            } else {
+               logger.info("[Web]: Alarm for "+onm.getKeyWord());
+            }
+         }
+      } else if (wipe && force) {
          logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");
          OtiNanaiMemory onm;
          String delOP = new String("RIP Data for keywords:");
@@ -533,7 +571,7 @@ class OtiNanaiWeb implements Runnable {
          graphType = OtiNanai.GRAPH_FULL;
       }
 		String output = commonHTML(OtiNanai.HEADER) 
-         + timeGraphHeadString(kws, graphType)
+         + timeGraphHeadString(kws, graphType, time)
          + commonHTML(OtiNanai.ENDHEAD)
          + timeGraphBody(kws, graphType)
          + commonHTML(OtiNanai.ENDBODY);

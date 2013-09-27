@@ -16,13 +16,51 @@ $(function() {
    var updateLegendTimeout = null;
    var latestPosition = null;
 
-   var myplot = null;
+   var myPlot = null;
+   var myOverview = null;
    updatePlot(datasets);
 
    var legends = $("#placeholder .legendLabel");
 
    legends.each(function () {
       $(this).css('width', $(this).width());
+   });
+
+   var xmin = null;
+   var xmax = null;
+   var ymin = null;
+   var ymax = null;
+   $("#placeholder").bind("plotselected", function (event, ranges) {
+      xmin = ranges.xaxis.from;
+      xmax = ranges.xaxis.to;
+      ymin = ranges.yaxis.from;
+      ymax = ranges.yaxis.to;
+      myOverview.setSelection(ranges, true);
+      plotAccordingToChoices();
+   });
+
+   $("#overview").bind("plotselected", function (event, ranges) {
+      xmin = ranges.xaxis.from;
+      xmax = ranges.xaxis.to;
+      ymin = ranges.yaxis.from;
+      ymax = ranges.yaxis.to;
+      plotAccordingToChoices();
+   });
+
+   $("#placeholder").bind("plotunselected", function (event, ranges) {
+      xmin = ranges.null;
+      xmax = ranges.null;
+      ymin = ranges.null;
+      ymax = ranges.null;
+      plotAccordingToChoices();
+   });
+
+   $("#overview").bind("plotunselected", function (event, ranges) {
+      xmin = ranges.null;
+      xmax = ranges.null;
+      ymin = ranges.null;
+      ymax = ranges.null;
+      plotAccordingToChoices();
    });
 
    $("#placeholder").bind("plothover",  function (event, pos, item) {
@@ -36,7 +74,7 @@ $(function() {
       var temp = $('#placeholder .legendLabel');
       updateLegendTimeout = null;
       var pos = latestPosition;
-      var axes = myplot.getAxes();
+      var axes = myPlot.getAxes();
       if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
          return;
       }
@@ -47,28 +85,31 @@ $(function() {
                break;
             }
          }
-
          var y = val.data[j][1];
-         //temp[i].innerHTML = series.label + " = " + addSuffix(y);
          temp[i].innerHTML = key + " = " + addSuffix(y);
          i++;
       });
    };
 
-
-
-
-
    function updatePlot(data) {
       if (data.length > 0) {
          currentData=data;
-         myplot=$.plot("#placeholder", data, {
-            legend: { position: "sw" },
-            xaxis: { mode: "time", tickDecimals: 0, timezone: "browser"},
+         myPlot=$.plot("#placeholder", data, {
+            legend: { position: "sw", show: "true" },
+            xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max:xmax},
+            yaxis: {show: false, min: ymin, max: ymax},
             series: { lines: {show: true, fill: true}},
             crosshair: { mode: "x"},
-            yaxis: {show: false},
-            grid: { hoverable: true, autoHighlight: false}
+            grid: { hoverable: true, autoHighlight: false},
+            selection: { mode: "xy" }
+         });
+         myOverview=$.plot("#overview", data, {
+            legend: { show: false},
+            series: { lines: {show: true, lineWidth: 1 }, shadowSize: 0 },
+            xaxis: {show: false, ticks: 4, min: null, max: null},
+            yaxis: {show: false, ticks: 3, min: null, max: null},
+            grid: {color: "#999" },
+            selection: { mode: "xy" }
          });
       }
    }
@@ -87,20 +128,4 @@ $(function() {
 
    plotAccordingToChoices();
 
-   $("#placeholder").bind("plotselected", function (event, ranges) {
-      if (ranges.xaxis.to - ranges.xaxis.from < 0.00001) {
-         ranges.xaxis.to = ranges.xaxis.from + 0.00001;
-      }
-
-      if (ranges.yaxis.to - ranges.yaxis.from < 0.00001) {
-         ranges.yaxis.to = ranges.yaxis.from + 0.00001;
-      }
-
-      plot = $.plot("#placeholder", getData(ranges.xaxis.from, ranges.xaxis.to),
-         $.extend(true, {}, options, {
-            xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
-         yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
-         })
-      );
-   });
 });

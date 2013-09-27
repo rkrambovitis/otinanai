@@ -38,7 +38,7 @@ class OtiNanaiListener implements Runnable {
             logger.config("[Listener]: Setting up Riak");
 
             IRiakClient riakClient = RiakFactory.pbcClient(riakHost, riakPort); //or RiakFactory.httpClient();                   
-            riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).backend("leveldb").execute();
+            riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).backend("eleveldb").execute();
             /*
             try {
                Retrier dr = new DefaultRetrier(2);
@@ -137,10 +137,8 @@ class OtiNanaiListener implements Runnable {
 		for (String kw : theKeys) {
          
          if (newRecord.isGauge()) {
-            kw = kw + "_";
             recType = OtiNanai.GAUGE;
          } else if (newRecord.isCounter()) {
-            kw = kw + "_c";
             recType = OtiNanai.COUNTER;
          } else {
             try { 

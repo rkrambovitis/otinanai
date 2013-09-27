@@ -28,11 +28,16 @@ body, html {
    margin-bottom: 20px; 
 }
 .previewGraph {
-   width: 50%;
+   width: 100%;
+   float: center;
    height: 120px;
    border-bottom: 1px solid #ccc;
    padding-bottom: 15px;
    margin-bottom: 10px;
+}
+.checkList {
+   width: 100%;
+   float: left;
 }
 .date { 
    color: green; 
@@ -52,3 +57,28 @@ body, html {
    color: black;
 }
 
+.clearfix:after {
+   content: ".";
+   display: block;
+   clear: both;
+   visibility: hidden;
+   line-height: 0;
+   height: 0;
+}
+
+.clearfix {
+   width: 100%;
+   display: inline-block;
+}
+
+.wrapper:last-child { 
+   padding-bottom: 100px; 
+}
+
+html[xmlns] .clearfix {
+   display: block;
+}
+
+* html .clearfix {
+   height: 1%;
+}
