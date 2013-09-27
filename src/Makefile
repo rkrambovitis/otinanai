@@ -1,5 +1,5 @@
 FLAGS= -Xlint:unchecked -Xlint:deprecation -cp /home/robert/jars/*.jar
-SRCFILES= OtiNanai.java SomeRecord.java OtiNanaiListener.java OtiNanaiCommander.java OtiNanaiWeb.java OtiNanaiProcessor.java KeyWordTracker.java OtiNanaiTicker.java OtiNanaiMemory.java OtiNanaiCache.java MemTracker.java RiakTracker.java LLString.java
+SRCFILES= OtiNanai.java SomeRecord.java OtiNanaiListener.java OtiNanaiWeb.java KeyWordTracker.java OtiNanaiTicker.java OtiNanaiMemory.java OtiNanaiCache.java MemTracker.java RiakTracker.java LLString.java HMStringONM.java
 JAVAC= /usr/bin/javac
 
 all:

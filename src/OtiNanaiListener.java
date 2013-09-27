@@ -30,7 +30,6 @@ class OtiNanaiListener implements Runnable {
       alarmThreshold = at;
       storageType = st;
       riakBucket = null;
-      keyWords = new LLString();
       keyWordRiakString = new String("KeyWords_keyword");
 
       if (st == OtiNanai.RIAK) {
@@ -39,30 +38,6 @@ class OtiNanaiListener implements Runnable {
 
             IRiakClient riakClient = RiakFactory.pbcClient(riakHost, riakPort); //or RiakFactory.httpClient();                   
             riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).backend("eleveldb").execute();
-            /*
-            try {
-               Retrier dr = new DefaultRetrier(2);
-               RawClient pbca = new PBClientAdapter("127.0.0.1", 8087);
-               WriteBucket riakWB = new WriteBucket(pbca,riakBucket,dr);
-               riakWB.nVal(1);
-               riakWB.lastWriteWins(true);
-               riakWB.backend("bitcask");
-               riakWB.disableSearch();
-               //riakWB.enableForSearch();
-               riakWB.dw(1);
-               riakWB.pr(1);
-               riakWB.pw(1);
-               riakWB.rw(1);
-               riakWB.r(1);
-               riakWB.w(1);
-            } catch (IOException ioe) {
-               logger.severe("[Listener]: Failed to set Riak settings\n" + ioe);
-            }
-            */
-            /*
-             Bucket existingBucket = riakClient.fetchBucket("TestBucket").execute();
-             existingBucket = riakClient.updateBucket(existingBucket).nVal(3).r(2).execute();
-             */
             logger.config("[Listener]: Riak.getAllowSiblings = " + riakBucket.getAllowSiblings());
             logger.config("[Listener]: Riak.getBackend = " + riakBucket.getBackend());
             logger.config("[Listener]: Riak.getBasicQuorum = " + riakBucket.getBasicQuorum());
@@ -78,21 +53,11 @@ class OtiNanaiListener implements Runnable {
             logger.config("[Listener]: Riak.getRW = " + riakBucket.getRW().getIntValue());
             logger.config("[Listener]: Riak.getR = " + riakBucket.getR().getIntValue());
             logger.config("[Listener]: Riak.getW = " + riakBucket.getW().getIntValue());
-/*
-            logger.fine("[Listener]: fetching existing keyWords List");
-            keyWords = riakBucket.fetch(keyWordRiakString, LLString.class).execute();
-            if (keyWords == null) {
-               logger.fine("[Listener]: null. Creating new keyWords List");
-               keyWords = new LLString();
-            }
-            */
          } catch (RiakException re) {
             logger.severe("[Listener]: "+re);
             System.exit(1);
          }
       }
-		keyMaps = new HashMap<String,ArrayList<String>>(200);
-		storageMap = new HashMap<String,SomeRecord>(5000);
 		memoryMap = new HashMap<String, OtiNanaiMemory>(200);
 
 		dataSocket = ds;
@@ -151,9 +116,8 @@ class OtiNanaiListener implements Runnable {
                continue;
             }
 			} 
-         if (keyMaps.containsKey(kw)) {
+         if (memoryMap.containsKey(kw)) {
 				logger.finest("[Listener]: Existing keyword detected. Adding to list : " + kw);
-				keyMaps.get(kw).add(newRecord.getTimeNano());
             if (newRecord.isGauge()) {
                memoryMap.get(kw).put(newRecord.getGauge());
             } else if (newRecord.isCounter()) {
@@ -161,43 +125,11 @@ class OtiNanaiListener implements Runnable {
             } else {
                memoryMap.get(kw).put();
             }
-            if (keyMaps.get(kw).size() >= OtiNanai.MAXSAMPLES) {
-               String uid = keyMaps.get(kw).get(0);
-               keyMaps.get(kw).remove(uid);
-               storageMap.remove(uid);
-            }
 			} else {
 				logger.info("[Listener]: Keyword not detected. Creating new list : " + kw);
-				ArrayList<String> nanoList = new ArrayList<String>();
-				nanoList.add(newRecord.getTimeNano());
-				keyMaps.put(kw, nanoList);
-            keyWords.add(kw);
 				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, alarmSamples, alarmThreshold, logger, recType,  newRecord.getGauge(), newRecord.getCounter(), storageType, riakBucket));
-            /*
-            try {
-               riakBucket.store(keyWordRiakString, keyWords).execute();
-            } catch (RiakRetryFailedException rrfe) {
-               logger.severe("[Lisener]: Failed to store keyWords List to Riak");
-            }
-            */
 			}
 		}
-		logger.finest("[Listener]: Storing to storageMap");
-		storageMap.put(newRecord.getTimeNano(), newRecord);
-	}
-
-	/**
-	 * Access Method
-	 */
-	public HashMap<String,SomeRecord> getDataMap() {
-		return storageMap;
-	}
-
-	/**
-	 * Access Method
-	 */
-	public HashMap<String,ArrayList<String>> getKeyMaps() {
-		return keyMaps;
 	}
 
 	/**
@@ -206,7 +138,7 @@ class OtiNanaiListener implements Runnable {
 	public HashMap<String,OtiNanaiMemory> getMemoryMap() {
 		return memoryMap;
 	}
-	
+
 	/**
 	 * Access Method
 	 */
@@ -217,15 +149,12 @@ class OtiNanaiListener implements Runnable {
    public void tick() {
       long now=System.currentTimeMillis();
       LLString tempKW = new LLString();
-      tempKW.addAll(keyWords);
+      tempKW.addAll(memoryMap.keySet());
       for (String kw : tempKW) {
          memoryMap.get(kw).tick(now);
       }
    }
 
-   private LLString keyWords;
-	private HashMap<String,SomeRecord> storageMap;
-	private HashMap<String,ArrayList<String>> keyMaps;
 	private HashMap<String,OtiNanaiMemory> memoryMap; 
 	private int port;
    private long alarmLife;

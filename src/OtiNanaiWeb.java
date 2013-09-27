@@ -14,8 +14,6 @@ import java.text.SimpleDateFormat;
 class OtiNanaiWeb implements Runnable {
 	public OtiNanaiWeb(OtiNanaiListener o, int lp, Logger l) throws IOException {
 		onl = o;
-		onp = new OtiNanaiProcessor(o);
-		dataMap = onl.getDataMap();
 		port = lp;
 		ServerSocket listenSocket = new ServerSocket(port);
 		logger = l;
@@ -25,8 +23,6 @@ class OtiNanaiWeb implements Runnable {
 	public OtiNanaiWeb(OtiNanaiListener o, OtiNanaiCache oc, ServerSocket ss, Logger l) {
 		onl = o;
       onc = oc;
-		onp = new OtiNanaiProcessor(o);
-		dataMap = onl.getDataMap();
 		listenSocket = ss;
 		logger = l;
 		logger.finest("[Web]: New OtiNanaiWeb Initialized");
@@ -131,38 +127,6 @@ class OtiNanaiWeb implements Runnable {
       return output;
    }
 
-	private String drawText(String keyword) {
-      ArrayList<String> results = new ArrayList<String>();
-      results = onp.processCommand(results, keyword);
-      Collections.reverse(results);
-      logger.finest("[Web]: Generating Web Output");
-		SomeRecord sr;
-      String output = new String();
-      output = output + "<div id=\"wrapper\">";
-      int c=0;
-		for (String key : results) {
-         sr = dataMap.get(key);
-         try {
-            output = output 
-               + "<div class=\"log\"><span class=\"date\">"
-               + sr.getDate() 
-               + "</span><span class=\"server\">"
-               + sr.getHostName() 
-               + "</span><span class=\"data\">"
-               + sr.getRecord()
-               + "</span></div>\n";
-         } catch (NullPointerException npe) {
-            logger.severe("[Web]: "+npe);
-         }
-         if (c >= OtiNanai.MAX_LOG_OUTPUT) {
-            break;
-         }
-         c++;
-      }
-      output = output + "</div>";
-		return output;
-	}
-
    private String timeGraphHeadString(ArrayList<String> keyList, short type, long time) {
       ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
 		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
@@ -239,16 +203,6 @@ class OtiNanaiWeb implements Runnable {
       }
       return output;
    }
-
-   private String timeGraphBody(ArrayList<OtiNanaiMemory> kws) {
-      String output = new String("");
-      for (OtiNanaiMemory onm : kws) {
-         output = output + "<div id=\""+onm.getKeyWord()+"\" class=\"myGraph\"></div><br>\n";
-         output = output + drawText(onm.getKeyWord());
-      }
-      return output;
-   }
-
 
    private TreeMap<String, Integer> subTree(ArrayList<String> kws, String start) {
       TreeMap<String, Integer> sortedKeys = new TreeMap<String, Integer>();
@@ -347,37 +301,6 @@ class OtiNanaiWeb implements Runnable {
 		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
       ArrayList<String> kws = new ArrayList<String>();
 
-      /*
-      if (keyList.length == 2 && keyList[1].equals("a")){
-         logger.fine("[Web]: Searching for alarms");
-         for (OtiNanaiMemory onm : allOMs ) {
-            if (onm.getAlarm(System.currentTimeMillis())) {
-               kws.add(onm.getKeyWord());
-            }
-         }
-      } else {
-      for (OtiNanaiMemory onm : allOMs ) {
-         for (String word : keyList) {
-            if (word.equals("")) {
-               logger.finest("[Web]: Skipping blank word (2)");
-               continue;
-            }
-            logger.fine("[Web]: Searching for keywords containing: \""+word+"\"");
-            String test = onm.getKeyWord();
-            if (test.contains(word)) {
-               logger.fine("[Web]: : Matched: "+test);
-               kws.add(test);
-               break;
-            }
-         }
-      }
-      if (kws.size() == 0) {
-         for (OtiNanaiMemory onm : allOMs ) {
-            kws.add(onm.getKeyWord());
-         }
-      }
-      */
-
       String firstChar = new String();
       String secondChar = new String();
       String lastChar = new String();
@@ -440,6 +363,7 @@ class OtiNanaiWeb implements Runnable {
 
          word = word.replaceAll("%5E", "^");
          word = word.replaceAll("%24", "$");
+         word = word.replaceAll("%40", "@");
          logger.fine("[Web]: word is: \""+word+"\"");
          firstChar = word.substring(0,1);
          rest = word.replaceAll("[\\+\\-\\^\\$\\@]", "");
@@ -590,9 +514,7 @@ class OtiNanaiWeb implements Runnable {
    }
 
 
-	private OtiNanaiProcessor onp;
 	private OtiNanaiListener onl;
-	private HashMap<String,SomeRecord> dataMap;
 	private int port;
 	private ServerSocket listenSocket;
 	private Logger logger;
