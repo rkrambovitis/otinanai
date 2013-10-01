@@ -4,7 +4,11 @@ import java.util.logging.*;
 import java.util.*;
 
 class MemTracker implements KeyWordTracker {
-	public MemTracker(String key, int as, float at, short rt, Logger l) {
+
+   public MemTracker() {
+   }
+
+	public MemTracker(String key, int as, float at, Logger l) {
 		mean = 0f;
 		thirtySecCount = 0;
 		fiveMinCount = 0;
@@ -21,7 +25,7 @@ class MemTracker implements KeyWordTracker {
       thirtySecFloat = 0f;
       thirtySecLong = 0l;
       thirtySecPrev = 0l;
-      recordType = rt;
+      recordType = OtiNanai.UNSET;
 		alarm = 0L;
       logger.finest("[MemTracker]: new MemTracker initialized for \"" +keyWord+"\"");
 	}
@@ -36,6 +40,42 @@ class MemTracker implements KeyWordTracker {
       thirtyMinMemory = new LinkedList<String> ();
    }
 
+   public void put() {
+      if (recordType == OtiNanai.UNSET) 
+         recordType = OtiNanai.FREQ;
+      if (recordType == OtiNanai.FREQ) {
+         thirtySecCount ++;
+         logger.finest("[MemTracker]: thirtySecCount is now " +thirtySecCount);
+      } else {          
+         logger.fine("[MemTracker]: Ignoring put of wrong type (keyword is FREQ)");
+      }
+   }
+
+   public void put(long value) {
+      if (recordType == OtiNanai.UNSET) 
+         recordType = OtiNanai.COUNTER;
+      if (recordType == OtiNanai.COUNTER) {
+         thirtySecLong = value;
+         logger.finest("[MemTracker]: thirtySecLong is now " +thirtySecCount);
+      } else {
+         logger.fine("[MemTracker]: Ignoring put of wrong type (keyword is COUNTER)");
+      }  
+   }
+
+   public void put(float value) {
+      if (recordType == OtiNanai.UNSET) 
+         recordType = OtiNanai.GAUGE;
+      if (recordType == OtiNanai.GAUGE) {
+         thirtySecFloat += value;
+         thirtySecDataCount ++;
+         if (thirtySecDataCount == 0)
+            thirtySecDataCount++;
+         logger.finest("[MemTracker]: thirtySecFloat is now " +thirtySecFloat);
+      } else {
+         logger.fine("[MemTracker]: Ignoring put of wrong type (keyword is GAUGE)");
+      }  
+   }
+   /*
 	public void put() {
       thirtySecCount ++;
       logger.finest("[MemTracker]: thirtySecCount is now " +thirtySecCount);
@@ -53,6 +93,7 @@ class MemTracker implements KeyWordTracker {
          thirtySecDataCount++;
       logger.finest("[MemTracker]: thirtySecFloat is now " +thirtySecFloat);
    }
+   */
 
    public void tick(long ts) {
       logger.fine("[MemTracker]: ticking " + keyWord );

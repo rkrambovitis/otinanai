@@ -30,13 +30,15 @@ class OtiNanaiListener implements Runnable {
       alarmThreshold = at;
       storageType = st;
       riakBucket = null;
-      keyWordRiakString = new String("KeyWords_keyword");
+      riakKeyList = new String("riak_existing_keywords_list");
+      kwtList = new LLString();
+      trackerMap = new HashMap<String, KeyWordTracker>();
 
       if (st == OtiNanai.RIAK) {
          try {
             logger.config("[Listener]: Setting up Riak");
 
-            IRiakClient riakClient = RiakFactory.pbcClient(riakHost, riakPort); //or RiakFactory.httpClient();                   
+            IRiakClient riakClient = RiakFactory.pbcClient(riakHost, riakPort);
             riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).backend("eleveldb").execute();
             logger.config("[Listener]: Riak.getAllowSiblings = " + riakBucket.getAllowSiblings());
             logger.config("[Listener]: Riak.getBackend = " + riakBucket.getBackend());
@@ -53,13 +55,18 @@ class OtiNanaiListener implements Runnable {
             logger.config("[Listener]: Riak.getRW = " + riakBucket.getRW().getIntValue());
             logger.config("[Listener]: Riak.getR = " + riakBucket.getR().getIntValue());
             logger.config("[Listener]: Riak.getW = " + riakBucket.getW().getIntValue());
+
+            kwtList = getKWTList();
+            for (String kw : kwtList) { 
+               logger.info("[Listener]: Creating new Tracker: "+kw);
+               trackerMap.put(kw, new RiakTracker(kw, as, at, logger, riakBucket));
+            }
          } catch (RiakException re) {
             logger.severe("[Listener]: "+re);
             System.exit(1);
          }
+         storeKWTList(kwtList);
       }
-		memoryMap = new HashMap<String, OtiNanaiMemory>(200);
-
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
 	}
@@ -96,11 +103,12 @@ class OtiNanaiListener implements Runnable {
 	 */
 	private void parseData(InetAddress hip, String theDato) {
 		logger.finest("[Listener]: + Attempting to parse: \""+theDato+"\" from "+hip);
+
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
       short recType = OtiNanai.FREQ;
 		ArrayList<String> theKeys = newRecord.getKeyWords();
+
 		for (String kw : theKeys) {
-         
          if (newRecord.isGauge()) {
             recType = OtiNanai.GAUGE;
          } else if (newRecord.isCounter()) {
@@ -116,28 +124,82 @@ class OtiNanaiListener implements Runnable {
                continue;
             }
 			} 
-         if (memoryMap.containsKey(kw)) {
-				logger.finest("[Listener]: Existing keyword detected. Adding to list : " + kw);
-            if (newRecord.isGauge()) {
-               memoryMap.get(kw).put(newRecord.getGauge());
-            } else if (newRecord.isCounter()) {
-               memoryMap.get(kw).put(newRecord.getCounter());
-            } else {
-               memoryMap.get(kw).put();
-            }
-			} else {
-				logger.info("[Listener]: Keyword not detected. Creating new list : " + kw);
-				memoryMap.put(kw, new OtiNanaiMemory(kw, alarmLife, alarmSamples, alarmThreshold, logger, recType,  newRecord.getGauge(), newRecord.getCounter(), storageType, riakBucket));
-			}
+
+         KeyWordTracker kwt = getKWT(kw);
+         if (kwt == null) {
+            if (storageType == OtiNanai.RIAK)
+               kwt = new RiakTracker(kw, alarmSamples, alarmThreshold, logger, riakBucket);
+            else
+               kwt = new MemTracker(kw, alarmSamples, alarmThreshold, logger);
+         }
+
+         if (newRecord.isGauge()) {
+            kwt.put(newRecord.getGauge());
+         } else if (newRecord.isCounter()) {
+            kwt.put(newRecord.getCounter());
+         } else {
+            kwt.put();
+         }
+
+         trackerMap.put(kw, kwt);
+         if (!kwtList.contains(kw)) {
+            kwtList.add(kw);
+            storeKWTList(kwtList);
+         }
 		}
+      
 	}
 
-	/**
-	 * Access Method
-	 */
-	public HashMap<String,OtiNanaiMemory> getMemoryMap() {
-		return memoryMap;
-	}
+   public LLString getKWTList() {
+      logger.info("[Listener]: Trying to get kwtList");
+      if (storageType == OtiNanai.MEM) {
+         return kwtList;
+      } else {
+         try {
+            kwtList = riakBucket.fetch(riakKeyList, LLString.class).execute();
+            if (kwtList == null) {
+               kwtList = new LLString();
+            }
+         } catch (RiakRetryFailedException rrfe) {
+            kwtList = new LLString();
+            logger.severe("[Listener]: Unable to retrieve keyList from riak\n"+rrfe);
+         }
+      }
+      return kwtList;
+   }
+
+   private boolean storeKWTList(LLString toStore) {
+      logger.fine("[Listener]: Trying to store kwtList");
+      if (storageType == OtiNanai.RIAK) {
+         try {
+            riakBucket.store(riakKeyList, toStore).execute();
+            logger.fine("[Listener]: kwtList stored on riak");
+         } catch (Exception rrfe) {
+            logger.severe("[Listener]: Unable to store KWTList\n"+rrfe);
+            return false;
+         }
+      }
+      return true;
+   }
+
+   public KeyWordTracker getKWT(String key) {
+      return trackerMap.get(key);
+   }
+
+   public void deleteKWT(String key) {
+      logger.info("[Listener]: Deleting data from "+key);
+      if (storageType == OtiNanai.MEM) {
+         trackerMap.remove(key);
+         kwtList.remove(key);
+      } else {
+         KeyWordTracker kwt = getKWT(key);
+         kwt.delete();
+         kwtList = getKWTList();
+         kwtList.remove(key);
+         storeKWTList(kwtList);
+         trackerMap.remove(key);
+      }
+   }
 
 	/**
 	 * Access Method
@@ -149,13 +211,13 @@ class OtiNanaiListener implements Runnable {
    public void tick() {
       long now=System.currentTimeMillis();
       LLString tempKW = new LLString();
-      tempKW.addAll(memoryMap.keySet());
+      tempKW.addAll(trackerMap.keySet());
       for (String kw : tempKW) {
-         memoryMap.get(kw).tick(now);
+         trackerMap.get(kw).tick(now);
       }
    }
 
-	private HashMap<String,OtiNanaiMemory> memoryMap; 
+   private HashMap<String,KeyWordTracker> trackerMap;
 	private int port;
    private long alarmLife;
    private int alarmSamples;
@@ -164,5 +226,6 @@ class OtiNanaiListener implements Runnable {
 	private Logger logger;
    private short storageType;
    private Bucket riakBucket;
-   private String keyWordRiakString;
+   private String riakKeyList;
+   private LLString kwtList;
 }

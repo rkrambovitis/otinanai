@@ -111,12 +111,12 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-   private String toGraph(OtiNanaiMemory onm, short type, long time) {
-      logger.finest("[Web]: Generating graph from OtiNanaiMemory: "+onm.getKeyWord() +" type: "+type);
+   private String toGraph(KeyWordTracker kwt, short type, long time) {
+      logger.finest("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
 		String output = new String("\n");
       SomeRecord sr;
       LinkedList<String> data = new LinkedList<String>();
-      data = onm.getMemory();
+      data = kwt.getMemory();
       long now=System.currentTimeMillis();
       for (String dato : data) {
          String[] twowords = dato.split("\\s");
@@ -128,22 +128,24 @@ class OtiNanaiWeb implements Runnable {
    }
 
    private String timeGraphHeadString(ArrayList<String> keyList, short type, long time) {
-      ArrayList<OtiNanaiMemory> graphMe = new ArrayList<OtiNanaiMemory> ();
-		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
+      ArrayList<KeyWordTracker> graphMe = new ArrayList<KeyWordTracker> ();
+//		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
+//      HashMap<String,KeyWordTracker> allKWs = onl.getTrackerMap();
+      LLString kwtList = onl.getKWTList();
 
       TreeSet<String> sortedKeys = new TreeSet<String>();
       sortedKeys.addAll(keyList);
 
       for (String key : sortedKeys) {
          key=key.toLowerCase();
-         if (allKWs.containsKey(key)) {
-            graphMe.add(allKWs.get(key));
+         if (kwtList.contains(key)) {
+            graphMe.add(onl.getKWT(key));
          }
       }
       return timeGraphHead(graphMe, type, time);
    }
 
-   private String timeGraphHead(ArrayList<OtiNanaiMemory> kws, short type, long time) {
+   private String timeGraphHead(ArrayList<KeyWordTracker> kws, short type, long time) {
       String output = new String("");
       int i=0;
       output = output + commonHTML(OtiNanai.FLOT);
@@ -156,15 +158,15 @@ class OtiNanaiWeb implements Runnable {
       output = output+ commonHTML(OtiNanai.JS)
          + "var datasets = {\n";
 
-      for (OtiNanaiMemory onm : kws) {
-         output = output + "\"" + onm.getKeyWord().replaceAll("\\.","_") + "\": {\n"
-            + "label: \""+onm.getKeyWord()+" = 000.000 k \",\n";
+      for (KeyWordTracker kwt : kws) {
+         output = output + "\"" + kwt.getKeyWord().replaceAll("\\.","_") + "\": {\n"
+            + "label: \""+kwt.getKeyWord()+" = 000.000 k \",\n";
 
          if (type == OtiNanai.GRAPH_MERGED_AXES) 
             output = output + "yaxis: "+ ++i +",\n";
 
          output = output + "data: ["
-            + toGraph(onm, type, time)
+            + toGraph(kwt, type, time)
             + "]},\n\n";
       }
       output = output + "};\n"
@@ -248,6 +250,7 @@ class OtiNanaiWeb implements Runnable {
 
       String output = commonHTML(OtiNanai.HEADER) 
          + commonHTML(OtiNanai.ENDHEAD)
+         + commonHTML(OtiNanai.GPSCRIPT)
          + "<li><a href=\""+oldKeys + " --sa\">Show All (slow) (--sa) "+kws.size()+"</a></li>\n";
          
       for (String key : sortedKeys.keySet()) {
@@ -266,6 +269,13 @@ class OtiNanaiWeb implements Runnable {
          return new String("<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n");
       } else if (out == OtiNanai.ENDHEAD) {
          return new String("</head><body>\n");
+      } else if (out == OtiNanai.GPSCRIPT) {
+         String op = new String("<script>\n\tdocument.body.addEventListener('click', function (event) {\n"
+            + "\t\tif (event.target.nodeName !== 'A') {\n"
+            + "\t\t\treturn false;\n\t\t}\n"
+            + "\t\t(window.parent || window.opener).onReceive(event.target);\n\t}, false);\n"
+            + "</script>\n");
+         return op;
       } else if (out == OtiNanai.ENDBODY) {
          return new String("</body></html>\n");
       } else if (out == OtiNanai.FLOT) {
@@ -298,7 +308,8 @@ class OtiNanaiWeb implements Runnable {
 
       String [] keyList = input.split("[ ,]|%20");
       logger.fine("[Web]: Searching for keywords");
-		Collection<OtiNanaiMemory> allOMs = onl.getMemoryMap().values();
+		//Collection<KeyWordTracker> allKWTs = onl.getTrackerMap().values();
+      LLString allKWTs = onl.getKWTList();
       ArrayList<String> kws = new ArrayList<String>();
 
       String firstChar = new String();
@@ -310,7 +321,6 @@ class OtiNanaiWeb implements Runnable {
       boolean alarm = false;
       boolean showAll = false;
       boolean showAlarms = false;
-      String kw = new String();
       short graphType = OtiNanai.GRAPH_PREVIEW;
       long time = OtiNanai.PREVIEWTIME;
 
@@ -433,26 +443,22 @@ class OtiNanaiWeb implements Runnable {
             continue;
 
          if (startsWithKW && endsWithKW) {
-            for (OtiNanaiMemory onm : allOMs ) {
-               kw = onm.getKeyWord();
+            for (String kw : allKWTs ) {
                if (kw.startsWith(rest) && kw.endsWith(rest) && !kws.contains(kw))
                   kws.add(kw);
             }
          } else if (startsWithKW) {
-            for (OtiNanaiMemory onm : allOMs ) {
-               kw = onm.getKeyWord();
+            for (String kw : allKWTs ) {
                if (kw.startsWith(rest) && !kws.contains(kw))
                   kws.add(kw);
             }
          } else if (endsWithKW) {
-            for (OtiNanaiMemory onm : allOMs ) {
-               kw = onm.getKeyWord();
+            for (String kw : allKWTs ) {
                if (kw.endsWith(rest) && !kws.contains(kw)) 
                   kws.add(kw);
             }
          } else {
-            for (OtiNanaiMemory onm : allOMs ) {
-               kw = onm.getKeyWord();
+            for (String kw : allKWTs ) {
                if ((kw.contains(word) || rest.equals("*")) && !kws.contains(kw)) 
                   kws.add(kw);
             }
@@ -460,24 +466,29 @@ class OtiNanaiWeb implements Runnable {
       }
       if (showAlarms) {
          logger.info("[Web]: kws.size() = "+kws.size());
-         for (OtiNanaiMemory onm : allOMs ) {
-            if (!onm.getAlarm(System.currentTimeMillis())) {
-               logger.info("[Web]: No alarm for "+onm.getKeyWord()+ " - Removing");
-               kws.remove(onm.getKeyWord());
+         /*
+         for (KeyWordTracker kwt : allKWTs ) {
+            if (!kwt.getAlarm(System.currentTimeMillis())) {
+               logger.info("[Web]: No alarm for "+kwt.getKeyWord()+ " - Removing");
+               kws.remove(kwt.getKeyWord());
             } else {
-               logger.info("[Web]: Alarm for "+onm.getKeyWord());
+               logger.info("[Web]: Alarm for "+kwt.getKeyWord());
             }
          }
+         */
       } else if (wipe && force) {
          logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");
-         OtiNanaiMemory onm;
+         KeyWordTracker kwt;
          String delOP = new String("RIP Data for keywords:");
          for (String todel : kws) {
             logger.info("[Web]: Deleting data for " + todel);
             delOP = delOP + "<li>"+todel+"</li>";
-            onm = onl.getMemoryMap().get(todel);
-            onm.delete();
-            onl.getMemoryMap().remove(todel);
+            onl.deleteKWT(todel);
+            /*
+            kwt = onl.getTrackerMap().get(todel);
+            kwt.delete();
+            onl.getTrackerMap().remove(todel);
+            */
          }
          return delOP;
       } else if (wipe) {
@@ -497,6 +508,7 @@ class OtiNanaiWeb implements Runnable {
 		String output = commonHTML(OtiNanai.HEADER) 
          + timeGraphHeadString(kws, graphType, time)
          + commonHTML(OtiNanai.ENDHEAD)
+         + commonHTML(OtiNanai.GPSCRIPT)
          + timeGraphBody(kws, graphType)
          + commonHTML(OtiNanai.ENDBODY);
       return output;

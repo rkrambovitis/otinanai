@@ -261,9 +261,10 @@ class OtiNanai {
 	public static final int FIVE_M_TO_THIRTY_M = 6;
 
 	public static final int MAXSAMPLES = 20;
-	public static final short GAUGE = 0;
-	public static final short COUNTER = 1;
-	public static final short FREQ = 2;
+	public static final short UNSET = 0;
+	public static final short GAUGE = 1;
+	public static final short COUNTER = 2;
+	public static final short FREQ = 3;
 	public static final short MEM = 1;
 	public static final short RIAK = 2;
 
@@ -286,6 +287,7 @@ class OtiNanai {
    public static final short FLOT_PREVIEW = 7;
    public static final short JS = 8;
    public static final short ENDJS = 9;
+   public static final short GPSCRIPT = 10;
 
    public static final long PREVIEWTIME = 3600000l;
 

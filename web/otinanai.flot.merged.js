@@ -48,18 +48,18 @@ $(function() {
    });
 
    $("#placeholder").bind("plotunselected", function (event, ranges) {
-      xmin = ranges.null;
-      xmax = ranges.null;
-      ymin = ranges.null;
-      ymax = ranges.null;
+      xmin = null;
+      xmax = null;
+      ymin = null;
+      ymax = null;
       plotAccordingToChoices();
    });
 
    $("#overview").bind("plotunselected", function (event, ranges) {
-      xmin = ranges.null;
-      xmax = ranges.null;
-      ymin = ranges.null;
-      ymax = ranges.null;
+      xmin = null;
+      xmax = null;
+      ymin = null;
+      ymax = null;
       plotAccordingToChoices();
    });
 

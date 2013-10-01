@@ -52,6 +52,18 @@
 	</style>
 
 	<script>
+	onReceive = function (node) {
+		var str = node.href.replace(/^.{8,}?:.*?\//gi, '').trim();
+
+		if (str.indexOf('Show ') === 0) {
+			str = '';
+		} 
+
+		document.getElementById('q').value = decodeURIComponent(str);
+		document.location.hash = str;
+		//document.getElementById('q').select();
+		document.getElementById('q').focus();
+	}
 	search = function(q) {
 		document.getElementById('bp').src = q;
 		document.getElementById('q').value = decodeURIComponent(q);

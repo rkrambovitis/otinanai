@@ -7,7 +7,7 @@ import java.util.logging.*;
 import java.util.*;
 
 class RiakTracker implements KeyWordTracker {
-	public RiakTracker(String key, int as, float at, short rt, Logger l, Bucket bucket) {
+	public RiakTracker(String key, int as, float at, Logger l, Bucket bucket) {
 		mean = 0f;
 		thirtySecCount = 0;
 		fiveMinCount = 0;
@@ -25,7 +25,7 @@ class RiakTracker implements KeyWordTracker {
       thirtySecFloat = 0f;
       thirtySecLong = 0l;
       thirtySecPrev = 0l;
-      recordType = rt;
+      recordType = OtiNanai.UNSET;
 		alarm = 0L;
       logger.finest("[RiakTracker]: new RiakTracker initialized for \"" +keyWord+"\"");
 	}
@@ -53,24 +53,44 @@ class RiakTracker implements KeyWordTracker {
    }
 
 	public void put() {
-      thirtySecCount ++;
-      logger.finest("[RiakTracker]: thirtySecCount is now " +thirtySecCount);
+      if (recordType == OtiNanai.UNSET)
+         recordType = OtiNanai.FREQ;
+      if (recordType == OtiNanai.FREQ) {
+         thirtySecCount ++;
+         logger.finest("[RiakTracker]: thirtySecCount is now " +thirtySecCount);
+      } else {
+         logger.fine("[RiakTracker]: Ignoring put of wrong type (keyword is FREQ)");
+      }
    }
 
 	public void put(long value) {
-      thirtySecLong = value;
-      logger.finest("[MemTracker]: thirtySecLong is now " +thirtySecCount);
+      if (recordType == OtiNanai.UNSET)
+         recordType = OtiNanai.COUNTER;
+      if (recordType == OtiNanai.COUNTER) {
+         thirtySecLong = value;
+         logger.finest("[MemTracker]: thirtySecLong is now " +thirtySecCount);
+      } else {
+         logger.fine("[RiakTracker]: Ignoring put of wrong type (keyword is COUNTER)");
+      }
    }
 
    public void put(float value) {
-      thirtySecFloat += value;
-      thirtySecDataCount ++;
-      if (thirtySecDataCount == 0)
-         thirtySecDataCount++;
-      logger.finest("[RiakTracker]: thirtySecFloat is now " +thirtySecFloat);
+      if (recordType == OtiNanai.UNSET)
+         recordType = OtiNanai.GAUGE;
+      if (recordType == OtiNanai.GAUGE) {
+         thirtySecFloat += value;
+         thirtySecDataCount ++;
+         if (thirtySecDataCount == 0)
+            thirtySecDataCount++;
+         logger.finest("[RiakTracker]: thirtySecFloat is now " +thirtySecFloat);
+      } else {
+         logger.fine("[RiakTracker]: Ignoring put of wrong type (keyword is GAUGE)");
+      }
    }
 
    public void tick(long ts) {
+      if (recordType == OtiNanai.UNSET)
+         return;
       logger.fine("[RiakTracker]: ticking " + keyWord );
       try {
          flush(ts);
@@ -240,7 +260,7 @@ class RiakTracker implements KeyWordTracker {
          LLString thirtySecMemory = riakBucket.fetch(thirtySecKey, LLString.class).r(1).execute();
          returner.addAll(thirtySecMemory);
       } catch (Exception e) {
-         logger.severe("[RiakTracker]: getMemory(1): "+e);
+         logger.severe("[RiakTracker]: null thirtySecMemory: "+e);
       }
 
       try {
@@ -251,14 +271,14 @@ class RiakTracker implements KeyWordTracker {
             logger.finest("[RiakTracker]: fiveMinMemory listing: " +foo);
          }
       } catch (Exception e) {
-         logger.severe("[RiakTracker]: getMemory(2): "+e);
+         logger.fine("[RiakTracker]: null fiveMinMemory: "+e);
       }
       
       try {
          LLString thirtyMinMemory = riakBucket.fetch(thirtyMinKey, LLString.class).r(1).execute();
          returner.addAll(thirtyMinMemory);
       } catch (Exception e) {
-         logger.severe("[RiakTracker]: getMemory(3): "+e);
+         logger.fine("[RiakTracker]: null thirtyMinMemory: "+e);
       }
       return returner;
    }
@@ -275,7 +295,7 @@ class RiakTracker implements KeyWordTracker {
    }
 
 	private long alarm;
-	private String keyWord;
+	public String keyWord;
 	private long thirtySecCount;
 	private long fiveMinCount;
 	private long thirtyMinCount;

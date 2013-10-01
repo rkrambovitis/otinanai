@@ -61,6 +61,13 @@ class SomeRecord {
             IAmCounter = true;
             keyWords.add(tokens[0]);
          }
+      } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[2].equals("counter")) {
+         Long w2 = toLong(tokens[1]);
+         if (w2 != null) {
+            theCounter = w2;
+            IAmCounter = true;
+            keyWords.add(tokens[0]);
+         }
       }
 	}
 
