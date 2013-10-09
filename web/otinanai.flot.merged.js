@@ -95,6 +95,7 @@ $(function() {
       if (data.length > 0) {
          currentData=data;
          myPlot=$.plot("#placeholder", data, {
+            stack: true,
             legend: { position: "sw", show: "true" },
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max:xmax},
             yaxis: {show: false, min: ymin, max: ymax},

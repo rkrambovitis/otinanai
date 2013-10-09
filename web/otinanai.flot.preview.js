@@ -23,7 +23,7 @@ $(function() {
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max: xmax},
             series: { lines: {show: true, fill: true}},
             crosshair: { mode: "x"},
-            yaxis: {show: true},
+            yaxis: {show: true, min: null},
             grid: { hoverable: true, autoHighlight: false, clickable: true},
             selection: { mode: "x" }
          });

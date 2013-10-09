@@ -127,6 +127,7 @@ class OtiNanaiListener implements Runnable {
 
          KeyWordTracker kwt = getKWT(kw);
          if (kwt == null) {
+            logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
             if (storageType == OtiNanai.RIAK)
                kwt = new RiakTracker(kw, alarmSamples, alarmThreshold, logger, riakBucket);
             else
@@ -189,15 +190,15 @@ class OtiNanaiListener implements Runnable {
    public void deleteKWT(String key) {
       logger.info("[Listener]: Deleting data from "+key);
       if (storageType == OtiNanai.MEM) {
-         trackerMap.remove(key);
          kwtList.remove(key);
+         trackerMap.remove(key);
       } else {
          KeyWordTracker kwt = getKWT(key);
-         kwt.delete();
          kwtList = getKWTList();
          kwtList.remove(key);
          storeKWTList(kwtList);
          trackerMap.remove(key);
+         kwt.delete();
       }
    }
 
@@ -209,11 +210,28 @@ class OtiNanaiListener implements Runnable {
 	}
 
    public void tick() {
-      long now=System.currentTimeMillis();
+//      long now=System.currentTimeMillis();
       LLString tempKW = new LLString();
       tempKW.addAll(trackerMap.keySet());
       for (String kw : tempKW) {
-         trackerMap.get(kw).tick(now);
+         try {
+            //trackerMap.get(kw).tick(now);
+            trackerMap.get(kw).tick();
+         } catch (NullPointerException npe) {
+            logger.severe("[Listener]: Unable to tick "+kw+" (deleted?)\n"+npe);
+         }
+      }
+   }
+
+   public long getAlarmLife() {
+      return alarmLife;
+   }
+
+   public long getAlarm(String kw) {
+      if (!kwtList.contains(kw)) {
+         return 0L;
+      } else {
+         return getKWT(kw).getAlarm();
       }
    }
 

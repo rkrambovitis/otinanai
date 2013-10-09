@@ -231,9 +231,7 @@ class OtiNanai {
 		public String format(LogRecord rec) {
 			StringBuffer buf = new StringBuffer(1024);
 			buf.append(calcDate(rec.getMillis()));
-			buf.append(" ");
-			buf.append("["+rec.getLevel()+"]");
-			buf.append(" : ");
+			buf.append(" ["+rec.getLevel()+"]:");
 			buf.append(formatMessage(rec));
 			buf.append('\n');
 			return buf.toString();
@@ -255,10 +253,10 @@ class OtiNanai {
 
 	private Logger logger;
 
-	public static final int THIRTY_SEC_SAMPLES = 300;
-	public static final int THIRTY_S_TO_FIVE_M = 10;
-	public static final int FIVE_MIN_SAMPLES = 2880;
-	public static final int FIVE_M_TO_THIRTY_M = 6;
+	public static final int STEP1_MAX_SAMPLES = 300;
+	public static final int STEP1_SAMPLES_TO_MERGE = 10;
+	public static final int STEP2_MAX_SAMPLES = 2880;
+	public static final int STEP2_SAMPLES_TO_MERGE = 6;
 
 	public static final int MAXSAMPLES = 20;
 	public static final short UNSET = 0;

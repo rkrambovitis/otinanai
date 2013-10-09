@@ -9,22 +9,21 @@ import java.util.*;
 class RiakTracker implements KeyWordTracker {
 	public RiakTracker(String key, int as, float at, Logger l, Bucket bucket) {
 		mean = 0f;
-		thirtySecCount = 0;
-		fiveMinCount = 0;
-		thirtyMinCount = 0;
+		currentCount = 0;
       alarmSamples = as;
       alarmThreshold = at;
 		keyWord = new String(key);
-      thirtySecKey = keyWord + "thirtySec";
-      fiveMinKey = keyWord + "fiveMin";
-      thirtyMinKey = keyWord + "thirtyMin";
+      step1Key = keyWord + "thirtySec";
+      step2Key = keyWord + "fiveMin";
+      step3Key = keyWord + "thirtyMin";
       riakBucket = bucket;
       logger = l;
 		sampleCount = 1;
-      thirtySecDataCount = -1;
-      thirtySecFloat = 0f;
-      thirtySecLong = 0l;
-      thirtySecPrev = 0l;
+      currentDataCount = -1;
+      currentFloat = 0f;
+      currentLong = 0l;
+      currentPrev = 0l;
+      freqLastTS = 0l;
       recordType = OtiNanai.UNSET;
 		alarm = 0L;
       logger.finest("[RiakTracker]: new RiakTracker initialized for \"" +keyWord+"\"");
@@ -36,28 +35,30 @@ class RiakTracker implements KeyWordTracker {
 
    public void delete() {
       try {
-         riakBucket.delete(thirtyMinKey).execute();
+         riakBucket.delete(step3Key).execute();
       } catch (RiakException re) {
-         logger.severe("[RiakTracker]: Failed to delete "+thirtyMinKey);
+         logger.severe("[RiakTracker]: Failed to delete "+step3Key);
       }
       try {
-         riakBucket.delete(fiveMinKey).execute();
+         riakBucket.delete(step2Key).execute();
       } catch (RiakException re) {
-         logger.severe("[RiakTracker]: Failed to delete "+fiveMinKey);
+         logger.severe("[RiakTracker]: Failed to delete "+step2Key);
       }
       try {
-         riakBucket.delete(thirtySecKey).execute();
+         riakBucket.delete(step1Key).execute();
       } catch (RiakException re) {
-         logger.severe("[RiakTracker]: Failed to delete "+thirtySecKey);
+         logger.severe("[RiakTracker]: Failed to delete "+step1Key);
       }
    }
 
 	public void put() {
-      if (recordType == OtiNanai.UNSET)
+      if (recordType == OtiNanai.UNSET) {
          recordType = OtiNanai.FREQ;
+         freqLastTS = System.currentTimeMillis();
+      }
       if (recordType == OtiNanai.FREQ) {
-         thirtySecCount ++;
-         logger.finest("[RiakTracker]: thirtySecCount is now " +thirtySecCount);
+         currentCount ++;
+         logger.finest("[RiakTracker]: currentCount is now " +currentCount);
       } else {
          logger.fine("[RiakTracker]: Ignoring put of wrong type (keyword is FREQ)");
       }
@@ -67,8 +68,8 @@ class RiakTracker implements KeyWordTracker {
       if (recordType == OtiNanai.UNSET)
          recordType = OtiNanai.COUNTER;
       if (recordType == OtiNanai.COUNTER) {
-         thirtySecLong = value;
-         logger.finest("[MemTracker]: thirtySecLong is now " +thirtySecCount);
+         currentLong = value;
+         logger.finest("[MemTracker]: currentLong is now " +currentCount);
       } else {
          logger.fine("[RiakTracker]: Ignoring put of wrong type (keyword is COUNTER)");
       }
@@ -78,20 +79,21 @@ class RiakTracker implements KeyWordTracker {
       if (recordType == OtiNanai.UNSET)
          recordType = OtiNanai.GAUGE;
       if (recordType == OtiNanai.GAUGE) {
-         thirtySecFloat += value;
-         thirtySecDataCount ++;
-         if (thirtySecDataCount == 0)
-            thirtySecDataCount++;
-         logger.finest("[RiakTracker]: thirtySecFloat is now " +thirtySecFloat);
+         currentFloat += value;
+         currentDataCount ++;
+         if (currentDataCount == 0)
+            currentDataCount++;
+         logger.finest("[RiakTracker]: currentFloat is now " +currentFloat);
       } else {
          logger.fine("[RiakTracker]: Ignoring put of wrong type (keyword is GAUGE)");
       }
    }
 
-   public void tick(long ts) {
+   public void tick() {
       if (recordType == OtiNanai.UNSET)
          return;
       logger.fine("[RiakTracker]: ticking " + keyWord );
+      long ts = System.currentTimeMillis();
       try {
          flush(ts);
       } catch (RiakRetryFailedException rrfe) {
@@ -101,60 +103,79 @@ class RiakTracker implements KeyWordTracker {
 
 	private void flush(long ts) throws RiakRetryFailedException{
       float perSec = 0f;
-      /*
-       * thirtySecDataCount is set to -1 by default, which means that the tracker tracks the amount of events.
-       * In the event it's a "metric", it will be 1 or more.
-       * Inthe event it's a metric but has no new data, it's 0.
-       */
 
-      LLString thirtySecMemory = new LLString();
-      LLString fiveMinMemory = new LLString();
-      LLString thirtyMinMemory = new LLString();
+      LLString step1Memory = new LLString();
+      LLString step2Memory = new LLString();
+      LLString step3Memory = new LLString();
 
-      logger.fine("[RiakTracker]: fetching existing " + thirtySecKey);
-      thirtySecMemory = riakBucket.fetch(thirtySecKey, LLString.class).r(1).execute();
-      if (thirtySecMemory == null ) {
-         logger.fine("[RiakTracker]: null. Creating new " + thirtySecKey);
-         thirtySecMemory = new LLString();
+      logger.fine("[RiakTracker]: fetching existing " + step1Key);
+      step1Memory = riakBucket.fetch(step1Key, LLString.class).r(1).execute();
+      if (step1Memory == null ) {
+         logger.fine("[RiakTracker]: null. Creating new " + step1Key);
+         step1Memory = new LLString();
       }
-     
-      if (thirtySecDataCount > 0 ) {
-         logger.fine("[RiakTracker]: thirtySecFloat = " +thirtySecFloat);
-         perSec = (thirtySecFloat / thirtySecDataCount);
-         thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
 
-      } else if (thirtySecLong > 0) {
-         if (thirtySecLong != thirtySecPrev) {
-            logger.fine("[RiakTracker]: thirtySecLong = " + thirtySecLong);
-            if (thirtySecPrev == 0l || thirtySecPrev > thirtySecLong) {
+     
+      /*
+       * currentDataCount is the amount of gauge data points received since last tick.
+       * So if you get 2 gauge points, they are aggregated, rather than one ignored
+       * currentFloat is the sum of the gauge data points.
+       */
+         
+      if (recordType == OtiNanai.GAUGE && currentDataCount > 0) {
+         logger.fine("[RiakTracker]: currentFloat = " +currentFloat);
+         perSec = (currentFloat / currentDataCount);
+         step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
+         currentFloat = 0f;
+         currentDataCount = 0;
+
+         /*
+          * currentLong is the long value (for counters, i.e. ever incrementing)
+          */
+      } else if (recordType == OtiNanai.COUNTER) {
+         if (currentLong != 0l) {
+            if (currentPrev == 0l || currentPrev > currentLong) {
                logger.fine("Last count is 0 or decrementing. Setting and Skipping");
             } else {
                long timeDiff = ts - lastTimeStamp;
-               perSec = ((float)(thirtySecLong - thirtySecPrev)*1000/timeDiff);
-               thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+               perSec = ((float)(currentLong - currentPrev)*1000/timeDiff);
+               logger.fine("[RiakTracker]: new:"+currentLong+" old:"+currentPrev+" td:"+timeDiff+" rate:"+perSec);
+               step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
             }
-            thirtySecPrev = thirtySecLong;
+            currentPrev = currentLong;
             lastTimeStamp = ts;
+            currentLong = 0l;
          }
-      } else if (thirtySecDataCount < 0 ) {
-         logger.fine("[RiakTracker]: thirtySecCount = " +thirtySecCount);
-         perSec = ((float)thirtySecCount / 30);
-         logger.fine("[RiakTracker]: perSec = " +perSec);
-         thirtySecMemory.push(new String(ts+" "+String.format("%.2f", perSec)));
+      } else if (recordType == OtiNanai.FREQ ) {
+         int timeRange;
+         if (freqLastTS == 0l) {
+            timeRange=30;
+         } else {
+            Long foo = (ts - freqLastTS)/1000;
+            timeRange = foo.intValue();
+         }
+
+         perSec = ((float)currentCount / timeRange);
+         logger.info("[RiakTracker]: "+keyWord+" timeRange: " +timeRange+ " count: "+currentCount+" perSec: "+perSec);
+         step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
+         currentCount = 0;
+         freqLastTS = ts;
+      } else if (recordType == OtiNanai.UNSET) {
+         return;
       }
 
-      if (thirtySecMemory.size() > 2) {
-         logger.fine("[RiakTracker]: thirtySecMemory.size() = "+thirtySecMemory.size());
+      if (step1Memory.size() > 2) {
+         logger.fine("[RiakTracker]: step1Memory.size() = "+step1Memory.size());
          //ugly deduplication
-         String dato0 = thirtySecMemory.get(0);
-         String dato1 = thirtySecMemory.get(1);
-         String dato2 = thirtySecMemory.get(2);
+         String dato0 = step1Memory.get(0);
+         String dato1 = step1Memory.get(1);
+         String dato2 = step1Memory.get(2);
          dato0 = dato0.substring(dato0.indexOf(" ") +1);
          dato1 = dato1.substring(dato1.indexOf(" ") +1);
          dato2 = dato2.substring(dato2.indexOf(" ") +1);
          if (dato0.equals(dato1)) {
             if (dato1.equals(dato2)) {
-               thirtySecMemory.remove(1);
+               step1Memory.remove(1);
             }
          }
       }
@@ -162,63 +183,80 @@ class RiakTracker implements KeyWordTracker {
 
       float lastMerge;
       String lastDatoString = new String();
-      String lastts = new String();
+      long lastts;
+      long tsMerge;
       String lastDato = new String();
 
       /*
        * Aggregate old 30sec samples and make 5min samples
        */
-      if (thirtySecMemory.size() >= OtiNanai.THIRTY_SEC_SAMPLES) {
+      if (step1Memory.size() >= OtiNanai.STEP1_MAX_SAMPLES) {
          lastMerge = 0;
+         lastts = 0l;
+         tsMerge = 0l;
 
-         logger.fine("[RiakTracker]: fetching existing " + fiveMinKey);
-         fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).r(1).execute();
-         if (fiveMinMemory == null) {
-            logger.fine("[RiakTracker]: null. Creating new " + fiveMinKey);
-            fiveMinMemory = new LLString();
+         logger.fine("[RiakTracker]: fetching existing " + step2Key);
+         step2Memory = riakBucket.fetch(step2Key, LLString.class).r(1).execute();
+         if (step2Memory == null) {
+            logger.fine("[RiakTracker]: null. Creating new " + step2Key);
+            step2Memory = new LLString();
          }
 
-         for (int i=1; i<=OtiNanai.THIRTY_S_TO_FIVE_M ; i++) {
-            lastDatoString=thirtySecMemory.get(OtiNanai.THIRTY_SEC_SAMPLES - i);
-            lastts=lastDatoString.substring(0,lastDatoString.indexOf(" "));
+         for (int i=1; i<=OtiNanai.STEP1_SAMPLES_TO_MERGE ; i++) {
+            lastDatoString=step1Memory.get(OtiNanai.STEP1_MAX_SAMPLES - i);
+            lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
             lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
-            logger.fine("[RiakTracker]: Aggregating: "+lastMerge+" += "+lastDato);
+
+            logger.fine("[RiakTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
             lastMerge += Float.parseFloat(lastDato);
-            thirtySecMemory.remove(OtiNanai.THIRTY_SEC_SAMPLES -i);
+            tsMerge += lastts;
+            step1Memory.remove(OtiNanai.STEP1_MAX_SAMPLES -i);
          }
-         float finalSum = lastMerge/OtiNanai.THIRTY_S_TO_FIVE_M;
-         logger.fine("[RiakTracker]: Aggregated to : "+ lastMerge + "/"+OtiNanai.THIRTY_S_TO_FIVE_M+" = "+finalSum);
-         String toPush = new String(lastts+" "+String.format("%.2f", finalSum));
-         logger.fine("[RiakTracker]: pushing: "+fiveMinKey+ " : " +toPush);
-         fiveMinMemory.push(toPush);
-         riakBucket.store(fiveMinKey, fiveMinMemory).execute();
+         float finalSum = lastMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
+         long finalts = tsMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
+
+         logger.fine("[RiakTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+ finalts);
+
+         String toPush = new String(finalts+" "+String.format("%.2f", finalSum));
+         logger.fine("[RiakTracker]: pushing: "+step2Key+ " : " +toPush);
+         step2Memory.push(toPush);
+         riakBucket.store(step2Key, step2Memory).execute();
       }
-      logger.fine("[RiakTracker]: Storing " + thirtySecKey);
-      riakBucket.store(thirtySecKey, thirtySecMemory).execute();
+      logger.fine("[RiakTracker]: Storing " + step1Key);
+      riakBucket.store(step1Key, step1Memory).execute();
 
       /*
        * Aggregate old 5min samples and make 30min samples
        */
-      if (fiveMinMemory.size() >= OtiNanai.FIVE_MIN_SAMPLES) {
+      if (step2Memory.size() >= OtiNanai.STEP2_MAX_SAMPLES) {
          lastMerge = 0;
+         lastts = 0l;
+         tsMerge = 0;
 
-         logger.fine("[RiakTracker]: fetching existing " + thirtyMinKey);
-         thirtyMinMemory = riakBucket.fetch(thirtyMinKey, LLString.class).r(1).execute();
-         if (thirtyMinMemory == null) {
-            logger.fine("[RiakTracker]: null. Creating new " + thirtyMinKey);
-            thirtyMinMemory = new LLString();
+         logger.fine("[RiakTracker]: fetching existing " + step3Key);
+         step3Memory = riakBucket.fetch(step3Key, LLString.class).r(1).execute();
+         if (step3Memory == null) {
+            logger.fine("[RiakTracker]: null. Creating new " + step3Key);
+            step3Memory = new LLString();
          }
 
-         for (int i=1; i<=OtiNanai.FIVE_M_TO_THIRTY_M ; i++) {
-            lastDatoString=fiveMinMemory.get(OtiNanai.FIVE_MIN_SAMPLES - i);
-            lastts=lastDatoString.substring(0,lastDatoString.indexOf(" "));
-            lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
+         for (int i=1; i<=OtiNanai.STEP2_SAMPLES_TO_MERGE ; i++) {
+            lastDatoString = step2Memory.get(OtiNanai.STEP2_MAX_SAMPLES - i);
+            lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
+            lastDato = lastDatoString.substring(lastDatoString.indexOf(" ")+1);
             lastMerge += Long.parseLong(lastDato);
-            fiveMinMemory.remove(OtiNanai.FIVE_MIN_SAMPLES -i);
+            tsMerge += lastts;
+            step2Memory.remove(OtiNanai.STEP2_MAX_SAMPLES -i);
          }
-         thirtyMinMemory.push(new String(lastts+" "+Math.round(lastMerge/OtiNanai.FIVE_M_TO_THIRTY_M)));
-         riakBucket.store(thirtyMinKey, thirtyMinMemory).execute();
-         riakBucket.store(fiveMinKey, fiveMinMemory).execute();
+         float finalSum = lastMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
+         long finalts = tsMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
+
+         logger.fine("[RiakTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+ finalts);
+
+         step3Memory.push(new String(finalts+" "+String.format("%.2f", finalSum)));
+
+         riakBucket.store(step3Key, step3Memory).execute();
+         riakBucket.store(step2Key, step2Memory).execute();
       }
 
 
@@ -244,10 +282,6 @@ class RiakTracker implements KeyWordTracker {
          }
       }
 
-      thirtySecCount = 0;
-      thirtySecFloat = 0f;
-      if (thirtySecDataCount > 0)
-         thirtySecDataCount = 0;
 	}
 
 	public long getAlarm() {
@@ -257,58 +291,50 @@ class RiakTracker implements KeyWordTracker {
    public LLString getMemory() {
       LLString returner = new LLString();
       try {
-         LLString thirtySecMemory = riakBucket.fetch(thirtySecKey, LLString.class).r(1).execute();
-         returner.addAll(thirtySecMemory);
+         LLString step1Memory = riakBucket.fetch(step1Key, LLString.class).r(1).execute();
+         returner.addAll(step1Memory);
       } catch (Exception e) {
-         logger.severe("[RiakTracker]: null thirtySecMemory: "+e);
+         logger.severe("[RiakTracker]: null step1Memory: "+e);
       }
 
       try {
-         LLString fiveMinMemory = riakBucket.fetch(fiveMinKey, LLString.class).r(1).execute();
-         logger.fine("[RiakTracker]: Got fiveMinMemory for " + fiveMinKey + " with size: " + fiveMinMemory.size());
-         returner.addAll(fiveMinMemory);
-         for (String foo : fiveMinMemory) {
-            logger.finest("[RiakTracker]: fiveMinMemory listing: " +foo);
+         LLString step2Memory = riakBucket.fetch(step2Key, LLString.class).r(1).execute();
+         logger.fine("[RiakTracker]: Got step2Memory for " + step2Key + " with size: " + step2Memory.size());
+         returner.addAll(step2Memory);
+         for (String foo : step2Memory) {
+            logger.finest("[RiakTracker]: step2Memory listing: " +foo);
          }
       } catch (Exception e) {
-         logger.fine("[RiakTracker]: null fiveMinMemory: "+e);
+         logger.fine("[RiakTracker]: null step2Memory: "+e);
       }
       
       try {
-         LLString thirtyMinMemory = riakBucket.fetch(thirtyMinKey, LLString.class).r(1).execute();
-         returner.addAll(thirtyMinMemory);
+         LLString step3Memory = riakBucket.fetch(step3Key, LLString.class).r(1).execute();
+         returner.addAll(step3Memory);
       } catch (Exception e) {
-         logger.fine("[RiakTracker]: null thirtyMinMemory: "+e);
+         logger.fine("[RiakTracker]: null step3Memory: "+e);
       }
       return returner;
    }
 
-   public long getThirtySecCount() {
-      return thirtySecCount;
-   }
-
-   public long getFiveMinCount() {
-      return fiveMinCount;
-   }
-   public long getThirtyMinCount() {
-      return thirtyMinCount;
+   public long getCurrentCount() {
+      return currentCount;
    }
 
 	private long alarm;
+   private long freqLastTS;
 	public String keyWord;
-	private long thirtySecCount;
-	private long fiveMinCount;
-	private long thirtyMinCount;
+	private long currentCount;
 	private float mean;
 	private int sampleCount;
-   private int thirtySecDataCount;
-   private float thirtySecFloat;
-   private long thirtySecLong;
-   private long thirtySecPrev;
+   private int currentDataCount;
+   private float currentFloat;
+   private long currentLong;
+   private long currentPrev;
    private long lastTimeStamp;
-   private String thirtySecKey;
-   private String fiveMinKey;
-   private String thirtyMinKey;
+   private String step1Key;
+   private String step2Key;
+   private String step3Key;
    private Logger logger;
    private int alarmSamples;
    private float alarmThreshold;

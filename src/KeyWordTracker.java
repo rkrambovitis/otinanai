@@ -16,15 +16,11 @@ interface KeyWordTracker {
 
    public void put(long value) ;
 
-   public void tick(long ts) ;
+   public void tick() ;
 
 	public long getAlarm() ;
 
    public LinkedList<String> getMemory() ;
 
-   public long getThirtySecCount() ;
-
-   public long getFiveMinCount() ;
-
-   public long getThirtyMinCount() ;
+   public long getCurrentCount() ;
 }

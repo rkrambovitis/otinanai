@@ -309,7 +309,8 @@ class OtiNanaiWeb implements Runnable {
       String [] keyList = input.split("[ ,]|%20");
       logger.fine("[Web]: Searching for keywords");
 		//Collection<KeyWordTracker> allKWTs = onl.getTrackerMap().values();
-      LLString allKWTs = onl.getKWTList();
+      LLString allKWTs = new LLString();
+      allKWTs.addAll(onl.getKWTList());
       ArrayList<String> kws = new ArrayList<String>();
 
       String firstChar = new String();
@@ -360,7 +361,6 @@ class OtiNanaiWeb implements Runnable {
                graphType = OtiNanai.GRAPH_MERGED_AXES;
                matched = true;
                break;
-            case "--a":
             case "--alarms":
             case "--alerts":
                showAlarms = true;
@@ -465,17 +465,28 @@ class OtiNanaiWeb implements Runnable {
          }
       }
       if (showAlarms) {
+         long alarmLife = onl.getAlarmLife();
+         long timeNow = System.currentTimeMillis();
+         long lastAlarm;
          logger.info("[Web]: kws.size() = "+kws.size());
-         /*
-         for (KeyWordTracker kwt : allKWTs ) {
+         for (String kw : allKWTs ) {
+            lastAlarm=onl.getAlarm(kw);
+            if (lastAlarm == 0L || (timeNow - lastAlarm) > alarmLife) {
+               logger.info("[Web]: No alarm for "+kw+ " - Removing");
+               kws.remove(kw);
+            } else {
+               logger.info("[Web]: Alarm for "+kw);
+            }
+
+            /*
             if (!kwt.getAlarm(System.currentTimeMillis())) {
                logger.info("[Web]: No alarm for "+kwt.getKeyWord()+ " - Removing");
                kws.remove(kwt.getKeyWord());
             } else {
                logger.info("[Web]: Alarm for "+kwt.getKeyWord());
             }
+            */
          }
-         */
       } else if (wipe && force) {
          logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");
          KeyWordTracker kwt;
