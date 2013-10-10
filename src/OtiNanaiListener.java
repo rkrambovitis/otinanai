@@ -23,11 +23,12 @@ class OtiNanaiListener implements Runnable {
     * @param   ps Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, long al, int as, float at, Logger l, short st, String bucketName, String riakHost, int riakPort) {
+	public OtiNanaiListener(DatagramSocket ds, long al, int as, float at, int acs, Logger l, short st, String bucketName, String riakHost, int riakPort) {
 		logger = l;
       alarmLife = al;
       alarmSamples = as;
       alarmThreshold = at;
+      alarmConsecutiveSamples = acs;
       storageType = st;
       riakBucket = null;
       riakKeyList = new String("riak_existing_keywords_list");
@@ -59,7 +60,7 @@ class OtiNanaiListener implements Runnable {
             kwtList = getKWTList();
             for (String kw : kwtList) { 
                logger.info("[Listener]: Creating new Tracker: "+kw);
-               trackerMap.put(kw, new RiakTracker(kw, as, at, logger, riakBucket));
+               trackerMap.put(kw, new RiakTracker(kw, as, at, acs, logger, riakBucket));
             }
          } catch (RiakException re) {
             logger.severe("[Listener]: "+re);
@@ -129,9 +130,9 @@ class OtiNanaiListener implements Runnable {
          if (kwt == null) {
             logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
             if (storageType == OtiNanai.RIAK)
-               kwt = new RiakTracker(kw, alarmSamples, alarmThreshold, logger, riakBucket);
+               kwt = new RiakTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, riakBucket);
             else
-               kwt = new MemTracker(kw, alarmSamples, alarmThreshold, logger);
+               kwt = new MemTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
          }
 
          if (newRecord.isGauge()) {
@@ -240,6 +241,7 @@ class OtiNanaiListener implements Runnable {
    private long alarmLife;
    private int alarmSamples;
    private float alarmThreshold;
+   private int alarmConsecutiveSamples;
 	private DatagramSocket dataSocket;
 	private Logger logger;
    private short storageType;

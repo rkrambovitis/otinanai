@@ -8,15 +8,47 @@
    <style>
 
    body, html {
+      overflow-x: hidden;
       height: 100%;
       margin: 0;
       padding: 0;
    }
 
+
+#content {
+   display: -webkit-flex;
+   display: flex;
+    -webkit-flex-flow: column nowrap;
+    -webkit-justify-content: center;
+    -webkit-align-content: center;
+
+}
+
+iframe
+form {
+    -webkit-order: 0
+    -webkit-align-self: auto;
+    min-width:  0;
+    min-height:  auo;
+
+   }
+
+form {
+	-webkit-order: 1;
+	-webkit-flex: 0 1 50px;
+}
+
+iframe {
+	-webkit-order: 2;
+	-webkit-flex: 0 1 100%;
+}
+
 	form {
+
 		margin: 0;
 		padding: 10px 0;
 		text-align: center;
+      width: 100%;
 		background: #eee;
 		border-bottom: 2px solid #999;
 	}
@@ -26,18 +58,11 @@
 		padding: 3px;
 	}
 	.section {
-		height: 100%;
+      
 		border: none;
 	}
-	.section div {
-		padding: 2px;
-		background: #fefefe;
-		height: 100%;
-		padding-left: 0;
-   }
 	iframe {
 		width: 100%;
-		height: 100%;
 		border: none;
 	}
 	.section#skroutz-section {
@@ -96,13 +121,9 @@
          <input type="text" name="q" id="q" placeholder="search" autofocus />
       </form>
 
-      <div class="section">
-         <div>
             <iframe id="bp" src="" borderwidth="0">
 
             </iframe>
-         </div>
-      </div>
    </div>
 </body>
 </html>

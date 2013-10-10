@@ -477,15 +477,6 @@ class OtiNanaiWeb implements Runnable {
             } else {
                logger.info("[Web]: Alarm for "+kw);
             }
-
-            /*
-            if (!kwt.getAlarm(System.currentTimeMillis())) {
-               logger.info("[Web]: No alarm for "+kwt.getKeyWord()+ " - Removing");
-               kws.remove(kwt.getKeyWord());
-            } else {
-               logger.info("[Web]: Alarm for "+kwt.getKeyWord());
-            }
-            */
          }
       } else if (wipe && force) {
          logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");
@@ -495,11 +486,6 @@ class OtiNanaiWeb implements Runnable {
             logger.info("[Web]: Deleting data for " + todel);
             delOP = delOP + "<li>"+todel+"</li>";
             onl.deleteKWT(todel);
-            /*
-            kwt = onl.getTrackerMap().get(todel);
-            kwt.delete();
-            onl.getTrackerMap().remove(todel);
-            */
          }
          return delOP;
       } else if (wipe) {

@@ -5,14 +5,12 @@ import java.util.*;
 
 class MemTracker implements KeyWordTracker {
 
-   public MemTracker() {
-   }
-
-	public MemTracker(String key, int as, float at, Logger l) {
+	public MemTracker(String key, int as, float at, int acs, Logger l) {
 		mean = 0f;
 		currentCount = 0;
       alarmSamples = as;
       alarmThreshold = at;
+      alarmConsecutiveSamples = acs;
       step1Memory = new LinkedList<String> ();
       step2Memory = new LinkedList<String> ();
       step3Memory = new LinkedList<String> ();
@@ -82,13 +80,14 @@ class MemTracker implements KeyWordTracker {
    }
 
 	private void flush(long ts) {
+      if (recordType == OtiNanai.UNSET)
+         return;
+      if (recordType == OtiNanai.COUNTER && currentLong == 0l)
+         return;
+      if (recordType == OtiNanai.GAUGE && currentDataCount == 0)
+         return;
+
       float perSec = 0f;
-      /*
-       * currentDataCount is set to -1 by default, which means that the tracker tracks the amount of events.
-       * currentLong is the "COUNT" counter. If more than 0, then we are a "COUNT" type.
-       * In the event it's a "metric", it will be 1 or more.
-       * Inthe event it's a metric but has no new data, it's 0.
-       */
       if (currentDataCount > 0 ) {
          logger.fine("[MemTracker]: currentFloat = " +currentFloat);
          perSec = (currentFloat / currentDataCount);
@@ -257,4 +256,5 @@ class MemTracker implements KeyWordTracker {
    private int alarmSamples;
    private float alarmThreshold;
    private short recordType;
+   private int alarmConsecutiveSamples;
 }

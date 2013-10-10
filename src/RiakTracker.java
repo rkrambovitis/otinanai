@@ -7,11 +7,12 @@ import java.util.logging.*;
 import java.util.*;
 
 class RiakTracker implements KeyWordTracker {
-	public RiakTracker(String key, int as, float at, Logger l, Bucket bucket) {
+	public RiakTracker(String key, int as, float at, int acs, Logger l, Bucket bucket) {
 		mean = 0f;
 		currentCount = 0;
       alarmSamples = as;
       alarmThreshold = at;
+      alarmConsecutiveSamples = acs;
 		keyWord = new String(key);
       step1Key = keyWord + "thirtySec";
       step2Key = keyWord + "fiveMin";
@@ -102,6 +103,13 @@ class RiakTracker implements KeyWordTracker {
    }
 
 	private void flush(long ts) throws RiakRetryFailedException{
+      if (recordType == OtiNanai.UNSET)
+         return;
+      if (recordType == OtiNanai.COUNTER && currentLong == 0l)
+         return;
+      if (recordType == OtiNanai.GAUGE && currentDataCount == 0)
+         return;
+
       float perSec = 0f;
 
       LLString step1Memory = new LLString();
@@ -115,53 +123,40 @@ class RiakTracker implements KeyWordTracker {
          step1Memory = new LLString();
       }
 
-     
-      /*
-       * currentDataCount is the amount of gauge data points received since last tick.
-       * So if you get 2 gauge points, they are aggregated, rather than one ignored
-       * currentFloat is the sum of the gauge data points.
-       */
-         
-      if (recordType == OtiNanai.GAUGE && currentDataCount > 0) {
+      //if (recordType == OtiNanai.GAUGE && currentDataCount > 0) {
+      if (recordType == OtiNanai.GAUGE) {
          logger.fine("[RiakTracker]: currentFloat = " +currentFloat);
          perSec = (currentFloat / currentDataCount);
          step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
          currentFloat = 0f;
          currentDataCount = 0;
 
-         /*
-          * currentLong is the long value (for counters, i.e. ever incrementing)
-          */
       } else if (recordType == OtiNanai.COUNTER) {
-         if (currentLong != 0l) {
-            if (currentPrev == 0l || currentPrev > currentLong) {
-               logger.fine("Last count is 0 or decrementing. Setting and Skipping");
-            } else {
-               long timeDiff = ts - lastTimeStamp;
-               perSec = ((float)(currentLong - currentPrev)*1000/timeDiff);
-               logger.fine("[RiakTracker]: new:"+currentLong+" old:"+currentPrev+" td:"+timeDiff+" rate:"+perSec);
-               step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
-            }
-            currentPrev = currentLong;
-            lastTimeStamp = ts;
-            currentLong = 0l;
+         //if (currentLong != 0l) {
+         if (currentPrev == 0l || currentPrev > currentLong) {
+            logger.fine("Last count is 0 or decrementing. Setting and Skipping");
+         } else {
+            long timeDiff = ts - lastTimeStamp;
+            perSec = ((float)(currentLong - currentPrev)*1000/timeDiff);
+            logger.fine("[RiakTracker]: new:"+currentLong+" old:"+currentPrev+" td:"+timeDiff+" rate:"+perSec);
+            step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
          }
+         currentPrev = currentLong;
+         lastTimeStamp = ts;
+         currentLong = 0l;
+         //}
+
       } else if (recordType == OtiNanai.FREQ ) {
          int timeRange;
-         if (freqLastTS == 0l) {
-            timeRange=30;
-         } else {
-            Long foo = (ts - freqLastTS)/1000;
-            timeRange = foo.intValue();
-         }
+         Long foo = (ts - freqLastTS)/1000;
+         timeRange = foo.intValue();
 
          perSec = ((float)currentCount / timeRange);
          logger.info("[RiakTracker]: "+keyWord+" timeRange: " +timeRange+ " count: "+currentCount+" perSec: "+perSec);
          step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
          currentCount = 0;
          freqLastTS = ts;
-      } else if (recordType == OtiNanai.UNSET) {
-         return;
+
       }
 
       if (step1Memory.size() > 2) {
@@ -277,8 +272,9 @@ class RiakTracker implements KeyWordTracker {
          logger.fine("[RiakTracker]: d: "+deviation+" m: "+mean);
 
          if ((sampleCount >= alarmSamples) && (deviation >= alarmThreshold)) {
-            logger.info("[RiakTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation);
+            logger.fine("[RiakTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation);
             alarm=ts;
+         } else {
          }
       }
 
@@ -340,5 +336,5 @@ class RiakTracker implements KeyWordTracker {
    private float alarmThreshold;
    private Bucket riakBucket;
    private short recordType;
+   private int alarmConsecutiveSamples;
 }
-
