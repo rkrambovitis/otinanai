@@ -40,7 +40,8 @@ class OtiNanaiListener implements Runnable {
             logger.config("[Listener]: Setting up Riak");
 
             IRiakClient riakClient = RiakFactory.pbcClient(riakHost, riakPort);
-            riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).backend("eleveldb").execute();
+            //riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).backend("eleveldb").execute();
+            riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).execute();
             logger.config("[Listener]: Riak.getAllowSiblings = " + riakBucket.getAllowSiblings());
             logger.config("[Listener]: Riak.getBackend = " + riakBucket.getBackend());
             logger.config("[Listener]: Riak.getBasicQuorum = " + riakBucket.getBasicQuorum());

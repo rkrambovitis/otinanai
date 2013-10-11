@@ -11,6 +11,7 @@ class MemTracker implements KeyWordTracker {
       alarmSamples = as;
       alarmThreshold = at;
       alarmConsecutiveSamples = acs;
+      alarmCount = 0;
       step1Memory = new LinkedList<String> ();
       step2Memory = new LinkedList<String> ();
       step3Memory = new LinkedList<String> ();
@@ -141,13 +142,13 @@ class MemTracker implements KeyWordTracker {
       long tsMerge;
       String lastDato = new String();
 
-      if (step1Memory.size() >= OtiNanai.STEP2_MAX_SAMPLES) {
+      if (step1Memory.size() >= OtiNanai.STEP1_MAX_SAMPLES) {
          lastMerge = 0;
          lastts = 0l;
          tsMerge = 0l;
 
          for (int i=1; i<=OtiNanai.STEP1_SAMPLES_TO_MERGE ; i++) {
-            lastDatoString=step1Memory.get(OtiNanai.STEP2_MAX_SAMPLES - i);
+            lastDatoString=step1Memory.get(OtiNanai.STEP1_MAX_SAMPLES - i);
             lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
             lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
 
@@ -197,7 +198,6 @@ class MemTracker implements KeyWordTracker {
        */
       if ( sampleCount < alarmSamples)
          sampleCount++;
-
       if (mean == 0f && perSec != 0f) {
          logger.fine("[MemTracker]: mean is 0, setting new value");
          mean = perSec;
@@ -209,8 +209,15 @@ class MemTracker implements KeyWordTracker {
          logger.fine("[MemTracker]: d: "+deviation+" m: "+mean);
 
          if ((sampleCount >= alarmSamples) && (deviation >= alarmThreshold)) {
-            logger.info("[MemTracker]: Error conditions met for " + keyWord);
-            alarm=ts;
+            alarmCount++;
+            if (alarmCount >= alarmConsecutiveSamples) {
+               logger.info("[MemTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
+               alarm=ts;
+            } else {
+               logger.info("[MemTracker]: Error threshold breached " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
+            }
+         } else {
+            alarmCount = 0;
          }
       }
 
@@ -257,4 +264,5 @@ class MemTracker implements KeyWordTracker {
    private float alarmThreshold;
    private short recordType;
    private int alarmConsecutiveSamples;
+   private int alarmCount;
 }

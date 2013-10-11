@@ -13,6 +13,7 @@ class RiakTracker implements KeyWordTracker {
       alarmSamples = as;
       alarmThreshold = at;
       alarmConsecutiveSamples = acs;
+      alarmCount = 0;
 		keyWord = new String(key);
       step1Key = keyWord + "thirtySec";
       step2Key = keyWord + "fiveMin";
@@ -272,9 +273,15 @@ class RiakTracker implements KeyWordTracker {
          logger.fine("[RiakTracker]: d: "+deviation+" m: "+mean);
 
          if ((sampleCount >= alarmSamples) && (deviation >= alarmThreshold)) {
-            logger.fine("[RiakTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation);
-            alarm=ts;
+            alarmCount++;
+            if (alarmCount >= alarmConsecutiveSamples) {
+               logger.info("[RiakTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
+               alarm=ts;
+            } else {
+               logger.fine("[RiakTracker]: Error threshold breached " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
+            }
          } else {
+            alarmCount = 0;
          }
       }
 
@@ -337,4 +344,5 @@ class RiakTracker implements KeyWordTracker {
    private Bucket riakBucket;
    private short recordType;
    private int alarmConsecutiveSamples;
+   private int alarmCount;
 }
