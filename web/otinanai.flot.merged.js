@@ -8,8 +8,7 @@ $(function() {
 
    $.each(datasets, function(key, val) {
       choiceContainer.append("<br/><input type='checkbox' name='" + key + "' checked='checked' id='id" + key + "'></input>" 
-         + "<label for='id" + key + "'>" + key + "</label> "
-         + "<a href="+key+">(alone)</a>");
+         + "<label for='id" + key + "'>" + key + "</label> ");
    });
 
    choiceContainer.find("input").click(plotAccordingToChoices);

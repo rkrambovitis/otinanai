@@ -111,8 +111,6 @@ class RiakTracker implements KeyWordTracker {
       if (recordType == OtiNanai.GAUGE && currentDataCount == 0)
          return;
 
-      float perSec = 0f;
-
       LLString step1Memory = new LLString();
       LLString step2Memory = new LLString();
       LLString step3Memory = new LLString();
@@ -124,7 +122,11 @@ class RiakTracker implements KeyWordTracker {
          step1Memory = new LLString();
       }
 
-      //if (recordType == OtiNanai.GAUGE && currentDataCount > 0) {
+
+
+
+      float perSec = 0f;
+      float timeDiff = (float)(ts - lastTimeStamp);
       if (recordType == OtiNanai.GAUGE) {
          logger.fine("[RiakTracker]: currentFloat = " +currentFloat);
          perSec = (currentFloat / currentDataCount);
@@ -133,27 +135,20 @@ class RiakTracker implements KeyWordTracker {
          currentDataCount = 0;
 
       } else if (recordType == OtiNanai.COUNTER) {
-         //if (currentLong != 0l) {
          if (currentPrev == 0l || currentPrev > currentLong) {
             logger.fine("Last count is 0 or decrementing. Setting and Skipping");
          } else {
-            long timeDiff = ts - lastTimeStamp;
-            perSec = ((float)(currentLong - currentPrev)*1000/timeDiff);
+            float valueDiff = (float)(currentLong - currentPrev);
+            perSec = ((float)((valueDiff*1000f)/timeDiff));
             logger.fine("[RiakTracker]: new:"+currentLong+" old:"+currentPrev+" td:"+timeDiff+" rate:"+perSec);
             step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
          }
          currentPrev = currentLong;
          lastTimeStamp = ts;
          currentLong = 0l;
-         //}
-
       } else if (recordType == OtiNanai.FREQ ) {
-         int timeRange;
-         Long foo = (ts - freqLastTS)/1000;
-         timeRange = foo.intValue();
-
-         perSec = ((float)currentCount / timeRange);
-         logger.info("[RiakTracker]: "+keyWord+" timeRange: " +timeRange+ " count: "+currentCount+" perSec: "+perSec);
+         perSec = ((float)((currentCount*1000f) / timeDiff));
+         logger.info("[RiakTracker]: "+keyWord+" timeRange: " +timeDiff+ " count: "+currentCount+" perSec: "+perSec);
          step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
          currentCount = 0;
          freqLastTS = ts;
@@ -240,7 +235,7 @@ class RiakTracker implements KeyWordTracker {
             lastDatoString = step2Memory.get(OtiNanai.STEP2_MAX_SAMPLES - i);
             lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
             lastDato = lastDatoString.substring(lastDatoString.indexOf(" ")+1);
-            lastMerge += Long.parseLong(lastDato);
+            lastMerge += Float.parseFloat(lastDato);
             tsMerge += lastts;
             step2Memory.remove(OtiNanai.STEP2_MAX_SAMPLES -i);
          }

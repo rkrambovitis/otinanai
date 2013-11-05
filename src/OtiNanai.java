@@ -260,7 +260,7 @@ class OtiNanai {
 
 	private Logger logger;
 
-	public static final int STEP1_MAX_SAMPLES = 3000;
+	public static final int STEP1_MAX_SAMPLES = 1440;
 	public static final int STEP1_SAMPLES_TO_MERGE = 10;
 	public static final int STEP2_MAX_SAMPLES = 2880;
 	public static final int STEP2_SAMPLES_TO_MERGE = 6;
@@ -281,7 +281,7 @@ class OtiNanai {
 
 	public static short MAXPERPAGE=20;
 
-	public static final int TICKER_INTERVAL = 30000;
+	public static final int TICKER_INTERVAL = 60000;
 
    public static final short HEADER = 1;
    public static final short ENDHEAD = 2;

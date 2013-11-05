@@ -53,7 +53,7 @@ class MemTracker implements KeyWordTracker {
          recordType = OtiNanai.COUNTER;
       if (recordType == OtiNanai.COUNTER) {
          currentLong = value;
-         logger.finest("[MemTracker]: currentLong is now " +currentCount);
+         logger.finest("[MemTracker]: currentLong is now " +currentLong);
       } else {
          logger.fine("[MemTracker]: Ignoring put of wrong type (keyword is COUNTER)");
       }  
@@ -89,30 +89,30 @@ class MemTracker implements KeyWordTracker {
          return;
 
       float perSec = 0f;
-      if (currentDataCount > 0 ) {
+      float timeDiff = (float)(ts - lastTimeStamp);
+      if (recordType == OtiNanai.GAUGE) {
          logger.fine("[MemTracker]: currentFloat = " +currentFloat);
          perSec = (currentFloat / currentDataCount);
-         step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
-
-      } else if (currentLong > 0) {
+      } else if (recordType == OtiNanai.COUNTER) {
          if (currentLong != currentPrev) {
             logger.fine("[MemTracker]: currentLong = " + currentLong);
             if (currentPrev == 0l || currentPrev > currentLong) {
                logger.fine("Last count is 0 or decrementing. Setting and Skipping");
             } else {
-               long timeDiff = ts - lastTimeStamp;
-               perSec = ((float)(currentLong - currentPrev)*1000/timeDiff);
-               step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
+               float valueDiff = (float)(currentLong - currentPrev);
+               perSec = ((float)((valueDiff*1000f)/timeDiff));
             }
             currentPrev = currentLong;
+            currentLong = 0l;
             lastTimeStamp = ts;
          }
-      } else if (currentDataCount < 0 ) {
+      } else if (recordType == OtiNanai.FREQ ) {
          logger.fine("[MemTracker]: currentCount = " +currentCount);
-         perSec = ((float)currentCount / 30);
+         perSec = ((float)((currentCount*1000f) / timeDiff));
          logger.fine("[MemTracker]: perSec = " +perSec);
-         step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
+         currentCount = 0;
       }
+      step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
 
 
       if (step1Memory.size() > 2) {
@@ -155,7 +155,7 @@ class MemTracker implements KeyWordTracker {
             logger.fine("[MemTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
             lastMerge += Float.parseFloat(lastDato);
             tsMerge += lastts;
-            step1Memory.remove(OtiNanai.STEP2_MAX_SAMPLES -i);
+            step1Memory.remove(OtiNanai.STEP1_MAX_SAMPLES -i);
          }
          float finalSum = lastMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
          long finalts = tsMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
@@ -180,7 +180,7 @@ class MemTracker implements KeyWordTracker {
             lastDatoString = step2Memory.get(OtiNanai.STEP2_MAX_SAMPLES - i);
             lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
             lastDato = lastDatoString.substring(lastDatoString.indexOf(" ")+1);
-            lastMerge += Long.parseLong(lastDato);
+            lastMerge += Float.parseFloat(lastDato);
             tsMerge += lastts;
             step2Memory.remove(OtiNanai.STEP2_MAX_SAMPLES -i);
          }
@@ -221,7 +221,6 @@ class MemTracker implements KeyWordTracker {
          }
       }
 
-      currentCount = 0;
       currentFloat = 0f;
       if (currentDataCount > 0)
          currentDataCount = 0;

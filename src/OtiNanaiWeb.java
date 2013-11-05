@@ -414,7 +414,7 @@ class OtiNanaiWeb implements Runnable {
                } else {
                   if (key.contains(rest)) {
                      kws.remove(key);
-                     logger.info("Removing "+key);
+                     logger.info("[Web]: Removing "+key);
                   }
                }
             } else if (exclusiveKW) {
