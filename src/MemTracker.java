@@ -90,6 +90,7 @@ class MemTracker implements KeyWordTracker {
 
       float perSec = 0f;
       float timeDiff = (float)(ts - lastTimeStamp);
+      lastTimeStamp = ts;
       if (recordType == OtiNanai.GAUGE) {
          logger.fine("[MemTracker]: currentFloat = " +currentFloat);
          perSec = (currentFloat / currentDataCount);
@@ -104,14 +105,14 @@ class MemTracker implements KeyWordTracker {
             }
             currentPrev = currentLong;
             currentLong = 0l;
-            lastTimeStamp = ts;
          }
       } else if (recordType == OtiNanai.FREQ ) {
-         logger.fine("[MemTracker]: currentCount = " +currentCount);
-         perSec = ((float)((currentCount*1000f) / timeDiff));
-         logger.fine("[MemTracker]: perSec = " +perSec);
+         logger.finest("[MemTracker]: currentCount = " +currentCount);
+         perSec = ((float)currentCount*1000f)/timeDiff;
+         logger.finest("[MemTracker]: perSec = " +perSec);
          currentCount = 0;
       }
+      logger.fine("[MemTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
       step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
 
 

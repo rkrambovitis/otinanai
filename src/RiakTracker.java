@@ -127,6 +127,7 @@ class RiakTracker implements KeyWordTracker {
 
       float perSec = 0f;
       float timeDiff = (float)(ts - lastTimeStamp);
+      lastTimeStamp = ts;
       if (recordType == OtiNanai.GAUGE) {
          logger.fine("[RiakTracker]: currentFloat = " +currentFloat);
          perSec = (currentFloat / currentDataCount);
@@ -144,15 +145,13 @@ class RiakTracker implements KeyWordTracker {
             step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
          }
          currentPrev = currentLong;
-         lastTimeStamp = ts;
          currentLong = 0l;
       } else if (recordType == OtiNanai.FREQ ) {
-         perSec = ((float)((currentCount*1000f) / timeDiff));
+         perSec = ((float)currentCount*1000f) / timeDiff;
          logger.info("[RiakTracker]: "+keyWord+" timeRange: " +timeDiff+ " count: "+currentCount+" perSec: "+perSec);
          step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
          currentCount = 0;
          freqLastTS = ts;
-
       }
 
       if (step1Memory.size() > 2) {
