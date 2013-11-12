@@ -72,7 +72,7 @@ body, html {
 }
 
 .wrapper:last-child { 
-   padding-bottom: 100px; 
+   padding-bottom: 10px; 
 }
 
 html[xmlns] .clearfix {

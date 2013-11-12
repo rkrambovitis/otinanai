@@ -138,10 +138,10 @@ class MemTracker implements KeyWordTracker {
        */
 
       float lastMerge;
-      String lastDatoString = new String();
       long lastts;
       long tsMerge;
       String lastDato = new String();
+      String lastDatoString = new String();
 
       if (step1Memory.size() >= OtiNanai.STEP1_MAX_SAMPLES) {
          lastMerge = 0;
