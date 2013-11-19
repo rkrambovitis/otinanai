@@ -8,6 +8,8 @@ import java.util.*;
 interface KeyWordTracker {
 	public String getKeyWord() ;
 
+   public short getType();
+
 	public void put() ;
 
    public void delete() ;

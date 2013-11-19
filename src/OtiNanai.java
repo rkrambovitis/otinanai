@@ -218,8 +218,12 @@ class OtiNanai {
                   System.out.println("riak port = " + args[i]);
                   riakPort = Integer.parseInt(args[i]);
                   break;
+					case "-redis":
+						System.out.println("storageEngine = Redis");
+                  storageEngine = OtiNanai.REDIS;
+						break;
 					default:
-						System.out.println("-wp <webPort> -lp <listenerPort> -wt <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s)> -as <alarmSamples> -at <alarmThreshold> -acs <alarmConsecutiveSamples> -lf <logFile> -ll <logLevel> -riak -bn <bucketName> -rh <riakEndPoint> -rp <riakPort>");
+						System.out.println("-wp <webPort> -lp <listenerPort> -wt <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s)> -as <alarmSamples> -at <alarmThreshold> -acs <alarmConsecutiveSamples> -lf <logFile> -ll <logLevel> -riak -bn <bucketName> -rh <riakEndPoint> -rp <riakPort> -redis");
                   System.exit(0);
 						break;
 				}
@@ -260,7 +264,8 @@ class OtiNanai {
 
 	private Logger logger;
 
-	public static final int STEP1_MAX_SAMPLES = 1440;
+	//public static final int STEP1_MAX_SAMPLES = 20;
+   public static final int STEP1_MAX_SAMPLES = 1440;
 	public static final int STEP1_SAMPLES_TO_MERGE = 10;
 	public static final int STEP2_MAX_SAMPLES = 2880;
 	public static final int STEP2_SAMPLES_TO_MERGE = 6;
@@ -272,6 +277,7 @@ class OtiNanai {
 	public static final short FREQ = 3;
 	public static final short MEM = 1;
 	public static final short RIAK = 2;
+	public static final short REDIS = 3;
 
 	public static int MAX_LOG_OUTPUT=20;
 	public static short GRAPH_FULL=1;
@@ -282,6 +288,7 @@ class OtiNanai {
 	public static short MAXPERPAGE=20;
 
 	public static final int TICKER_INTERVAL = 60000;
+	//public static final int TICKER_INTERVAL = 6000;
 
    public static final short HEADER = 1;
    public static final short ENDHEAD = 2;
@@ -295,5 +302,4 @@ class OtiNanai {
    public static final short GPSCRIPT = 10;
 
    public static final long PREVIEWTIME = 3600000l;
-
 }

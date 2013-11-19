@@ -246,6 +246,11 @@ class MemTracker implements KeyWordTracker {
    public long getCurrentCount() {
       return currentCount;
    }
+
+   public short getType() {
+      return recordType;
+   }
+
 	private long alarm;
 	private String keyWord;
 	private long currentCount;

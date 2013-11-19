@@ -13,6 +13,7 @@ import java.util.concurrent.*;
 import java.util.*;
 import java.util.logging.*;
 
+import redis.clients.jedis.*;
 
 class OtiNanaiListener implements Runnable {
 
@@ -31,7 +32,8 @@ class OtiNanaiListener implements Runnable {
       alarmConsecutiveSamples = acs;
       storageType = st;
       riakBucket = null;
-      riakKeyList = new String("riak_existing_keywords_list");
+      deleteLock = false;
+      rKeyList = new String("existing_keywords_list");
       kwtList = new LLString();
       trackerMap = new HashMap<String, KeyWordTracker>();
 
@@ -68,6 +70,18 @@ class OtiNanaiListener implements Runnable {
             System.exit(1);
          }
          storeKWTList(kwtList);
+      } else if (st == OtiNanai.REDIS) {
+         jedis = new Jedis("localhost");
+         kwtList = new LLString();
+         if (jedis.exists(rKeyList)) {
+            for (String s : jedis.smembers(rKeyList)) {
+               kwtList.add(s);
+            }
+         }
+         for (String kw : kwtList) { 
+            logger.info("[Listener]: Creating new Tracker: "+kw);
+            trackerMap.put(kw, new RedisTracker(kw, as, at, acs, logger));
+         }
       }
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
@@ -132,6 +146,8 @@ class OtiNanaiListener implements Runnable {
             logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
             if (storageType == OtiNanai.RIAK)
                kwt = new RiakTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, riakBucket);
+            else if (storageType == OtiNanai.REDIS)
+               kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
             else
                kwt = new MemTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
          }
@@ -147,7 +163,11 @@ class OtiNanaiListener implements Runnable {
          trackerMap.put(kw, kwt);
          if (!kwtList.contains(kw)) {
             kwtList.add(kw);
-            storeKWTList(kwtList);
+            if (storageType == OtiNanai.REDIS) {
+               jedis.sadd(rKeyList, kw);
+            } else {
+               storeKWTList(kwtList);
+            }
          }
 		}
       
@@ -155,11 +175,11 @@ class OtiNanaiListener implements Runnable {
 
    public LLString getKWTList() {
       logger.info("[Listener]: Trying to get kwtList");
-      if (storageType == OtiNanai.MEM) {
+      if (storageType == OtiNanai.MEM || storageType == OtiNanai.REDIS) {
          return kwtList;
       } else {
          try {
-            kwtList = riakBucket.fetch(riakKeyList, LLString.class).execute();
+            kwtList = riakBucket.fetch(rKeyList, LLString.class).execute();
             if (kwtList == null) {
                kwtList = new LLString();
             }
@@ -175,12 +195,14 @@ class OtiNanaiListener implements Runnable {
       logger.fine("[Listener]: Trying to store kwtList");
       if (storageType == OtiNanai.RIAK) {
          try {
-            riakBucket.store(riakKeyList, toStore).execute();
+            riakBucket.store(rKeyList, toStore).execute();
             logger.fine("[Listener]: kwtList stored on riak");
          } catch (Exception rrfe) {
             logger.severe("[Listener]: Unable to store KWTList\n"+rrfe);
             return false;
          }
+      } else {
+         logger.severe("[Listener]: Cannot Store KWTlist for this storage engine (type: "+storageType+" - Not Implemented)");
       }
       return true;
    }
@@ -191,9 +213,25 @@ class OtiNanaiListener implements Runnable {
 
    public void deleteKWT(String key) {
       logger.info("[Listener]: Deleting data from "+key);
+      while (deleteLock) {
+         try {
+            Thread.sleep(2000l);
+         } catch (InterruptedException ie) {
+            logger.severe("[Listener]: waiting on ticker to delete: "+ie.getStackTrace());
+            break;
+         }
+      }
+      deleteLock = true;
       if (storageType == OtiNanai.MEM) {
          kwtList.remove(key);
          trackerMap.remove(key);
+      } else if (storageType == OtiNanai.REDIS) {
+         KeyWordTracker kwt = getKWT(key);
+         kwtList.remove(key);
+         jedis.srem(rKeyList, key);
+         jedis.del(key);
+         trackerMap.remove(key);
+         kwt.delete();
       } else {
          KeyWordTracker kwt = getKWT(key);
          kwtList = getKWTList();
@@ -202,6 +240,7 @@ class OtiNanaiListener implements Runnable {
          trackerMap.remove(key);
          kwt.delete();
       }
+      deleteLock = false;
    }
 
 	/**
@@ -212,17 +251,25 @@ class OtiNanaiListener implements Runnable {
 	}
 
    public void tick() {
-//      long now=System.currentTimeMillis();
+      while (deleteLock) {
+         try {
+            Thread.sleep(2000l);
+         } catch (InterruptedException ie) {
+            logger.severe("[Listener]: waiting on deletion to tick: "+ie.getStackTrace());
+            break;
+         }
+      }
+      deleteLock=true;
       LLString tempKW = new LLString();
       tempKW.addAll(trackerMap.keySet());
       for (String kw : tempKW) {
          try {
-            //trackerMap.get(kw).tick(now);
             trackerMap.get(kw).tick();
          } catch (NullPointerException npe) {
             logger.severe("[Listener]: Unable to tick "+kw+" (deleted?)\n"+npe);
          }
       }
+      deleteLock=false;
    }
 
    public long getAlarmLife() {
@@ -247,6 +294,8 @@ class OtiNanaiListener implements Runnable {
 	private Logger logger;
    private short storageType;
    private Bucket riakBucket;
-   private String riakKeyList;
+   private String rKeyList;
    private LLString kwtList;
+   private Jedis jedis;
+   private boolean deleteLock;
 }

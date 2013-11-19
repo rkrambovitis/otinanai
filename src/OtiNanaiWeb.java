@@ -46,7 +46,6 @@ class OtiNanaiWeb implements Runnable {
 				}
 				boolean alarms=false;
 				boolean graph=false;
-            boolean timeGraph=false;
             boolean mergeKeyWords=false;
             Path path;
             byte[] data;
@@ -111,26 +110,60 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-   private String toGraph(KeyWordTracker kwt, short type, long time) {
+   private String[] toGraph(KeyWordTracker kwt, short type, long time) {
       logger.finest("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
 		String output = new String("\n");
       SomeRecord sr;
       LinkedList<String> data = new LinkedList<String>();
       data = kwt.getMemory();
       long now=System.currentTimeMillis();
+      double total=0;
+      int samples=0;
+      boolean minMaxSet=false;
+      float val=0.0f;
+      float min=0;
+      float max=0;
+      TreeSet sortedValues = new TreeSet<String>();
       for (String dato : data) {
+         logger.finest("[Web]: Dato is : "+dato);
          String[] twowords = dato.split("\\s");
          if (type != OtiNanai.GRAPH_FULL && (now - Long.parseLong(twowords[0])) > time)
             break;
          output = output + "[" + twowords[0] + "," + twowords[1] + "],\n";
+         samples++;
+         val=Float.parseFloat(twowords[1]);
+         total += val;
+         if (!minMaxSet) {
+            min=val;
+            max=val;
+            minMaxSet=true;
+         } else {
+            if ( val < min ) {
+               min=val;
+            } else if (val > max) {
+               max=val;
+            }
+         }
       }
-      return output;
+      int nfth = (int)(0.95*samples)-1;
+      double mean = 0d;
+      if ( samples != 0 )
+         mean = total / samples;
+      String[] toReturn = new String[4];
+      //toReturn[0]=Double.toString(nfth);
+      //toReturn[0]=String.format("%.3f", sortedValues[nfth]);
+      //sortedValues=null;
+//      toReturn[1]=Double.toString(mean);
+      toReturn[0]=String.format("%.3f", min);
+      toReturn[1]=String.format("%.3f", max);
+      toReturn[2]=String.format("%.3f", mean);
+      toReturn[3]=output;
+      //return output;
+      return toReturn;
    }
 
-   private String timeGraphHeadString(ArrayList<String> keyList, short type, long time) {
-      ArrayList<KeyWordTracker> graphMe = new ArrayList<KeyWordTracker> ();
-//		HashMap<String,OtiNanaiMemory> allKWs = onl.getMemoryMap();
-//      HashMap<String,KeyWordTracker> allKWs = onl.getTrackerMap();
+   private String timeGraph(ArrayList<String> keyList, short type, long time) {
+      ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
       LLString kwtList = onl.getKWTList();
 
       TreeSet<String> sortedKeys = new TreeSet<String>();
@@ -139,14 +172,12 @@ class OtiNanaiWeb implements Runnable {
       for (String key : sortedKeys) {
          key=key.toLowerCase();
          if (kwtList.contains(key)) {
-            graphMe.add(onl.getKWT(key));
+            kws.add(onl.getKWT(key));
          }
       }
-      return timeGraphHead(graphMe, type, time);
-   }
 
-   private String timeGraphHead(ArrayList<KeyWordTracker> kws, short type, long time) {
-      String output = new String("");
+      String output = commonHTML(OtiNanai.HEADER);
+      String body = new String("");
       int i=0;
       output = output + commonHTML(OtiNanai.FLOT);
 
@@ -159,50 +190,49 @@ class OtiNanaiWeb implements Runnable {
          + "var datasets = {\n";
 
       for (KeyWordTracker kwt : kws) {
-         output = output + "\"" + kwt.getKeyWord().replaceAll("\\.","_") + "\": {\n"
-            + "label: \""+kwt.getKeyWord()+" = 000.000 k \",\n";
+         String[] graphData = toGraph(kwt, type, time);
+         String kw = kwt.getKeyWord();
+
+         output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
+            + "label: \""+kw+" = 000.000 k \",\n";
 
          if (type == OtiNanai.GRAPH_MERGED_AXES) 
             output = output + "yaxis: "+ ++i +",\n";
 
          output = output + "data: ["
-            + toGraph(kwt, type, time)
+           // + toGraph(kwt, type, time)
+            + graphData[3]
             + "]},\n\n";
-      }
-      output = output + "};\n"
-         + commonHTML(OtiNanai.ENDJS);
-      return output;
-   }
 
-
-
-   private String timeGraphBody(ArrayList<String> keyWords, short type) {
-      String output = new String();
-      if (keyWords.size() == 0) {
-         return new String("No KeyWords");
-      }
-      TreeSet<String> sortedKeys = new TreeSet<String>();
-      sortedKeys.addAll(keyWords);
-      if (type == OtiNanai.GRAPH_MERGED || type == OtiNanai.GRAPH_MERGED_AXES || type == OtiNanai.GRAPH_FULL) {
-         output = output
-            + "<div>\n"
-            + "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
-            + "</div>\n"
-            + "<div class=\"clearfix\">\n"
-            + "\t<div id=\"overview\" class=\"previewGraph\"></div>\n"
-            + "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
-            + "\t\t<p id=\"choices\"></p>\n"
-            + "\t</div>\n"
-            + "</div>\n";
-      } else {
-         for (String kw : sortedKeys) {
-            output = output 
+         if (type == OtiNanai.GRAPH_MERGED || type == OtiNanai.GRAPH_MERGED_AXES || type == OtiNanai.GRAPH_FULL) {
+            body = body
+               + "<div>\n"
+               + "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
+               + "</div>\n"
+               + "<div class=\"clearfix\">\n"
+               + "\t<div id=\"overview\" class=\"previewGraph\"></div>\n"
+               + "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
+               + "\t\t<p id=\"choices\"></p>\n"
+               + "\t</div>\n"
+               + "</div>\n";
+         } else {
+            body = body 
                + "<div class=\"wrapper clearfix\">\n"
-               + "\t<li><a href = \""+kw+"\">"+kw+"</a></li>\n"
+               + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") min:"+graphData[0]+" max:"+graphData[1]+" mean:"+graphData[2]+"</li>\n"
                + "\t<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n"
                + "</div>\n";
          }
       }
+      output = output + "};\n"
+         + commonHTML(OtiNanai.ENDJS)
+         + commonHTML(OtiNanai.ENDHEAD)
+         + commonHTML(OtiNanai.GPSCRIPT)
+         + body
+         + commonHTML(OtiNanai.ENDBODY);
+
+//      if (keyWords.size() == 0) {
+//         return new String("No KeyWords");
+//      }
       return output;
    }
 
@@ -502,6 +532,7 @@ class OtiNanaiWeb implements Runnable {
       } else if (kws.size() == 1) {
          graphType = OtiNanai.GRAPH_FULL;
       }
+      /*
 		String output = commonHTML(OtiNanai.HEADER) 
          + timeGraphHeadString(kws, graphType, time)
          + commonHTML(OtiNanai.ENDHEAD)
@@ -509,6 +540,8 @@ class OtiNanaiWeb implements Runnable {
          + timeGraphBody(kws, graphType)
          + commonHTML(OtiNanai.ENDBODY);
       return output;
+      */
+      return timeGraph(kws, graphType, time);
 	}
 
    /**
