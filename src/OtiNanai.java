@@ -285,7 +285,7 @@ class OtiNanai {
    public static short GRAPH_MERGED=3;
    public static short GRAPH_MERGED_AXES=4;
 
-	public static short MAXPERPAGE=20;
+	public static short MAXPERPAGE=30;
 
 	public static final int TICKER_INTERVAL = 60000;
 	//public static final int TICKER_INTERVAL = 6000;

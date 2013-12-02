@@ -123,6 +123,7 @@ class OtiNanaiWeb implements Runnable {
       float val=0.0f;
       float min=0;
       float max=0;
+      ArrayList<String> allData = new ArrayList<String>();
       TreeSet sortedValues = new TreeSet<String>();
       for (String dato : data) {
          logger.finest("[Web]: Dato is : "+dato);
@@ -144,12 +145,22 @@ class OtiNanaiWeb implements Runnable {
                max=val;
             }
          }
+         allData.add(twowords[1]);
       }
-      int nfth = (int)(0.95*samples)-1;
+      int nfth = 0;
       double mean = 0d;
-      if ( samples != 0 )
+
+      if ( samples != 0 ) {
          mean = total / samples;
-      String[] toReturn = new String[4];
+         nfth = (int)(0.95*samples)-1;
+         if (nfth < 0)
+            nfth = 0;
+         Collections.sort(allData);
+         //logger.fine("[Web]: 1st:"+allData.get(0)+" last:"+allData.get(samples-1)+" total:"+samples+" 95th:("+nfth+") "+allData.get(nfth));
+      } else {
+         allData.add("0");
+      }
+      String[] toReturn = new String[5];
       //toReturn[0]=Double.toString(nfth);
       //toReturn[0]=String.format("%.3f", sortedValues[nfth]);
       //sortedValues=null;
@@ -158,6 +169,7 @@ class OtiNanaiWeb implements Runnable {
       toReturn[1]=String.format("%.3f", max);
       toReturn[2]=String.format("%.3f", mean);
       toReturn[3]=output;
+      toReturn[4]=allData.get(nfth);
       //return output;
       return toReturn;
    }
@@ -218,7 +230,7 @@ class OtiNanaiWeb implements Runnable {
          } else {
             body = body 
                + "<div class=\"wrapper clearfix\">\n"
-               + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") min:"+graphData[0]+" max:"+graphData[1]+" mean:"+graphData[2]+"</li>\n"
+               + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") min:"+graphData[0]+" max:"+graphData[1]+" mean:"+graphData[2]+" 95th%:"+graphData[4]+"</li>\n"
                + "\t<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n"
                + "</div>\n";
          }
@@ -284,7 +296,8 @@ class OtiNanaiWeb implements Runnable {
          + "<li><a href=\""+oldKeys + " --sa\">Show All (slow) (--sa) "+kws.size()+"</a></li>\n";
          
       for (String key : sortedKeys.keySet()) {
-         output = output + "<li><a href=\""+oldKeys + " +^"+key+"\">"+key+" "+sortedKeys.get(key)+"</a></li>\n";
+         //output = output + "<li><a href=\""+oldKeys + " +^"+key+"\">"+key+" "+sortedKeys.get(key)+"</a></li>\n";
+         output = output + "<li><a href=\"^"+key+"\">"+key+" "+sortedKeys.get(key)+"</a></li>\n";
       }
       output = output + commonHTML(OtiNanai.ENDBODY);
       return output;
@@ -529,9 +542,12 @@ class OtiNanaiWeb implements Runnable {
       if (!showAll && kws.size() > OtiNanai.MAXPERPAGE) {
          logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
          return kwTree(kws, keyList);
+      }
+      /*
       } else if (kws.size() == 1) {
          graphType = OtiNanai.GRAPH_FULL;
       }
+      */
       /*
 		String output = commonHTML(OtiNanai.HEADER) 
          + timeGraphHeadString(kws, graphType, time)
