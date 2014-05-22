@@ -21,7 +21,7 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String riakHost, int riakPort){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String riakRedisHost, int riakPort, String redisKeyWordList){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
@@ -40,11 +40,12 @@ class OtiNanai {
 			logger.config("[Init]: logLevel: "+logLevel);
 			logger.config("[Init]: storageEngine: "+storageEngine);
 			logger.config("[Init]: bucketName: "+bucketName);
-			logger.config("[Init]: riakHost: "+riakHost);
+			logger.config("[Init]: riakRedisHost: "+riakRedisHost);
 			logger.config("[Init]: riakPort: "+riakPort);
+         logger.config("[Init]: redisKeyWordList: "+redisKeyWordList);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, riakHost, riakPort);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList);
 			new Thread(onl).start();
 
          // Ticker
@@ -136,7 +137,8 @@ class OtiNanai {
       String bucketName = new String("OtiNanai");
       String logFile = new String("/var/log/otinanai.log");
       String logLevel = new String("INFO");
-      String riakHost = new String("localhost");
+      String riakRedisHost = new String("localhost");
+      String redisKeyWordList = new String("existing_keywords_list"); 
       int riakPort = 8087;
 		try {
 			for (int i=0; i<args.length; i++) {
@@ -210,8 +212,8 @@ class OtiNanai {
                   break;
                case "-rh":
                   i++;
-                  System.out.println("riak host = " + args[i]);
-                  riakHost = args[i];
+                  System.out.println("riak/redis host = " + args[i]);
+                  riakRedisHost = args[i];
                   break;
                case "-rp":
                   i++;
@@ -222,8 +224,68 @@ class OtiNanai {
 						System.out.println("storageEngine = Redis");
                   storageEngine = OtiNanai.REDIS;
 						break;
+					case "-rdkwlist":
+                  i++;
+                  String sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
+						System.out.println("redisKeyWordList = " + sane);
+                  redisKeyWordList = sane;
+						break;
+					case "-s1samples":
+                  i++;
+						System.out.println("step1Samples = " + args[i]);
+                  STEP1_MAX_SAMPLES = Integer.parseInt(args[i]);
+						break;
+					case "-s1agg":
+                  i++;
+						System.out.println("step1SamplesToMerge = " + args[i]);
+                  STEP1_SAMPLES_TO_MERGE = Integer.parseInt(args[i]);
+						break;
+					case "-s2samples":
+                  i++;
+						System.out.println("step2Samples = " + args[i]);
+                  STEP2_MAX_SAMPLES = Integer.parseInt(args[i]);
+						break;
+					case "-s2agg":
+                  i++;
+						System.out.println("step2SamplesToMerge = " + args[i]);
+                  STEP2_SAMPLES_TO_MERGE = Integer.parseInt(args[i]);
+						break;
+					case "-tick":
+                  i++;
+						System.out.println("TickerInterval (s) = " + args[i]);
+                  TICKER_INTERVAL = 1000*Integer.parseInt(args[i]);
+						break;
+					case "-gpp":
+                  i++;
+						System.out.println("GraphsPerPage = " + args[i]);
+                  MAXPERPAGE = Short.parseShort(args[i]);
+						break;
 					default:
-						System.out.println("-wp <webPort> -lp <listenerPort> -wt <webThreads> -ct <cacheTime (s)> -ci <cacheItems> -al <alarmLife (s)> -as <alarmSamples> -at <alarmThreshold> -acs <alarmConsecutiveSamples> -lf <logFile> -ll <logLevel> -riak -bn <bucketName> -rh <riakEndPoint> -rp <riakPort> -redis");
+						System.out.println(
+                        "-wp <webPort>          : Web Interface Port (default: 9876)\n"
+                        +"-lp <listenerPort>    : UDP listener Port (default: 9876)\n"
+                        +"-wt <webThreads>      : No Idea, probably unused\n"
+                        +"-ct <cacheTime>       : How long (seconds) to cache generated page (default: 120)\n"
+                        +"-ci <cacheItems>      : How many pages to store in cache (default: 50)\n"
+                        +"-al <alarmLife>       : How long (seconds) an alarm state remains (default: 86400)\n"
+                        +"-as <alarmSamples>    : Minimum samples before considering for alarm (default: 20)\n"
+                        +"-at <alarmThreshold>  : Alarm threshold multiplier (how many times above/below average is an alarm) (default: 3.0)\n"
+                        +"-acs <alarmConsecutiveSamples>    : How many consecutive samples above threshold trigger alarm state (default: 3)\n"
+                        +"-gpp <graphsPerPage>  : Max graphs per page (default: 30)\n"
+                        +"-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60)\n"
+                        +"-s1samples <step1Samples>         : Samples to keep before aggregating oldest (default: 1440)\n"
+                        +"-s1agg <step1SamplesToAggregate>  : Samples to aggregate when sample count exceeded (default: 10)\n"
+                        +"-s2samples <step2Samples>         : Aggregated samples to keep before further aggregating oldest (default: 2880)\n"
+                        +"-s2agg <step2SamplesToAggregate>  : Aggregates samples to further aggregate when count exceeded (default: 6)\n"
+                        +"-lf <logFile>         : \n"
+                        +"-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)\n"
+                        +"-redis                : Use redis storage engine (recommended) (default uses volatile memory engine)\n"
+                        +"-riak                 : Use riak storage ending (not recommended)\n"
+                        +"-bn <riakBucketName>  : (default: OtiNanai)\n"
+                        +"-rh <riakOrRedisEndPoint>   : Redis or Riak endpoint (default: localhost)\n"
+                        +"-rp <riakPort>        : (default: 8087)\n"
+                        +"-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)"
+                        );
                   System.exit(0);
 						break;
 				}
@@ -232,7 +294,7 @@ class OtiNanai {
 			System.out.println(e);
 			System.exit(1);
 		}
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, riakHost, riakPort);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList);
 	}
 
 	/**
@@ -265,12 +327,17 @@ class OtiNanai {
 	private Logger logger;
 
 	//public static final int STEP1_MAX_SAMPLES = 20;
-   public static final int STEP1_MAX_SAMPLES = 1440;
-	public static final int STEP1_SAMPLES_TO_MERGE = 10;
-	public static final int STEP2_MAX_SAMPLES = 2880;
-	public static final int STEP2_SAMPLES_TO_MERGE = 6;
+   public static int STEP1_MAX_SAMPLES = 1440;
+	public static int STEP1_SAMPLES_TO_MERGE = 10;
+	public static int STEP2_MAX_SAMPLES = 2880;
+	public static int STEP2_SAMPLES_TO_MERGE = 6;
+	public static int TICKER_INTERVAL = 60000;
+   public static long PREVIEWTIME = 86400000l;
+	public static short MAXPERPAGE=30;
 
-	public static final int MAXSAMPLES = 20;
+	//public static final int MAXSAMPLES = 20;
+	//public static int MAX_LOG_OUTPUT=20;
+
 	public static final short UNSET = 0;
 	public static final short GAUGE = 1;
 	public static final short COUNTER = 2;
@@ -279,16 +346,10 @@ class OtiNanai {
 	public static final short RIAK = 2;
 	public static final short REDIS = 3;
 
-	public static int MAX_LOG_OUTPUT=20;
-	public static short GRAPH_FULL=1;
-	public static short GRAPH_PREVIEW=2;
-   public static short GRAPH_MERGED=3;
-   public static short GRAPH_MERGED_AXES=4;
-
-	public static short MAXPERPAGE=30;
-
-	public static final int TICKER_INTERVAL = 60000;
-	//public static final int TICKER_INTERVAL = 6000;
+	public static final short GRAPH_FULL=1;
+	public static final short GRAPH_PREVIEW=2;
+   public static final short GRAPH_MERGED=3;
+   public static final short GRAPH_MERGED_AXES=4;
 
    public static final short HEADER = 1;
    public static final short ENDHEAD = 2;
@@ -301,5 +362,4 @@ class OtiNanai {
    public static final short ENDJS = 9;
    public static final short GPSCRIPT = 10;
 
-   public static final long PREVIEWTIME = 3600000l;
 }

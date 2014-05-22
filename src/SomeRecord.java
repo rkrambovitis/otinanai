@@ -78,25 +78,36 @@ class SomeRecord {
 	 * @param	str	the data to be broken down
 	 */
 	private void findKeyWords(String str, int min, int max) {
-      str = str.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]", "");
+      str = str.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
       str = str.toLowerCase();
 		String[] tokens = str.split("[ \t]");
       int i=0;
       boolean indexAll = false;
+      String genKW = new String();
       if (tokens[i].equals("index")) {
          indexAll = true;
+         genKW=getHostName();
          i++;
       }
 		for (; i<tokens.length; i++ ) {
 			String tok = tokens[i];
          if (toFloat(tok) == null && isKeyWord(tok, min, max)) {
-            keyWords.add(tok);
-            if (!indexAll)
+            if (!indexAll) {
+               keyWords.add(tok);
                break;
+            }
+            else {
+               if (tok.matches(".*\\d+.*"))
+                  genKW = genKW+".var";
+               else
+                  genKW=genKW+"."+tok;
+            }
 			}
 		}
-		tokens = str.split("\\s");
-		masterKey = tokens[0];
+      if (indexAll) 
+         keyWords.add(genKW);
+		//tokens = str.split("\\s");
+		//masterKey = tokens[0];
 	}
 
    /**
@@ -234,9 +245,9 @@ class SomeRecord {
 	 * This will most likely not be used
 	 * @return the first word of data (could be useful is all data is org.gnome.desktop.wm.raiseOnFocus 0)
 	 */
-	public String getKey() {
-		return masterKey;
-	}
+//	public String getKey() {
+//		return masterKey;
+//	}
 
    /**
     * Access Method
@@ -280,5 +291,5 @@ class SomeRecord {
    private boolean IAmCounter;
 	private String theDate;
 	private ArrayList<String> keyWords;
-	private String masterKey;
+	//private String masterKey;
 }

@@ -24,7 +24,7 @@ class OtiNanaiListener implements Runnable {
     * @param   ps Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, long al, int as, float at, int acs, Logger l, short st, String bucketName, String riakHost, int riakPort) {
+	public OtiNanaiListener(DatagramSocket ds, long al, int as, float at, int acs, Logger l, short st, String bucketName, String riakRedisHost, int riakPort, String redisKeyWordList) {
 		logger = l;
       alarmLife = al;
       alarmSamples = as;
@@ -33,7 +33,8 @@ class OtiNanaiListener implements Runnable {
       storageType = st;
       riakBucket = null;
       deleteLock = false;
-      rKeyList = new String("existing_keywords_list");
+      //rKeyList = new String("existing_keywords_list");
+      rKeyList = redisKeyWordList;
       kwtList = new LLString();
       trackerMap = new HashMap<String, KeyWordTracker>();
 
@@ -41,7 +42,7 @@ class OtiNanaiListener implements Runnable {
          try {
             logger.config("[Listener]: Setting up Riak");
 
-            IRiakClient riakClient = RiakFactory.pbcClient(riakHost, riakPort);
+            IRiakClient riakClient = RiakFactory.pbcClient(riakRedisHost, riakPort);
             //riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).backend("eleveldb").execute();
             riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).execute();
             logger.config("[Listener]: Riak.getAllowSiblings = " + riakBucket.getAllowSiblings());
@@ -71,7 +72,7 @@ class OtiNanaiListener implements Runnable {
          }
          storeKWTList(kwtList);
       } else if (st == OtiNanai.REDIS) {
-         jedis = new Jedis("localhost");
+         jedis = new Jedis(riakRedisHost);
          kwtList = new LLString();
          if (jedis.exists(rKeyList)) {
             for (String s : jedis.smembers(rKeyList)) {
