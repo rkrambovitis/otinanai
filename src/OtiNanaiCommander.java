@@ -3,6 +3,8 @@ package gr.phaistosnetworks.admin.otinanai;
 import java.io.*;
 import java.util.*;
 
+//Another pointless comment
+
 class OtiNanaiCommander implements Runnable {
 	public OtiNanaiCommander(OtiNanaiListener o) {
 		onp = new OtiNanaiProcessor(o);
