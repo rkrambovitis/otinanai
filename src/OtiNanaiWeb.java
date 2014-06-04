@@ -216,18 +216,7 @@ class OtiNanaiWeb implements Runnable {
             + graphData[3]
             + "]},\n\n";
 
-         if (type == OtiNanai.GRAPH_MERGED || type == OtiNanai.GRAPH_MERGED_AXES || type == OtiNanai.GRAPH_FULL) {
-            body = body
-               + "<div>\n"
-               + "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
-               + "</div>\n"
-               + "<div class=\"clearfix\">\n"
-               + "\t<div id=\"overview\" class=\"previewGraph\"></div>\n"
-               + "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
-               + "\t\t<p id=\"choices\"></p>\n"
-               + "\t</div>\n"
-               + "</div>\n";
-         } else {
+         if (type == OtiNanai.GRAPH_PREVIEW) {
             body = body 
                + "<div class=\"wrapper clearfix\">\n"
                + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") min:"+graphData[0]+" max:"+graphData[1]+" mean:"+graphData[2]+" 95th%:"+graphData[4]+"</li>\n"
@@ -235,6 +224,20 @@ class OtiNanaiWeb implements Runnable {
                + "</div>\n";
          }
       }
+
+      if (type != OtiNanai.GRAPH_PREVIEW) {
+         body = body
+            + "<div>\n"
+            + "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
+            + "</div>\n"
+            + "<div class=\"clearfix\">\n"
+            + "\t<div id=\"overview\" class=\"previewGraph\"></div>\n"
+            + "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
+            + "\t\t<p id=\"choices\"></p>\n"
+            + "\t</div>\n"
+            + "</div>\n";
+      }
+
       output = output + "};\n"
          + commonHTML(OtiNanai.ENDJS)
          + commonHTML(OtiNanai.ENDHEAD)
