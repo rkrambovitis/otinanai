@@ -82,3 +82,35 @@ html[xmlns] .clearfix {
 * html .clearfix {
    height: 1%;
 }
+
+/*
+body, html {
+   height: 100%;
+   margin: 0;
+   padding: 0;
+}
+*/
+
+form {
+   margin: 0;
+   padding: 10px 0;
+   text-align: center;
+   background: #eee;
+   border: 2px solid #999;
+}
+form input {
+   font-size: 25px;
+   width: 30em;
+   padding: 3px;
+}
+.section {
+   height: 100%;
+   border: none;
+}
+.section div {
+   padding: 2px;
+   background: #fefefe;
+   height: 100%;
+   padding-left: 0;
+}
+

@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.logging.*;
 import java.text.SimpleDateFormat;
+import java.net.URLDecoder;
 
 
 
@@ -38,7 +39,7 @@ class OtiNanaiWeb implements Runnable {
 				ArrayList<String> results = new ArrayList<String>();
 				try {
 					inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-					requestMessageLine = inFromClient.readLine().replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1", "");
+					requestMessageLine = inFromClient.readLine().replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1|\\?q=", "");
 					logger.fine("[Web]: Got Web request for : \""+requestMessageLine+"\"");
 				} catch (NullPointerException npe) {
 					logger.warning("[Web]: "+npe);
@@ -50,6 +51,7 @@ class OtiNanaiWeb implements Runnable {
             Path path;
             byte[] data;
 				switch (requestMessageLine) {
+               /*
 					case " / ":
 					case "  ":
                   logger.info("[Web]: Sending default webpage");
@@ -57,6 +59,7 @@ class OtiNanaiWeb implements Runnable {
                   data = Files.readAllBytes(path);
                   sendToClient(data, "text/html; charset=utf-8", true, connectionSocket);
 						break;
+                  */
 					case " favicon.ico ":
 					case " otinanai.css ":
                case " otinanai.flot.common.js ":
@@ -80,7 +83,19 @@ class OtiNanaiWeb implements Runnable {
                   }
 						break;
 					default:
-                  String text = showKeyWords(requestMessageLine);
+                  try {
+                     requestMessageLine = URLDecoder.decode(requestMessageLine, "UTF-8");
+                  } catch (UnsupportedEncodingException uee) {
+                     logger.info("[Wdb]: Unsupported encoding");
+                  }
+
+                  requestMessageLine = requestMessageLine.replaceFirst(" ", "");
+
+                  if (requestMessageLine.equals(" ") || requestMessageLine.equals("/ ") )
+                     requestMessageLine = "*";
+
+                  String text = commonHTML(OtiNanai.HEADER) + searchBar(requestMessageLine) + showKeyWords(requestMessageLine);
+
                   logger.fine("[Web]: got text, sending to client");
 						sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket);
 						connectionSocket.close();
@@ -188,10 +203,9 @@ class OtiNanaiWeb implements Runnable {
          }
       }
 
-      String output = commonHTML(OtiNanai.HEADER);
       String body = new String("");
       int i=0;
-      output = output + commonHTML(OtiNanai.FLOT);
+      String output = commonHTML(OtiNanai.FLOT);
 
       if (type == OtiNanai.GRAPH_PREVIEW)
          output = output + commonHTML(OtiNanai.FLOT_PREVIEW);
@@ -241,7 +255,7 @@ class OtiNanaiWeb implements Runnable {
       output = output + "};\n"
          + commonHTML(OtiNanai.ENDJS)
          + commonHTML(OtiNanai.ENDHEAD)
-         + commonHTML(OtiNanai.GPSCRIPT)
+         //+ commonHTML(OtiNanai.GPSCRIPT)
          + body
          + commonHTML(OtiNanai.ENDBODY);
 
@@ -293,9 +307,8 @@ class OtiNanaiWeb implements Runnable {
       }
       oldKeys = oldKeys.substring(0,oldKeys.length()-1);
 
-      String output = commonHTML(OtiNanai.HEADER) 
-         + commonHTML(OtiNanai.ENDHEAD)
-         + commonHTML(OtiNanai.GPSCRIPT)
+      String output = commonHTML(OtiNanai.ENDHEAD)
+         //+ commonHTML(OtiNanai.GPSCRIPT)
          + "<li><a href=\""+oldKeys + " --sa\">Show All (slow) (--sa) "+kws.size()+"</a></li>\n";
          
       for (String key : sortedKeys.keySet()) {
@@ -344,6 +357,30 @@ class OtiNanaiWeb implements Runnable {
       return new String();
    }
 
+
+   private String searchBar(String input) {
+      String searchBar=new String("\n<!-- The search bar -->\n");
+      /*
+      String decInput = new String();
+      try {
+         decInput = URLDecoder.decode(input, "UTF-8");
+      } catch (UnsupportedEncodingException uee) {
+         logger.info("[Web]: Unsupported Input Encoding: ("+input+")");
+         decInput = "";
+      }
+      */
+      searchBar = searchBar 
+         + "<form action=\"/"
+         //+ input
+         + "\" method=\"get\" >\n"
+         + "<input type=\"text\" name=\"q\" id=\"q\" placeholder=\"search\" autofocus value=\""
+         + input
+         + "\" />\n"
+         + "</form>\n"
+         + "<!-- END search bar -->\n\n"
+         + "<script>onload = function () { document.getElementById('q').selectionStart = document.getElementById('q').value.length;}</script>";
+      return searchBar;
+   }
 
 	private String showKeyWords(String input) {
       String op = onc.getCached(input);
