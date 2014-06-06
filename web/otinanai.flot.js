@@ -125,7 +125,7 @@ $(function() {
       plot = $.plot("#placeholder", getData(ranges.xaxis.from, ranges.xaxis.to),
          $.extend(true, {}, options, {
             xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
-         yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+            yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
          })
       );
    });

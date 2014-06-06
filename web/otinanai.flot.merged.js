@@ -79,13 +79,18 @@ $(function() {
       }
       var j,i = 0;
       $.each(datasets, function(key, val) {
-         for (j = 0; j < val.data.length; ++j) {
-            if (val.data[j][0] < pos.x) {
-               break;
+         if (val.data.length <= 2) {
+            //console.log("Not enough data");
+         } else {
+            for (j = 0; j < val.data.length; ++j) {
+               if (val.data[j][0] < pos.x) {
+                  break;
+               }
             }
+            var y = val.data[j][1];
+            temp[i].innerHTML = key + " = " + addSuffix(y);
+            //console.log(i+" "+val.data.length);
          }
-         var y = val.data[j][1];
-         temp[i].innerHTML = key + " = " + addSuffix(y);
          i++;
       });
    };
