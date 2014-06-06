@@ -89,9 +89,9 @@ class OtiNanaiWeb implements Runnable {
                      logger.info("[Wdb]: Unsupported encoding");
                   }
 
-                  requestMessageLine = requestMessageLine.replaceFirst(" ", "");
+                  requestMessageLine = requestMessageLine.replaceFirst(" ", "").substring(0,requestMessageLine.length()-2);
 
-                  if (requestMessageLine.equals(" ") || requestMessageLine.equals("/ ") )
+                  if (requestMessageLine.equals("") || requestMessageLine.equals("/") )
                      requestMessageLine = "*";
 
                   String text = commonHTML(OtiNanai.HEADER) + searchBar(requestMessageLine) + showKeyWords(requestMessageLine);
@@ -113,8 +113,10 @@ class OtiNanaiWeb implements Runnable {
 			outToClient.writeBytes("Content-Type: "+contType+"\r\n");
 			int numOfBytes = dato.length;
 			outToClient.writeBytes("Content-Length: " + numOfBytes + "\r\n");
-			if (cache) 
-				outToClient.writeBytes("Expires: Wed, 31 Dec 2014 23:59:59 GMT\r\n");
+			if (cache) {
+				//outToClient.writeBytes("Expires: Wed, 31 Dec 2014 23:59:59 GMT\r\n");
+            outToClient.writeBytes("Cache-Control: max-age=86400\r\n");
+         }
 			outToClient.writeBytes("\r\n");
 			outToClient.write(dato, 0, numOfBytes);
 			connectionSocket.close();
@@ -385,9 +387,10 @@ class OtiNanaiWeb implements Runnable {
 	private String showKeyWords(String input) {
       String op = onc.getCached(input);
       if (op != null) {
-         logger.fine("[Web]: Cached");
+         logger.info("[Web]: cached: \"" + input + "\"");
          return op;
-      }
+      } else
+         logger.info("[Web]: Not cached: \"" + input + "\"");
 
       String [] keyList = input.split("[ ,]|%20");
       logger.fine("[Web]: Searching for keywords");
@@ -478,7 +481,7 @@ class OtiNanaiWeb implements Runnable {
          if (lastChar.equals("$"))
             endsWithKW = true;
 
-         logger.info("[Web]: removeKW: "+removeKW+" exclusiveKW: "+exclusiveKW+ " startsWithKW: "+startsWithKW+" endsWithKW: "+endsWithKW);
+         logger.fine("[Web]: removeKW: "+removeKW+" exclusiveKW: "+exclusiveKW+ " startsWithKW: "+startsWithKW+" endsWithKW: "+endsWithKW);
          ArrayList<String> kwsClone = new ArrayList<String>();
 
          kwsClone.addAll(kws);
@@ -597,7 +600,9 @@ class OtiNanaiWeb implements Runnable {
          + commonHTML(OtiNanai.ENDBODY);
       return output;
       */
-      return timeGraph(kws, graphType, time);
+      op  = timeGraph(kws, graphType, time);
+      onc.cache(input, op);
+      return op;
 	}
 
    /**
