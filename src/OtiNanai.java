@@ -21,7 +21,7 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String riakRedisHost, int riakPort, String redisKeyWordList){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String riakRedisHost, int riakPort, String redisKeyWordList, String redisSavedQueries){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
@@ -43,9 +43,10 @@ class OtiNanai {
 			logger.config("[Init]: riakRedisHost: "+riakRedisHost);
 			logger.config("[Init]: riakPort: "+riakPort);
          logger.config("[Init]: redisKeyWordList: "+redisKeyWordList);
+         logger.config("[Init]: redisSavedQueries: "+redisSavedQueries);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList, redisSavedQueries);
 			new Thread(onl).start();
 
          // Ticker
@@ -139,6 +140,8 @@ class OtiNanai {
       String logLevel = new String("INFO");
       String riakRedisHost = new String("localhost");
       String redisKeyWordList = new String("existing_keywords_list"); 
+      String redisSavedQueries = new String("saved_queries_list");
+      String sane = new String();
       int riakPort = 8087;
 		try {
 			for (int i=0; i<args.length; i++) {
@@ -226,9 +229,15 @@ class OtiNanai {
 						break;
 					case "-rdkwlist":
                   i++;
-                  String sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
+                  sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
 						System.out.println("redisKeyWordList = " + sane);
                   redisKeyWordList = sane;
+						break;
+					case "-rdsvq":
+                  i++;
+                  sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
+						System.out.println("redisSavedQueries = " + sane);
+                  redisSavedQueries = sane;
 						break;
 					case "-s1samples":
                   i++;
@@ -284,7 +293,8 @@ class OtiNanai {
                         +"-bn <riakBucketName>  : (default: OtiNanai)\n"
                         +"-rh <riakOrRedisEndPoint>   : Redis or Riak endpoint (default: localhost)\n"
                         +"-rp <riakPort>        : (default: 8087)\n"
-                        +"-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)"
+                        +"-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)\n"
+                        +"-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)"
                         );
                   System.exit(0);
 						break;
@@ -294,7 +304,7 @@ class OtiNanai {
 			System.out.println(e);
 			System.exit(1);
 		}
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList, redisSavedQueries);
 	}
 
 	/**

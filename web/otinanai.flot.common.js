@@ -14,7 +14,7 @@ function addSuffix(number) {
       suffix = "k";
       result = number / 1000;
    }
-   return result.toFixed(2)+suffix;
+   return result.toFixed(1)+suffix;
 };
 
 

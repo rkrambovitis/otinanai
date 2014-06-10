@@ -235,7 +235,17 @@ class OtiNanaiWeb implements Runnable {
          if (type == OtiNanai.GRAPH_PREVIEW) {
             body = body 
                + "<div class=\"wrapper clearfix\">\n"
-               + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") min:"+graphData[0]+" max:"+graphData[1]+" mean:"+graphData[2]+" 95th%:"+graphData[4]+"</li>\n"
+               //+ "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") min:"+graphData[0]+" max:"+graphData[1]+" mean:"+graphData[2]+" 95th%:"+graphData[4]+"</li>\n"
+               + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") "
+               + "<script>"
+               + "document.write("
+               + "\"min:\" + addSuffix("+graphData[0]+")"
+               + "+\" max:\" + addSuffix("+graphData[1]+")"
+               + "+\" mean:\" + addSuffix("+graphData[2]+")"
+               + "+\" 95%:\"+ addSuffix("+graphData[4]+")"
+               + ");"
+               + "</script>"
+               + "</li>\n"
                + "\t<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n"
                + "</div>\n";
          }
@@ -453,6 +463,9 @@ class OtiNanaiWeb implements Runnable {
                matched = true;
                logger.info("[Web]: Showing Alarms");
                break;
+            case "--store":
+               logger.info("[Web]: Storing query");
+               return storeQuery(input);
          }
          if (matched)
             continue;
@@ -604,6 +617,14 @@ class OtiNanaiWeb implements Runnable {
       onc.cache(input, op);
       return op;
 	}
+
+   private String storeQuery(String input) {
+      String output = new String("Storing...: <br/>\n");
+      output = output 
+         + input.replaceAll(" --store","")
+         + commonHTML(OtiNanai.ENDBODY);
+      return output;
+   }
 
    /**
     * Changes milliseconds into date with format: MM/dd/YY HH:mm:ss

@@ -75,7 +75,11 @@ $(function() {
          suffix = "k";
          result = number / 1000;
       }
-      return result.toFixed(2)+suffix;
+      return result.toFixed(1)+suffix;
+   };
+
+   function addSuffix(number, axis) {
+      return addSuffix(number);
    };
 
    $("#placeholder").bind("plothover",  function (event, pos, item) {
