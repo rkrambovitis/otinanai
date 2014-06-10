@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.logging.*;
 import java.text.SimpleDateFormat;
 import java.net.URLDecoder;
+import java.util.zip.Deflater;
 
 
 
@@ -34,33 +35,40 @@ class OtiNanaiWeb implements Runnable {
 		try {
 			BufferedReader inFromClient;
 			String requestMessageLine;
+         String query = new String("*");
+         boolean gzip = false;
 			while (true) {
 				Socket connectionSocket = listenSocket.accept();
 				ArrayList<String> results = new ArrayList<String>();
 				try {
 					inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-					requestMessageLine = inFromClient.readLine().replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1|\\?q=", "");
-					logger.fine("[Web]: Got Web request for : \""+requestMessageLine+"\"");
+               requestMessageLine = inFromClient.readLine();
+					while (requestMessageLine != null && !requestMessageLine.equals("")) {
+                  if (requestMessageLine.startsWith("GET ")) {
+                     query=requestMessageLine.replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1|\\?q=", "");
+                     logger.info("[Web]: GET: \"" + query + "\"");
+                  } else if (requestMessageLine.startsWith("Accept-Encoding:")) {
+                     if (requestMessageLine.toLowerCase().contains("gzip"))
+                        gzip = true;
+                     logger.info("[Web]: gzip? " + gzip + " ("+ requestMessageLine.replaceAll("Accept-Encoding: ", "") +" )");
+                  }
+                  else {
+                     logger.fine("[Web]: Ignoring: " + requestMessageLine);
+                  }
+                  requestMessageLine = inFromClient.readLine();
+               }
 				} catch (NullPointerException npe) {
 					logger.warning("[Web]: "+npe);
-					continue;
+					//continue;
 				}
+            logger.warning("[Web]: about to switch");
 				boolean alarms=false;
 				boolean graph=false;
             boolean mergeKeyWords=false;
             Path path;
             byte[] data;
-				switch (requestMessageLine) {
-               /*
-					case " / ":
-					case "  ":
-                  logger.info("[Web]: Sending default webpage");
-                  path = Paths.get("web/index.html");
-                  data = Files.readAllBytes(path);
-                  sendToClient(data, "text/html; charset=utf-8", true, connectionSocket);
-						break;
-                  */
-					case " favicon.ico ":
+				switch (query) {
+               case " favicon.ico ":
 					case " otinanai.css ":
                case " otinanai.flot.common.js ":
                case " otinanai.flot.merged.js ":
@@ -70,35 +78,35 @@ class OtiNanaiWeb implements Runnable {
 					case " jquery.flot.time.js ":
 					case " jquery.flot.crosshair.js ":
                case " jquery.flot.selection.js ":
-                  String noSpaces = requestMessageLine.replaceAll(" ","");
+                  String noSpaces = query.replaceAll(" ","");
                   logger.info("[Web]: Sending "+noSpaces);
 						path = Paths.get("web/"+noSpaces);
 						data = Files.readAllBytes(path);
                   if (noSpaces.endsWith(".ico")) {
-                     sendToClient(data, "image/x-icon", true, connectionSocket);
+                     sendToClient(data, "image/x-icon", true, connectionSocket, gzip);
                   } else if (noSpaces.endsWith(".css")) {
-                     sendToClient(data, "text/css", true, connectionSocket);
+                     sendToClient(data, "text/css", true, connectionSocket, gzip);
                   } else if (noSpaces.endsWith(".js")) {
-                     sendToClient(data, "application/x-javascript", true, connectionSocket);
+                     sendToClient(data, "application/x-javascript", true, connectionSocket, gzip);
                   }
 						break;
 					default:
                   try {
-                     requestMessageLine = URLDecoder.decode(requestMessageLine, "UTF-8");
+                     query = URLDecoder.decode(query, "UTF-8");
                   } catch (UnsupportedEncodingException uee) {
-                     logger.info("[Wdb]: Unsupported encoding");
+                     logger.info("[Web]: Unsupported encoding");
                   }
 
-                  requestMessageLine = requestMessageLine.replaceFirst(" ", "").substring(0,requestMessageLine.length()-2);
+                  query = query.replaceFirst(" ", "").substring(0,query.length()-2);
 
-                  if (requestMessageLine.equals("") || requestMessageLine.equals("/") )
-                     requestMessageLine = "*";
+                  if (query.equals("") || query.equals("/") )
+                     query = "*";
 
-                  String text = commonHTML(OtiNanai.HEADER) + searchBar(requestMessageLine) + showKeyWords(requestMessageLine);
+                  String text = commonHTML(OtiNanai.HEADER) + searchBar(query) + showKeyWords(query);
 
                   logger.fine("[Web]: got text, sending to client");
-						sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket);
-						connectionSocket.close();
+						sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket, gzip);
+						//connectionSocket.close();
 				}
 			}
 		} catch (IOException ioe) {
@@ -106,9 +114,11 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
+/*
 	private boolean sendToClient(byte[] dato, String contType, boolean cache, Socket connectionSocket) {
 		try {
-			DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+			DataOutputStream dos = new DataOutputStream(connectionSocket.getOutputStream());
+         GZIPOutputStream outToClient = new GZIPOutputStream(dos);
 			outToClient.writeBytes("HTTP/1.1 200 OK\r\n");
 			outToClient.writeBytes("Content-Type: "+contType+"\r\n");
 			int numOfBytes = dato.length;
@@ -119,6 +129,41 @@ class OtiNanaiWeb implements Runnable {
          }
 			outToClient.writeBytes("\r\n");
 			outToClient.write(dato, 0, numOfBytes);
+         outToClient.flush();
+			connectionSocket.close();
+			return true;
+		} catch (IOException ioe) {
+			logger.severe("[Web]: "+ioe);
+			return false;
+		}
+	}
+*/
+	private boolean sendToClient(byte[] dato, String contType, boolean cache, Socket connectionSocket, boolean gzip) {
+      //logger.warning("[Web]: SendToClient: "+ dato + "gzip? :" + gzip);
+		try {
+			DataOutputStream dos = new DataOutputStream(connectionSocket.getOutputStream());
+			dos.writeBytes("HTTP/1.1 200 OK\r\n");
+			dos.writeBytes("Content-Type: "+contType+"\r\n");
+			//int numOfBytes = dato.length;
+			if (cache) {
+				//outToClient.writeBytes("Expires: Wed, 31 Dec 2014 23:59:59 GMT\r\n");
+            dos.writeBytes("Cache-Control: max-age=86400\r\n");
+         }
+
+         if (gzip) {
+            dos.writeBytes("Content-Encoding: deflate\r\n");
+            Deflater compressor = new Deflater(Deflater.BEST_SPEED);
+            compressor.setInput(dato);
+            compressor.finish();
+            byte[] littleDato = new byte[dato.length];
+            int contentLength = compressor.deflate(littleDato);
+            dos.writeBytes("Content-Length: " + contentLength + "\r\n\r\n");
+            dos.write(littleDato, 0, contentLength);
+         } else {
+            dos.writeBytes("Content-Length: " + dato.length + "\r\n\r\n");
+            dos.write(dato, 0, dato.length);
+         }
+
 			connectionSocket.close();
 			return true;
 		} catch (IOException ioe) {
@@ -129,7 +174,8 @@ class OtiNanaiWeb implements Runnable {
 
    private String[] toGraph(KeyWordTracker kwt, short type, long time) {
       logger.finest("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
-		String output = new String("\n");
+		//String output = new String("\n");
+      StringBuilder output = new StringBuilder("\n");
       SomeRecord sr;
       LinkedList<String> data = new LinkedList<String>();
       data = kwt.getMemory();
@@ -147,7 +193,9 @@ class OtiNanaiWeb implements Runnable {
          String[] twowords = dato.split("\\s");
          if (type != OtiNanai.GRAPH_FULL && (now - Long.parseLong(twowords[0])) > time)
             break;
-         output = output + "[" + twowords[0] + "," + twowords[1] + "],\n";
+         //output = output.concat("[").concat(twowords[0]).concat(",").concat( twowords[1]).concat("],\n");
+         output = output.append("[").append(twowords[0]).append(",").append( twowords[1]).append("],\n");
+         //output = output + "[" +twowords[0] + "," + twowords[1] + "],\n";
          samples++;
          val=Float.parseFloat(twowords[1]);
          total += val;
@@ -185,7 +233,7 @@ class OtiNanaiWeb implements Runnable {
       toReturn[0]=String.format("%.3f", min);
       toReturn[1]=String.format("%.3f", max);
       toReturn[2]=String.format("%.3f", mean);
-      toReturn[3]=output;
+      toReturn[3]=output.toString();
       toReturn[4]=allData.get(nfth);
       //return output;
       return toReturn;
