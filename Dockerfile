@@ -1,5 +1,5 @@
 FROM base
-MAINTAINER Robert J. Krambovitis "Robert@split.gr"
+MAINTAINER Robert J. Krambovitis "rkrambovitis@gmail.com"
 
 RUN apt-get update
 RUN apt-get install -y openjdk-7-jre-headless
