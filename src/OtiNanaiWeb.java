@@ -12,7 +12,7 @@ import java.net.URLDecoder;
 import java.util.zip.Deflater;
 
 
-
+// random comment
 class OtiNanaiWeb implements Runnable {
 	public OtiNanaiWeb(OtiNanaiListener o, int lp, Logger l) throws IOException {
 		onl = o;
