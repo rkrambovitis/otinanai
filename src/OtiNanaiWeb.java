@@ -98,7 +98,7 @@ class OtiNanaiWeb implements Runnable {
                   }
 
                   query = query.replaceFirst(" ", "");
-                  if (query.length >= 2 )
+                  if (query.length() >= 2 )
                      query = query.substring(0,query.length()-2);
 
 
