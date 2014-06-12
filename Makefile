@@ -1,5 +1,5 @@
 SRC= src
-DST= gr/phaistosnetworks/admin/otinanai
+DST= /home/robert/gr/phaistosnetworks/admin/otinanai
 
 all:
 	cd $(SRC) && make ;
