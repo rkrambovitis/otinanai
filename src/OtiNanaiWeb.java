@@ -97,9 +97,10 @@ class OtiNanaiWeb implements Runnable {
                      logger.info("[Web]: Unsupported encoding");
                   }
 
+                  //logger.warning("[Web]: "+query.length()+" \""+query+"\"");
                   query = query.replaceFirst(" ", "");
-                  if (query.length() >= 2 )
-                     query = query.substring(0,query.length()-2);
+                  if (query.length() >= 1 )
+                     query = query.substring(0,query.length()-1);
 
 
                   if (query.equals("") || query.equals("/") )
