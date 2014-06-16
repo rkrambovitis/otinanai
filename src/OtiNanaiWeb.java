@@ -308,8 +308,10 @@ class OtiNanaiWeb implements Runnable {
             + "<div>\n"
             + "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
             + "</div>\n"
+            /*
             + "<div class=\"clearfix\">\n"
             + "\t<div id=\"overview\" class=\"previewGraph\"></div>\n"
+            */
             + "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
             + "\t\t<p id=\"choices\"></p>\n"
             + "\t</div>\n"

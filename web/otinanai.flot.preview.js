@@ -3,7 +3,7 @@ $(function() {
    var updateLegendTimeout = null;
    var latestPosition = null;
    var myPlot = null;
-
+   var handles = {};
    var xmin = null;
    var xmax = null;
    $.each(datasets, function(key) {
@@ -17,35 +17,25 @@ $(function() {
          xmax = null;
          drawGraphs();
       });
-      /*
-      $("#"+key).bind("plothover",  function (event, pos, item) {
+      $("#"+key).bind("plothover",  function (event, pos) {
+         //debugger;
 	      latestPosition = pos;
 	      if (!updateLegendTimeout) {
 		      updateLegendTimeout = setTimeout(updateLegend(key), 50);
+		   //   updateLegend(key);
 	      }
+         updateLegendTimeout = null;
       });
-      */
    });
-/*
-   $("#"+key+".legeldLabel").css('width', $("#"+key+".legeldLabel").width());
-   var legends = $("#"+key+".legendLabel");
 
-   legends.each(function () {
-      $(this).css('width', $(this).width());
-   });
-   */
-
-
-/*
-   function updateLegend(foo) {
-      var temp = $("#"+foo+".legendLabel");
-      updateLegendTimeout = null;
+   function updateLegend(key) {
+      //console.log(key);
       var pos = latestPosition;
-      var axes = $("#"+foo).getAxes();
+      var axes = handles[key].getAxes();
       if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
          return;
       }
-      var j,i = 0;
+      var j = 0;
       $.each(datasets, function(key, val) {
          for (j = 0; j < val.data.length; ++j) {
             if (val.data[j][0] < pos.x) {
@@ -53,25 +43,23 @@ $(function() {
             }
          }
          var y = val.data[j][1];
-         temp[i].innerHTML = key + " = " + addSuffix(y);
-         i++;
+         $("#"+key+" .legendLabel").text(key + " = " + addSuffix(y));
       });
    };
-   */
 
    function drawGraphs() {
       $.each(datasets, function(key, val) {
-         myPlot=$.plot("#"+key, [val.data], {
-            legend: { position: "nw", show: true },
-            xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max: xmax},
-            series: { lines: {show: true, fill: true}},
+         handles[key] =$.plot($("#"+key), [val], {
+            xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max: xmax },
+            legend: { show: "true", position: "nw" },
+            series: { lines: {show: true, fill: false}},
             crosshair: { mode: "x"},
-            yaxis: {show: true, min: null, tickFormatter: addSuffix},
+            yaxis: { show: true, tickFormatter: addSuffix, min: null, max: null },
             grid: { hoverable: true, autoHighlight: false, clickable: true},
             selection: { mode: "x" }
          });
       });
-   }
+   };
 
    drawGraphs();
 });

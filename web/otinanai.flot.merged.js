@@ -38,6 +38,7 @@ $(function() {
       plotAccordingToChoices();
    });
 
+   /*
    $("#overview").bind("plotselected", function (event, ranges) {
       xmin = ranges.xaxis.from;
       xmax = ranges.xaxis.to;
@@ -45,6 +46,7 @@ $(function() {
       ymax = ranges.yaxis.to;
       plotAccordingToChoices();
    });
+   */
 
    $("#placeholder").bind("plotunselected", function (event, ranges) {
       xmin = null;
@@ -54,6 +56,7 @@ $(function() {
       plotAccordingToChoices();
    });
 
+   /*
    $("#overview").bind("plotunselected", function (event, ranges) {
       xmin = null;
       xmax = null;
@@ -61,6 +64,7 @@ $(function() {
       ymax = null;
       plotAccordingToChoices();
    });
+   */
 
    $("#placeholder").bind("plothover",  function (event, pos, item) {
       latestPosition = pos;
@@ -103,11 +107,12 @@ $(function() {
             legend: { position: "nw", show: "true" },
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max:xmax},
             yaxis: {show: false, min: ymin, max: ymax},
-            series: { lines: {show: true, fill: true}},
+            series: { lines: {show: true, fill: false}},
             crosshair: { mode: "x"},
             grid: { hoverable: true, autoHighlight: false},
             selection: { mode: "xy" }
          });
+         /*
          myOverview=$.plot("#overview", data, {
             legend: { show: false},
             series: { lines: {show: true, lineWidth: 1 }, shadowSize: 0 },
@@ -116,6 +121,7 @@ $(function() {
             grid: {color: "#999" },
             selection: { mode: "xy" }
          });
+         */
       }
    }
 
