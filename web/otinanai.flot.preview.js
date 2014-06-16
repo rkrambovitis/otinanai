@@ -37,13 +37,16 @@ $(function() {
       }
       var j = 0;
       $.each(datasets, function(key, val) {
-         for (j = 0; j < val.data.length; ++j) {
-            if (val.data[j][0] < pos.x) {
-               break;
+         if (val.data.length <= 2) {
+         } else {
+            for (j = 0; j < val.data.length; ++j) {
+               if (val.data[j][0] < pos.x) {
+                  break;
+               }
             }
+            var y = val.data[j][1];
+            $("#"+key+" .legendLabel").text(key + " = " + addSuffix(y));
          }
-         var y = val.data[j][1];
-         $("#"+key+" .legendLabel").text(key + " = " + addSuffix(y));
       });
    };
 
