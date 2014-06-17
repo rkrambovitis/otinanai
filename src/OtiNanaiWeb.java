@@ -76,14 +76,18 @@ class OtiNanaiWeb implements Runnable {
 					case " jquery.js ":
 					case " jquery.min.js ":
 					case " jquery.flot.min.js ":
+					case " jquery.flot.js ":
 					case " jquery.flot.time.min.js ":
+					case " jquery.flot.time.js ":
 					case " jquery.flot.crosshair.min.js ":
+					case " jquery.flot.crosshair.js ":
                case " jquery.gridster.min.js ":
                case " jquery.gridster.js ":
                case " jquery.gridster.css ":
-               case " jquery.flot.resize.js ":
                case " jquery.flot.resize.min.js ":
+               case " jquery.flot.resize.js ":
                case " jquery.flot.selection.min.js ":
+               case " jquery.flot.selection.js ":
                case " raphael.min.js ":
                case " raphael.js ":
                case " justgage.min.js ":
@@ -117,7 +121,7 @@ class OtiNanaiWeb implements Runnable {
                      query = "*";
 
                   boolean cache = true;
-                  if (query.contains("--nc") || query.contains("--no-cache"))
+                  if (query.contains("--nc") || query.contains("--no-cache") || query.contains("--gauge") || query.contains("--dash"))
                      cache = false;
 
                   String text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query) + showKeyWords(query, cache);
@@ -201,11 +205,11 @@ class OtiNanaiWeb implements Runnable {
       double total=0;
       int samples=0;
       boolean minMaxSet=false;
-      boolean lastSet = false;
       float val=0.0f;
       float min=0;
       float max=0;
-      float last=0;
+      boolean lastSet = false;
+      String last = new String();
       ArrayList<String> allData = new ArrayList<String>();
       TreeSet sortedValues = new TreeSet<String>();
       for (String dato : data) {
@@ -219,9 +223,11 @@ class OtiNanaiWeb implements Runnable {
             output = output.append("[").append(twowords[0]).append(",").append( twowords[1]).append("],\n");
          samples++;
          val=Float.parseFloat(twowords[1]);
+         if (!lastSet) {
+            last = twowords[1];
+            lastSet = true;
+         }
          total += val;
-         if (!lastSet)
-            last=val;
          if (!minMaxSet) {
             min=val;
             max=val;
@@ -258,7 +264,7 @@ class OtiNanaiWeb implements Runnable {
       toReturn[2]=String.format("%.3f", mean);
       toReturn[3]=output.toString();
       toReturn[4]=allData.get(nfth);
-      toReturn[5]=String.format("%.3f", last);
+      toReturn[5]=last;
       //return output;
       return toReturn;
    }
@@ -292,9 +298,9 @@ class OtiNanaiWeb implements Runnable {
                + "<script>\n"
                + "\tvar "+kw+" = new JustGage({\n"
                + "\t\tid: \""+kw+"\",\n"
+               + "\t\tvalue: "+graphData[5]+",\n"
                + "\t\tmin: "+graphData[0]+",\n"
                + "\t\tmax: "+graphData[1]+",\n"
-               + "\t\tvalue: "+graphData[5]+",\n"
                + "\t\ttitle: \""+kw+"\",\n"
                + "\t\tlabel: \"\",\n"
                + "\t\tlevelColorsGradient: true\n"
