@@ -77,6 +77,8 @@ class OtiNanaiWeb implements Runnable {
 					case " jquery.flot.js ":
 					case " jquery.flot.time.js ":
 					case " jquery.flot.crosshair.js ":
+               case " jquery.gridster.min.js ":
+               case " jquery.gridster.css ":
                case " jquery.flot.selection.js ":
                   String noSpaces = query.replaceAll(" ","");
                   logger.info("[Web]: Sending "+noSpaces);
@@ -106,7 +108,11 @@ class OtiNanaiWeb implements Runnable {
                   if (query.equals("") || query.equals("/") )
                      query = "*";
 
-                  String text = commonHTML(OtiNanai.HEADER) + searchBar(query) + showKeyWords(query);
+                  boolean cache = true;
+                  if (query.contains("--nc") || query.contains("--no-cache"))
+                     cache = false;
+
+                  String text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query) + showKeyWords(query, cache);
 
                   logger.fine("[Web]: got text, sending to client");
 						sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket, gzip);
@@ -287,7 +293,6 @@ class OtiNanaiWeb implements Runnable {
          if (type == OtiNanai.GRAPH_PREVIEW) {
             body = body 
                + "<div class=\"wrapper clearfix\">\n"
-               //+ "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") min:"+graphData[0]+" max:"+graphData[1]+" mean:"+graphData[2]+" 95th%:"+graphData[4]+"</li>\n"
                + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") "
                + "<script>"
                + "document.write("
@@ -387,8 +392,9 @@ class OtiNanaiWeb implements Runnable {
    
    private String commonHTML(short out) {
       if (out == OtiNanai.HEADER) {
-         String op = new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n");
-         op = op + "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>";
+         String op = new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+//            + "<link rel=\"stylesheet\" type=\"text/css\" href=\"jquery.gridster.css\" />\n"
+               + "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n");
          return op;
       } else if (out == OtiNanai.GOOGLE) {
          return new String("<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n");
@@ -409,6 +415,7 @@ class OtiNanaiWeb implements Runnable {
             + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.js\"></script>\n"
             + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.js\"></script>\n"
             + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.js\"></script>\n"
+            //+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.gridster.min.js\"></script>\n"
             + "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.common.js\"></script>\n";
          return op;
       } else if (out == OtiNanai.FLOT_MERGED) {
@@ -425,6 +432,9 @@ class OtiNanaiWeb implements Runnable {
 
 
    private String searchBar(String input) {
+      if (input.contains("--no-search") || input.contains("--no-bar") || input.contains("--ns") || input.contains("--nb")) {
+         return new String();
+      }
       String searchBar=new String("\n<!-- The search bar -->\n");
       /*
       String decInput = new String();
@@ -448,9 +458,15 @@ class OtiNanaiWeb implements Runnable {
       return searchBar;
    }
 
-	private String showKeyWords(String input) {
+   private String webTitle(String search) {
+      return new String("<title>OtiNanai Graphs|" + search+"</title>\n");
+   }
+
+	private String showKeyWords(String input, boolean cache) {
       String op = onc.getCached(input);
-      if (op != null) {
+      if (!cache) {
+         logger.info("[Web]: non-cached result requested");
+      } else if (op != null) {
          logger.info("[Web]: cached: \"" + input + "\"");
          return op;
       } else
@@ -507,6 +523,8 @@ class OtiNanaiWeb implements Runnable {
                matched = true;
                break;
             case "--ma":
+            case "--merge-axis":
+            case "--merge-axes":
             case "--am":
                graphType = OtiNanai.GRAPH_MERGED_AXES;
                matched = true;
