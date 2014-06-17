@@ -30,10 +30,16 @@ body, html {
 .previewGraph {
    width: 100%;
    float: center;
-   height: 120px;
+   height: 160px;
    border-bottom: 1px solid #ccc;
    padding-bottom: 15px;
    margin-bottom: 10px;
+}
+
+.gage {
+   width: 240px;
+   height: 160px;
+   float: left;
 }
 .checkList {
    width: 100%;
@@ -100,7 +106,7 @@ form {
 }
 form input {
    font-size: 25px;
-   width: 30em;
+   width: 80%;
    padding: 3px;
 }
 .section {

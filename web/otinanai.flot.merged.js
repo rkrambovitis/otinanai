@@ -32,9 +32,8 @@ $(function() {
    $("#placeholder").bind("plotselected", function (event, ranges) {
       xmin = ranges.xaxis.from;
       xmax = ranges.xaxis.to;
-      ymin = ranges.yaxis.from;
-      ymax = ranges.yaxis.to;
-      myOverview.setSelection(ranges, true);
+//   ymin = ranges.yaxis.from;
+//     ymax = ranges.yaxis.to;
       plotAccordingToChoices();
    });
 
@@ -110,7 +109,7 @@ $(function() {
             series: { lines: {show: true, fill: false}},
             crosshair: { mode: "x"},
             grid: { hoverable: true, autoHighlight: false},
-            selection: { mode: "xy" }
+            selection: { mode: "x" }
          });
          /*
          myOverview=$.plot("#overview", data, {

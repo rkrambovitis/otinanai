@@ -74,12 +74,20 @@ class OtiNanaiWeb implements Runnable {
                case " otinanai.flot.merged.js ":
                case " otinanai.flot.preview.js ":
 					case " jquery.js ":
-					case " jquery.flot.js ":
-					case " jquery.flot.time.js ":
-					case " jquery.flot.crosshair.js ":
+					case " jquery.min.js ":
+					case " jquery.flot.min.js ":
+					case " jquery.flot.time.min.js ":
+					case " jquery.flot.crosshair.min.js ":
                case " jquery.gridster.min.js ":
+               case " jquery.gridster.js ":
                case " jquery.gridster.css ":
-               case " jquery.flot.selection.js ":
+               case " jquery.flot.resize.js ":
+               case " jquery.flot.resize.min.js ":
+               case " jquery.flot.selection.min.js ":
+               case " raphael.min.js ":
+               case " raphael.js ":
+               case " justgage.min.js ":
+               case " justgage.js ":
                   String noSpaces = query.replaceAll(" ","");
                   logger.info("[Web]: Sending "+noSpaces);
 						path = Paths.get("web/"+noSpaces);
@@ -193,9 +201,11 @@ class OtiNanaiWeb implements Runnable {
       double total=0;
       int samples=0;
       boolean minMaxSet=false;
+      boolean lastSet = false;
       float val=0.0f;
       float min=0;
       float max=0;
+      float last=0;
       ArrayList<String> allData = new ArrayList<String>();
       TreeSet sortedValues = new TreeSet<String>();
       for (String dato : data) {
@@ -204,11 +214,14 @@ class OtiNanaiWeb implements Runnable {
          if (type != OtiNanai.GRAPH_FULL && (now - Long.parseLong(twowords[0])) > time)
             break;
          //output = output.concat("[").concat(twowords[0]).concat(",").concat( twowords[1]).concat("],\n");
-         output = output.append("[").append(twowords[0]).append(",").append( twowords[1]).append("],\n");
          //output = output + "[" +twowords[0] + "," + twowords[1] + "],\n";
+         if (type != OtiNanai.GAGE)
+            output = output.append("[").append(twowords[0]).append(",").append( twowords[1]).append("],\n");
          samples++;
          val=Float.parseFloat(twowords[1]);
          total += val;
+         if (!lastSet)
+            last=val;
          if (!minMaxSet) {
             min=val;
             max=val;
@@ -235,7 +248,7 @@ class OtiNanaiWeb implements Runnable {
       } else {
          allData.add("0");
       }
-      String[] toReturn = new String[5];
+      String[] toReturn = new String[6];
       //toReturn[0]=Double.toString(nfth);
       //toReturn[0]=String.format("%.3f", sortedValues[nfth]);
       //sortedValues=null;
@@ -245,6 +258,7 @@ class OtiNanaiWeb implements Runnable {
       toReturn[2]=String.format("%.3f", mean);
       toReturn[3]=output.toString();
       toReturn[4]=allData.get(nfth);
+      toReturn[5]=String.format("%.3f", last);
       //return output;
       return toReturn;
    }
@@ -263,76 +277,96 @@ class OtiNanaiWeb implements Runnable {
          }
       }
 
+      String output;
       String body = new String("");
+      String[] graphData;
       int i=0;
-      String output = commonHTML(OtiNanai.FLOT);
 
-      if (type == OtiNanai.GRAPH_PREVIEW)
-         output = output + commonHTML(OtiNanai.FLOT_PREVIEW);
-      else 
-         output = output + commonHTML(OtiNanai.FLOT_MERGED);
+      if (type == OtiNanai.GRAPH_GAUGE) {
+         output = commonHTML(OtiNanai.GAGE) + commonHTML(OtiNanai.REFRESH);
+         for (KeyWordTracker kwt : kws) {
+            graphData = toGraph(kwt, type, time);
+            String kw = kwt.getKeyWord().replaceAll("\\.","_");
+            output = output
+               + "<div id=\"" + kw + "\" class=\"gage\"></div>\n"
+               + "<script>\n"
+               + "\tvar "+kw+" = new JustGage({\n"
+               + "\t\tid: \""+kw+"\",\n"
+               + "\t\tmin: "+graphData[0]+",\n"
+               + "\t\tmax: "+graphData[1]+",\n"
+               + "\t\tvalue: "+graphData[5]+",\n"
+               + "\t\ttitle: \""+kw+"\",\n"
+               + "\t\tlabel: \"\",\n"
+               + "\t\tlevelColorsGradient: true\n"
+               + "\t});\n"
+               + "</script>\n"
+               + commonHTML(OtiNanai.ENDHEAD)
+               + commonHTML(OtiNanai.ENDBODY);
+         }
+      } else {
+         if (type == OtiNanai.GRAPH_PREVIEW)
+            output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_PREVIEW);
+         else 
+            output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_MERGED);
 
-      output = output+ commonHTML(OtiNanai.JS)
-         + "var datasets = {\n";
+         output = output+ commonHTML(OtiNanai.JS)
+            + "var datasets = {\n";
 
-      for (KeyWordTracker kwt : kws) {
-         String[] graphData = toGraph(kwt, type, time);
-         String kw = kwt.getKeyWord();
+         for (KeyWordTracker kwt : kws) {
+            graphData = toGraph(kwt, type, time);
+            String kw = kwt.getKeyWord();
 
-         output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
-            + "label: \""+kw+" = 000.000 k \",\n";
+            output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
+               + "label: \""+kw+" = 000.000 k \",\n";
 
-         if (type == OtiNanai.GRAPH_MERGED_AXES) 
-            output = output + "yaxis: "+ ++i +",\n";
+            if (type == OtiNanai.GRAPH_MERGED_AXES) 
+               output = output + "yaxis: "+ ++i +",\n";
 
-         output = output + "data: ["
-           // + toGraph(kwt, type, time)
-            + graphData[3]
-            + "]},\n\n";
+            output = output + "data: ["
+              // + toGraph(kwt, type, time)
+               + graphData[3]
+               + "]},\n\n";
 
-         if (type == OtiNanai.GRAPH_PREVIEW) {
-            body = body 
-               + "<div class=\"wrapper clearfix\">\n"
-               + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") "
-               + "<script>"
-               + "document.write("
-               + "\"min:\" + addSuffix("+graphData[0]+")"
-               + "+\" max:\" + addSuffix("+graphData[1]+")"
-               + "+\" mean:\" + addSuffix("+graphData[2]+")"
-               + "+\" 95%:\"+ addSuffix("+graphData[4]+")"
-               + ");"
-               + "</script>"
-               + "</li>\n"
-               + "\t<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n"
+            if (type == OtiNanai.GRAPH_PREVIEW) {
+               body = body 
+                  + "<div class=\"wrapper clearfix\">\n"
+                  + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") "
+                  + "<script>"
+                  + "document.write("
+                  + "\"min:\" + addSuffix("+graphData[0]+")"
+                  + "+\" max:\" + addSuffix("+graphData[1]+")"
+                  + "+\" mean:\" + addSuffix("+graphData[2]+")"
+                  + "+\" 95%:\"+ addSuffix("+graphData[4]+")"
+                  + ");"
+                  + "</script>"
+                  + "</li>\n"
+                  + "\t<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n"
+                  + "</div>\n";
+            }
+         }
+
+         if (type != OtiNanai.GRAPH_PREVIEW) {
+            body = body
+               + "<div>\n"
+               + "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
+               + "</div>\n"
+               /*
+               + "<div class=\"clearfix\">\n"
+               + "\t<div id=\"overview\" class=\"previewGraph\"></div>\n"
+               */
+               + "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
+               + "\t\t<p id=\"choices\"></p>\n"
+               + "\t</div>\n"
                + "</div>\n";
          }
+
+         output = output + "};\n"
+            + commonHTML(OtiNanai.ENDJS)
+            + commonHTML(OtiNanai.ENDHEAD)
+            //+ commonHTML(OtiNanai.GPSCRIPT)
+            + body
+            + commonHTML(OtiNanai.ENDBODY);
       }
-
-      if (type != OtiNanai.GRAPH_PREVIEW) {
-         body = body
-            + "<div>\n"
-            + "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
-            + "</div>\n"
-            /*
-            + "<div class=\"clearfix\">\n"
-            + "\t<div id=\"overview\" class=\"previewGraph\"></div>\n"
-            */
-            + "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
-            + "\t\t<p id=\"choices\"></p>\n"
-            + "\t</div>\n"
-            + "</div>\n";
-      }
-
-      output = output + "};\n"
-         + commonHTML(OtiNanai.ENDJS)
-         + commonHTML(OtiNanai.ENDHEAD)
-         //+ commonHTML(OtiNanai.GPSCRIPT)
-         + body
-         + commonHTML(OtiNanai.ENDBODY);
-
-//      if (keyWords.size() == 0) {
-//         return new String("No KeyWords");
-//      }
       return output;
    }
 
@@ -392,32 +426,35 @@ class OtiNanaiWeb implements Runnable {
    
    private String commonHTML(short out) {
       if (out == OtiNanai.HEADER) {
-         String op = new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+         return new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
 //            + "<link rel=\"stylesheet\" type=\"text/css\" href=\"jquery.gridster.css\" />\n"
                + "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n");
-         return op;
       } else if (out == OtiNanai.GOOGLE) {
          return new String("<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n");
       } else if (out == OtiNanai.ENDHEAD) {
-         return new String("</head><body>\n");
+         return new String("</head>\n<body>\n");
       } else if (out == OtiNanai.GPSCRIPT) {
-         String op = new String("<script>\n\tdocument.body.addEventListener('click', function (event) {\n"
-            + "\t\tif (event.target.nodeName !== 'A') {\n"
-            + "\t\t\treturn false;\n\t\t}\n"
-            + "\t\t(window.parent || window.opener).onReceive(event.target);\n\t}, false);\n"
-            + "</script>\n");
-         return op;
+         return new String("<script>\n\tdocument.body.addEventListener('click', function (event) {\n"
+               + "\t\tif (event.target.nodeName !== 'A') {\n"
+               + "\t\t\treturn false;\n\t\t}\n"
+               + "\t\t(window.parent || window.opener).onReceive(event.target);\n\t}, false);\n"
+               + "</script>\n");
       } else if (out == OtiNanai.ENDBODY) {
          return new String("</body></html>\n");
+      } else if (out == OtiNanai.REFRESH) {
+         return new String("<meta http-equiv=\"refresh\" content="+OtiNanai.TICKER_INTERVAL/1000+">\n");
+      } else if (out == OtiNanai.GAGE) {
+         return new String("<script src=\"raphael.min.js\"></script>\n"
+               + "<script src=\"justgage.min.js\"></script>\n");
       } else if (out == OtiNanai.FLOT) {
-         String op = new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.js\"></script>\n");
-         op = op + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.js\"></script>\n"
-            + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.js\"></script>\n"
-            + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.js\"></script>\n"
-            + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.js\"></script>\n"
-            //+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.gridster.min.js\"></script>\n"
-            + "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.common.js\"></script>\n";
-         return op;
+         return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.js\"></script>\n"
+               + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.js\"></script>\n"
+               + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.js\"></script>\n"
+               + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.js\"></script>\n"
+               + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.js\"></script>\n"
+               //+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.resize.js\"></script>\n"
+               //+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.gridster.min.js\"></script>\n"
+               + "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.common.js\"></script>\n");
       } else if (out == OtiNanai.FLOT_MERGED) {
          return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.merged.js\"></script>\n");
       } else if (out == OtiNanai.FLOT_PREVIEW) {
@@ -515,6 +552,10 @@ class OtiNanaiWeb implements Runnable {
             case "--force":
                force = true;
                matched = true;
+               break;
+            case "--dial":
+            case "--gauge":
+               graphType = OtiNanai.GRAPH_GAUGE;
                break;
             case "--merge":
             case "--m":
