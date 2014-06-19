@@ -37,9 +37,13 @@ body, html {
 }
 
 .gage {
-   width: 240px;
+   width: 250px;
    height: 160px;
    float: left;
+   border: 1px solid #ccc;
+   border-radius: 8px;
+   padding: 2px;
+   margin: 2px;
 }
 .checkList {
    width: 100%;

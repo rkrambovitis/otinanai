@@ -73,6 +73,7 @@ class OtiNanaiWeb implements Runnable {
                case " otinanai.flot.common.js ":
                case " otinanai.flot.merged.js ":
                case " otinanai.flot.preview.js ":
+               case " otinanai.flot.stacked.js ":
 					case " jquery.js ":
 					case " jquery.min.js ":
 					case " jquery.flot.min.js ":
@@ -88,6 +89,8 @@ class OtiNanaiWeb implements Runnable {
                case " jquery.flot.resize.js ":
                case " jquery.flot.selection.min.js ":
                case " jquery.flot.selection.js ":
+               case " jquery.flot.stack.min.js ":
+               case " jquery.flot.stack.js ":
                case " raphael.min.js ":
                case " raphael.js ":
                case " justgage.min.js ":
@@ -196,11 +199,12 @@ class OtiNanaiWeb implements Runnable {
 
    private String[] toGraph(KeyWordTracker kwt, short type, long time) {
       logger.finest("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
-		//String output = new String("\n");
-      StringBuilder output = new StringBuilder("\n");
+		String output = new String("");
+      //StringBuilder output = new StringBuilder("\n");
       SomeRecord sr;
       LinkedList<String> data = new LinkedList<String>();
       data = kwt.getMemory();
+      //Collections.reverse(data);
       long now=System.currentTimeMillis();
       double total=0;
       int samples=0;
@@ -209,9 +213,9 @@ class OtiNanaiWeb implements Runnable {
       float min=0;
       float max=0;
       boolean lastSet = false;
-      String last = new String();
+      String last = new String("0");
       ArrayList<String> allData = new ArrayList<String>();
-      TreeSet sortedValues = new TreeSet<String>();
+      //TreeSet sortedValues = new TreeSet<String>();
       for (String dato : data) {
          logger.finest("[Web]: Dato is : "+dato);
          String[] twowords = dato.split("\\s");
@@ -219,8 +223,9 @@ class OtiNanaiWeb implements Runnable {
             break;
          //output = output.concat("[").concat(twowords[0]).concat(",").concat( twowords[1]).concat("],\n");
          //output = output + "[" +twowords[0] + "," + twowords[1] + "],\n";
+         //output = output.append("[").append(twowords[0]).append(",").append( twowords[1]).append("],\n");
          if (type != OtiNanai.GAGE)
-            output = output.append("[").append(twowords[0]).append(",").append( twowords[1]).append("],\n");
+            output = "\n[" +twowords[0] + "," + twowords[1] + "]," + output;
          samples++;
          val=Float.parseFloat(twowords[1]);
          if (!lastSet) {
@@ -312,7 +317,9 @@ class OtiNanaiWeb implements Runnable {
       } else {
          if (type == OtiNanai.GRAPH_PREVIEW)
             output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_PREVIEW);
-         else 
+         else if (type == OtiNanai.GRAPH_STACKED)
+            output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_STACKED);
+         else
             output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_MERGED);
 
          output = output+ commonHTML(OtiNanai.JS)
@@ -463,6 +470,9 @@ class OtiNanaiWeb implements Runnable {
                + "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.common.js\"></script>\n");
       } else if (out == OtiNanai.FLOT_MERGED) {
          return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.merged.js\"></script>\n");
+      } else if (out == OtiNanai.FLOT_STACKED) {
+         return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.js\"></script>\n"
+               + "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.stacked.js\"></script>\n");
       } else if (out == OtiNanai.FLOT_PREVIEW) {
          return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.preview.js\"></script>\n");
       } else if ( out == OtiNanai.JS) {
@@ -563,6 +573,9 @@ class OtiNanaiWeb implements Runnable {
             case "--gauge":
                graphType = OtiNanai.GRAPH_GAUGE;
                break;
+            case "--stack":
+               graphType = OtiNanai.GRAPH_STACKED;
+               break;
             case "--merge":
             case "--m":
             case "--combine":
@@ -572,7 +585,6 @@ class OtiNanaiWeb implements Runnable {
             case "--ma":
             case "--merge-axis":
             case "--merge-axes":
-            case "--am":
                graphType = OtiNanai.GRAPH_MERGED_AXES;
                matched = true;
                break;

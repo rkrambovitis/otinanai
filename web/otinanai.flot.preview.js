@@ -40,7 +40,7 @@ $(function() {
          if (val.data.length <= 2) {
          } else {
             for (j = 0; j < val.data.length; ++j) {
-               if (val.data[j][0] < pos.x) {
+               if (val.data[j][0] > pos.x) {
                   break;
                }
             }

@@ -29,6 +29,7 @@ class RedisTracker implements KeyWordTracker {
       jedis.del(keyWord + "thirtySec");
       jedis.del(keyWord + "fiveMin");
       jedis.del(keyWord + "thirtyMin");
+      jedis.quit();
    }
 
    public void put() {

@@ -361,6 +361,7 @@ class OtiNanai {
    public static final short GRAPH_MERGED=3;
    public static final short GRAPH_MERGED_AXES=4;
    public static final short GRAPH_GAUGE=5;
+   public static final short GRAPH_STACKED=6;
 
    public static final short HEADER = 1;
    public static final short ENDHEAD = 2;
@@ -369,10 +370,11 @@ class OtiNanai {
    public static final short FLOT = 5;
    public static final short FLOT_MERGED = 6;
    public static final short FLOT_PREVIEW = 7;
-   public static final short JS = 8;
-   public static final short ENDJS = 9;
-   public static final short GPSCRIPT = 10;
-   public static final short GAGE = 11;
-   public static final short REFRESH = 12;
+   public static final short FLOT_STACKED = 8;
+   public static final short JS = 9;
+   public static final short ENDJS = 10;
+   public static final short GPSCRIPT = 11;
+   public static final short GAGE = 12;
+   public static final short REFRESH = 13;
 
 }
