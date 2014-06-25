@@ -36,6 +36,14 @@ $(function() {
          return;
       }
       var j = 0;
+      for (j = 0 ; j < datasets[key].data.length ; ++j) {
+         if (datasets[key].data[j][0] > pos.x) {
+            break;
+         }
+      }
+      var y = datasets[key].data[j][1];
+      $("#"+key+" .legendLabel").text(key + " = " + addSuffix(y));
+      /*
       $.each(datasets, function(key, val) {
          if (val.data.length <= 2) {
          } else {
@@ -48,6 +56,7 @@ $(function() {
             $("#"+key+" .legendLabel").text(key + " = " + addSuffix(y));
          }
       });
+      */
    };
 
    function drawGraphs() {
