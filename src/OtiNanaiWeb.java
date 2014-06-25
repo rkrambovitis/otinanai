@@ -274,6 +274,20 @@ class OtiNanaiWeb implements Runnable {
       return toReturn;
    }
 
+   private short getSuffix(String sample) {
+      int len = sample.length();
+      if (len > 16) 
+         return OtiNanai.PETA;
+      else if (len > 13) 
+         return OtiNanai.GIGA;
+      else if (len > 10)
+         return OtiNanai.MEGA;
+      else if (len > 7)
+         return OtiNanai.KILO;
+      else
+         return OtiNanai.NADA;
+   }
+
    private String timeGraph(ArrayList<String> keyList, short type, long time) {
       ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
       LLString kwtList = onl.getKWTList();
@@ -308,6 +322,10 @@ class OtiNanaiWeb implements Runnable {
                + "\t\tmax: "+graphData[1]+",\n"
                + "\t\ttitle: \""+kw+"\",\n"
                + "\t\tlabel: \"\",\n"
+               //+ "\t\tdonut: true,\n"
+               //+ "\t\tsymbol: \"c\",\n"
+               //+ "\t\tlabelFontColor: \"#ABC\",\n"
+               //+ "\t\ttitleFontColor: \"#ABC\",\n"
                + "\t\tlevelColorsGradient: true\n"
                + "\t});\n"
                + "</script>\n"

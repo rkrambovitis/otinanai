@@ -266,8 +266,8 @@ class OtiNanaiListener implements Runnable {
       for (String kw : tempKW) {
          try {
             trackerMap.get(kw).tick();
-         } catch (NullPointerException npe) {
-            logger.severe("[Listener]: Unable to tick "+kw+" (deleted?)\n"+npe);
+         } catch (Exception e) {
+            logger.severe("[Listener]: Unable to tick "+kw+" :\n"+e);
          }
       }
       deleteLock=false;

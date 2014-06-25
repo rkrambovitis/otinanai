@@ -377,4 +377,10 @@ class OtiNanai {
    public static final short GAGE = 12;
    public static final short REFRESH = 13;
 
+
+   public static final short NADA = 0;
+   public static final short KILO = 1;
+   public static final short MEGA = 2;
+   public static final short GIGA = 3;
+   public static final short PETA = 4;
 }
