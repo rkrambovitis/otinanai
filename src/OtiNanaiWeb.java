@@ -197,7 +197,8 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-   private String[] toGraph(KeyWordTracker kwt, short type, long time) {
+   private String[] toGraph(KeyWordTracker kwt, short type, long time, long endTime) {
+      long startTime = time + endTime;
       logger.finest("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
 		String output = new String("");
       //StringBuilder output = new StringBuilder("\n");
@@ -213,13 +214,18 @@ class OtiNanaiWeb implements Runnable {
       float min=0;
       float max=0;
       boolean lastSet = false;
+      long howLongAgo = 0l;
       String last = new String("0");
       ArrayList<String> allData = new ArrayList<String>();
       //TreeSet sortedValues = new TreeSet<String>();
       for (String dato : data) {
          logger.finest("[Web]: Dato is : "+dato);
          String[] twowords = dato.split("\\s");
-         if (type != OtiNanai.GRAPH_FULL && (now - Long.parseLong(twowords[0])) > time)
+         howLongAgo = now - Long.parseLong(twowords[0]);
+         //logger.info("now: "+now+ " howLongAgo: "+howLongAgo+" time: "+time+" endTime: "+endTime+" startTime: "+startTime);
+         if (howLongAgo < endTime)
+            continue;
+         if (howLongAgo > startTime)
             break;
          //output = output.concat("[").concat(twowords[0]).concat(",").concat( twowords[1]).concat("],\n");
          //output = output + "[" +twowords[0] + "," + twowords[1] + "],\n";
@@ -259,7 +265,7 @@ class OtiNanaiWeb implements Runnable {
       } else {
          allData.add("0");
       }
-      String[] toReturn = new String[6];
+      String[] toReturn = new String[7];
       //toReturn[0]=Double.toString(nfth);
       //toReturn[0]=String.format("%.3f", sortedValues[nfth]);
       //sortedValues=null;
@@ -270,6 +276,7 @@ class OtiNanaiWeb implements Runnable {
       toReturn[3]=output.toString();
       toReturn[4]=allData.get(nfth);
       toReturn[5]=last;
+      toReturn[6]=Integer.toString(samples);
       //return output;
       return toReturn;
    }
@@ -288,7 +295,7 @@ class OtiNanaiWeb implements Runnable {
          return OtiNanai.NADA;
    }
 
-   private String timeGraph(ArrayList<String> keyList, short type, long time) {
+   private String timeGraph(ArrayList<String> keyList, short type, long time, long endTime) {
       ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
       LLString kwtList = onl.getKWTList();
 
@@ -310,7 +317,9 @@ class OtiNanaiWeb implements Runnable {
       if (type == OtiNanai.GRAPH_GAUGE) {
          output = commonHTML(OtiNanai.GAGE) + commonHTML(OtiNanai.REFRESH);
          for (KeyWordTracker kwt : kws) {
-            graphData = toGraph(kwt, type, time);
+            graphData = toGraph(kwt, type, time, endTime);
+            if (graphData[6].equals("0"))
+               continue;
             String kw = kwt.getKeyWord().replaceAll("\\.","_");
             output = output
                + "<div id=\"" + kw + "\" class=\"gage\"></div>\n"
@@ -328,10 +337,11 @@ class OtiNanaiWeb implements Runnable {
                //+ "\t\ttitleFontColor: \"#ABC\",\n"
                + "\t\tlevelColorsGradient: true\n"
                + "\t});\n"
-               + "</script>\n"
-               + commonHTML(OtiNanai.ENDHEAD)
-               + commonHTML(OtiNanai.ENDBODY);
+               + "</script>\n";
          }
+         output = output 
+            + commonHTML(OtiNanai.ENDHEAD)
+            + commonHTML(OtiNanai.ENDBODY);
       } else {
          if (type == OtiNanai.GRAPH_PREVIEW)
             output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_PREVIEW);
@@ -344,7 +354,10 @@ class OtiNanaiWeb implements Runnable {
             + "var datasets = {\n";
 
          for (KeyWordTracker kwt : kws) {
-            graphData = toGraph(kwt, type, time);
+            graphData = toGraph(kwt, type, time, endTime);
+            if (graphData[6].equals("0") || graphData[6].equals("1"))
+               continue;
+
             String kw = kwt.getKeyWord();
 
             output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
@@ -354,7 +367,6 @@ class OtiNanaiWeb implements Runnable {
                output = output + "yaxis: "+ ++i +",\n";
 
             output = output + "data: ["
-              // + toGraph(kwt, type, time)
                + graphData[3]
                + "]},\n\n";
 
@@ -368,6 +380,7 @@ class OtiNanaiWeb implements Runnable {
                   + "+\" max:\" + addSuffix("+graphData[1]+")"
                   + "+\" mean:\" + addSuffix("+graphData[2]+")"
                   + "+\" 95%:\"+ addSuffix("+graphData[4]+")"
+                  + "+\" samples:\" + "+graphData[6]
                   + ");"
                   + "</script>"
                   + "</li>\n"
@@ -561,6 +574,7 @@ class OtiNanaiWeb implements Runnable {
       boolean showAlarms = false;
       short graphType = OtiNanai.GRAPH_PREVIEW;
       long time = OtiNanai.PREVIEWTIME;
+      long endTime = 0l;
 
       for (String word : keyList) {
          boolean removeKW = false;
@@ -569,6 +583,7 @@ class OtiNanaiWeb implements Runnable {
          boolean endsWithKW = false;
          boolean matched = false;
          boolean setTime = false;
+         boolean setStartTime = false;
          switch (word) {
             case "":
                matched = true;
@@ -636,6 +651,8 @@ class OtiNanaiWeb implements Runnable {
             removeKW = true;
          else if (firstChar.equals("+"))
             exclusiveKW = true;
+         else if (firstChar.equals("@") && secondChar.equals("+"))
+            setStartTime = true;
          else if (firstChar.equals("@"))
             setTime = true;
          if (firstChar.equals("^") || secondChar.equals("^"))
@@ -679,11 +696,17 @@ class OtiNanaiWeb implements Runnable {
                   if (!key.contains(rest))
                      kws.remove(key);
                }
+            } else if (setStartTime) {
+               try {
+                  endTime = 3600000 * Long.parseLong(rest);
+               } catch (NumberFormatException nfe) {
+                  logger.severe("[Web]: Not a valid number for end time\n"+nfe);
+               }
             } else if (setTime) {
                try {
                   time = 3600000 * Long.parseLong(rest);
                } catch (NumberFormatException nfe) {
-                  logger.severe("[Web]: Not a valid number\n"+nfe);
+                  logger.severe("[Web]: Not a valid number for duration\n"+nfe);
                }
             }
          }
@@ -762,7 +785,7 @@ class OtiNanaiWeb implements Runnable {
          + commonHTML(OtiNanai.ENDBODY);
       return output;
       */
-      op  = timeGraph(kws, graphType, time);
+      op  = timeGraph(kws, graphType, time, endTime);
       onc.cache(input, op);
       return op;
 	}
