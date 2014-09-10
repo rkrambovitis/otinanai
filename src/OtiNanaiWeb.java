@@ -295,6 +295,16 @@ class OtiNanaiWeb implements Runnable {
          return OtiNanai.NADA;
    }
 
+   private String trimKW(String kw) {
+      String[] broken = kw.split("\\.");
+      int wc = broken.length;
+      logger.info("[Web]: Detected "+wc+" words while trimming "+kw);
+      if (wc > 2)
+         return new String(broken[0]+"..."+broken[wc-2]+"."+broken[wc-1]);
+      else
+         return new String(kw.substring(0,5) + "..." +kw.substring(kw.length()-8, kw.length()-1));
+   }
+
    private String timeGraph(ArrayList<String> keyList, short type, long time, long endTime) {
       ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
       LLString kwtList = onl.getKWTList();
@@ -305,6 +315,7 @@ class OtiNanaiWeb implements Runnable {
       for (String key : sortedKeys) {
          key=key.toLowerCase();
          if (kwtList.contains(key)) {
+            logger.fine("[Web]: Matched "+key);
             kws.add(onl.getKWT(key));
          }
       }
@@ -317,10 +328,17 @@ class OtiNanaiWeb implements Runnable {
       if (type == OtiNanai.GRAPH_GAUGE) {
          output = commonHTML(OtiNanai.GAGE) + commonHTML(OtiNanai.REFRESH);
          for (KeyWordTracker kwt : kws) {
+            //String kw = kwt.getKeyWord().replaceAll("\\.","_");
+            String kw = kwt.getKeyWord();
+            String skw = kw;
+            if (kw.length() > OtiNanai.MAX_KW_LENGTH) 
+               skw = trimKW(kw);
+            kw = kw.replaceAll("\\.","_");
             graphData = toGraph(kwt, type, time, endTime);
-            if (graphData[6].equals("0"))
+            if (graphData[6].equals("0")) {
+               logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points. - 0");
                continue;
-            String kw = kwt.getKeyWord().replaceAll("\\.","_");
+            }
             output = output
                + "<div id=\"" + kw + "\" class=\"gage\"></div>\n"
                + "<script>\n"
@@ -329,7 +347,7 @@ class OtiNanaiWeb implements Runnable {
                + "\t\tvalue: "+graphData[5]+",\n"
                + "\t\tmin: "+graphData[0]+",\n"
                + "\t\tmax: "+graphData[1]+",\n"
-               + "\t\ttitle: \""+kw+"\",\n"
+               + "\t\ttitle: \""+skw+"\",\n"
                + "\t\tlabel: \"\",\n"
                //+ "\t\tdonut: true,\n"
                //+ "\t\tsymbol: \"c\",\n"
@@ -355,10 +373,12 @@ class OtiNanaiWeb implements Runnable {
 
          for (KeyWordTracker kwt : kws) {
             graphData = toGraph(kwt, type, time, endTime);
-            if (graphData[6].equals("0") || graphData[6].equals("1"))
-               continue;
-
             String kw = kwt.getKeyWord();
+            if (graphData[6].equals("0") || graphData[6].equals("1")) {
+               logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
+               continue;
+            }
+
 
             output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
                + "label: \""+kw+" = 000.000 k \",\n";
