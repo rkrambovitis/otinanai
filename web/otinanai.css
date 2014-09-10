@@ -37,8 +37,8 @@ body, html {
 }
 
 .gage {
-   width: 250px;
-   height: 160px;
+   width: 300px;
+   height: 180px;
    float: left;
    border: 1px solid #ccc;
    border-radius: 8px;
