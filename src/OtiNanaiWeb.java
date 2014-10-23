@@ -601,58 +601,52 @@ class OtiNanaiWeb implements Runnable {
          boolean exclusiveKW = false;
          boolean startsWithKW = false;
          boolean endsWithKW = false;
-         boolean matched = false;
          boolean setTime = false;
          boolean setStartTime = false;
          switch (word) {
-            case "":
-               matched = true;
-               break;
             case "--showall":
             case "--sa":
             case "--show":
                showAll = true;
-               matched = true;
-               break;
+               continue;
             case "--delete":
                wipe = true;
-               matched = true;
-               break;
+               continue;
             case "--force":
                force = true;
-               matched = true;
-               break;
+               continue;
             case "--dial":
             case "--gauge":
                graphType = OtiNanai.GRAPH_GAUGE;
-               break;
+               continue;
             case "--stack":
                graphType = OtiNanai.GRAPH_STACKED;
-               break;
+               continue;
             case "--merge":
             case "--m":
             case "--combine":
                graphType = OtiNanai.GRAPH_MERGED;
-               matched = true;
-               break;
+               continue;
             case "--ma":
             case "--merge-axis":
             case "--merge-axes":
                graphType = OtiNanai.GRAPH_MERGED_AXES;
-               matched = true;
-               break;
+               continue;
             case "--alarms":
             case "--alerts":
                showAlarms = true;
-               matched = true;
                logger.info("[Web]: Showing Alarms");
-               break;
+               continue;
             case "--store":
                logger.info("[Web]: Storing query");
                return storeQuery(input);
+            case "--no-search":
+            case "--no-bar":
+            case "--ns":
+            case "--nb":
+            case "":
+               continue;
          }
-         if (matched)
-            continue;
 
          word = word.replaceAll("%5E", "^");
          word = word.replaceAll("%24", "$");
