@@ -150,7 +150,7 @@ class RiakTracker implements KeyWordTracker {
          logger.info("[RiakTracker]: "+keyWord+" timeRange: " +timeDiff+ " count: "+currentCount+" perSec: "+perSec);
          currentCount = 0;
       }
-      step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
+      step1Memory.push(new String(ts+" "+String.format("%.3f", perSec)));
 
       if (step1Memory.size() > 2) {
          logger.fine("[RiakTracker]: step1Memory.size() = "+step1Memory.size());
@@ -205,7 +205,7 @@ class RiakTracker implements KeyWordTracker {
 
          logger.fine("[RiakTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+ finalts);
 
-         String toPush = new String(finalts+" "+String.format("%.2f", finalSum));
+         String toPush = new String(finalts+" "+String.format("%.3f", finalSum));
          logger.fine("[RiakTracker]: pushing: "+step2Key+ " : " +toPush);
          step2Memory.push(toPush);
          riakBucket.store(step2Key, step2Memory).execute();
@@ -241,7 +241,7 @@ class RiakTracker implements KeyWordTracker {
 
          logger.fine("[RiakTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+ finalts);
 
-         step3Memory.push(new String(finalts+" "+String.format("%.2f", finalSum)));
+         step3Memory.push(new String(finalts+" "+String.format("%.3f", finalSum)));
 
          riakBucket.store(step3Key, step3Memory).execute();
          riakBucket.store(step2Key, step2Memory).execute();

@@ -80,7 +80,7 @@ $(function() {
          myPlot=$.plot("#placeholder", data, {
             legend: { position: "nw", show: "true" },
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max:xmax},
-            yaxis: { show: false, min: ymin, max: ymax},
+            yaxis: { show: true, min: ymin, max: ymax},
             series: { stack: true, lines: {show: true, fill: true}},
             crosshair: { mode: "x"},
             grid: { hoverable: true, autoHighlight: false},

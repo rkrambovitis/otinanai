@@ -123,7 +123,7 @@ class RedisTracker implements KeyWordTracker {
       }
 
       logger.fine("[RedisTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
-      String toPush = new String(ts+" "+String.format("%.2f", perSec));
+      String toPush = new String(ts+" "+String.format("%.3f", perSec));
 //      jedis.lpush(step1Key, new String(ts+" "+String.format("%.2f", perSec)));
 
       try {
@@ -177,7 +177,7 @@ class RedisTracker implements KeyWordTracker {
 
          logger.fine("[RedisTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+ finalts);
 
-         toPush = new String(finalts+" "+String.format("%.2f", finalSum));
+         toPush = new String(finalts+" "+String.format("%.3f", finalSum));
          jedis.lpush(step2Key, toPush);
       }
 
@@ -202,7 +202,7 @@ class RedisTracker implements KeyWordTracker {
          long finalts = tsMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
 
          logger.fine("[RedisTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+ finalts);
-         toPush = new String(finalts+" "+String.format("%.2f", finalSum));
+         toPush = new String(finalts+" "+String.format("%.3f", finalSum));
          jedis.lpush(step3Key, toPush);
       }
 

@@ -113,7 +113,7 @@ class MemTracker implements KeyWordTracker {
          currentCount = 0;
       }
       logger.fine("[MemTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
-      step1Memory.push(new String(ts+" "+String.format("%.2f", perSec)));
+      step1Memory.push(new String(ts+" "+String.format("%.3f", perSec)));
 
 
       if (step1Memory.size() > 2) {
@@ -163,7 +163,7 @@ class MemTracker implements KeyWordTracker {
 
          logger.fine("[MemTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+ finalts);
 
-         String toPush = new String(finalts+" "+String.format("%.2f", finalSum));
+         String toPush = new String(finalts+" "+String.format("%.3f", finalSum));
          step2Memory.push(toPush);
       }
 
@@ -189,7 +189,7 @@ class MemTracker implements KeyWordTracker {
          long finalts = tsMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
 
          logger.fine("[MemTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+ finalts);
-         step3Memory.push(new String(finalts+" "+String.format("%.2f", finalSum)));
+         step3Memory.push(new String(finalts+" "+String.format("%.3f", finalSum)));
       }
 
 
