@@ -32,6 +32,8 @@ $(function() {
    $("#placeholder").bind("plotselected", function (event, ranges) {
       xmin = ranges.xaxis.from;
       xmax = ranges.xaxis.to;
+      ymin = ranges.yaxis.from;
+      ymax = ranges.yaxis.to;
       plotAccordingToChoices();
    });
 
@@ -82,9 +84,9 @@ $(function() {
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max:xmax},
             yaxis: { show: true, min: ymin, max: ymax},
             series: { stack: true, lines: {show: true, fill: true}},
-            crosshair: { mode: "x"},
+            crosshair: { mode: "xy"},
             grid: { hoverable: true, autoHighlight: false},
-            selection: { mode: "x" }
+            selection: { mode: "xy" }
          });
       }
    }

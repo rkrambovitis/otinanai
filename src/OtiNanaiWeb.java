@@ -253,19 +253,33 @@ class OtiNanaiWeb implements Runnable {
          allData.add(twowords[1]);
       }
       int nfth = 0;
+      int fifth = 0;
+      int tfifth = 0;
+      int fiftieth = 0;
+      int sfifth = 0;
+      int nninth = 0;
       double mean = 0d;
 
       if ( samples != 0 ) {
          mean = total / samples;
          nfth = (int)(0.95*samples)-1;
-         if (nfth < 0)
-            nfth = 0;
+         fifth = (int)(0.05*samples)-1;
+         tfifth = (int)(0.25*samples)-1;
+         fiftieth = (int)(0.50*samples)-1;
+         sfifth = (int)(0.75*samples)-1;
+         nninth = (int)(0.99*samples)-1;
+         if (nfth < 0) nfth = 0;
+         if (fifth < 0) fifth = 0;
+         if (tfifth < 0) tfifth = 0;
+         if (fiftieth < 0) fiftieth = 0;
+         if (sfifth < 0) sfifth = 0;
+         if (nninth < 0) nninth = 0;
          Collections.sort(allData);
          //logger.fine("[Web]: 1st:"+allData.get(0)+" last:"+allData.get(samples-1)+" total:"+samples+" 95th:("+nfth+") "+allData.get(nfth));
       } else {
          allData.add("0");
       }
-      String[] toReturn = new String[7];
+      String[] toReturn = new String[12];
       //toReturn[0]=Double.toString(nfth);
       //toReturn[0]=String.format("%.3f", sortedValues[nfth]);
       //sortedValues=null;
@@ -277,6 +291,11 @@ class OtiNanaiWeb implements Runnable {
       toReturn[4]=allData.get(nfth);
       toReturn[5]=last;
       toReturn[6]=Integer.toString(samples);
+      toReturn[7]=allData.get(fifth);
+      toReturn[8]=allData.get(tfifth);
+      toReturn[9]=allData.get(fiftieth);
+      toReturn[10]=allData.get(sfifth);
+      toReturn[11]=allData.get(nninth);
       //return output;
       return toReturn;
    }
@@ -396,11 +415,17 @@ class OtiNanaiWeb implements Runnable {
                   + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") "
                   + "<script>"
                   + "document.write("
-                  + "\"min:\" + addSuffix("+graphData[0]+")"
-                  + "+\" max:\" + addSuffix("+graphData[1]+")"
-                  + "+\" mean:\" + addSuffix("+graphData[2]+")"
-                  + "+\" 95%:\"+ addSuffix("+graphData[4]+")"
-                  + "+\" samples:\" + "+graphData[6]
+                  + "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
+                  + "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
+                  + "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
+                  + "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
+                  + "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
+                  + "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
+                  + "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
+                  + "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
+                  + "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
+                  + "+\"</span><span id=output_values> samples:\" + "+graphData[6]
+                  + "+\"</span>\""
                   + ");"
                   + "</script>"
                   + "</li>\n"
@@ -644,6 +669,8 @@ class OtiNanaiWeb implements Runnable {
             case "--no-bar":
             case "--ns":
             case "--nb":
+            case "--nc":
+            case "--no-cache":
             case "":
                continue;
          }

@@ -38,7 +38,7 @@ body, html {
 
 .gage {
    width: 23%;
-   height: 16%;
+   height: 16%; 
    float: left;
    border: 1px solid #ccc;
    border-radius: 8px;
@@ -124,3 +124,10 @@ form input {
    padding-left: 0;
 }
 
+#output_values {
+   display: inline-block;
+   padding: 3px 6px;
+   margin: 0 3px;
+   background: #9B9B9B;
+   color: #fff;
+}

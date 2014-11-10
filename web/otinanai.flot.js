@@ -75,7 +75,7 @@ $(function() {
          suffix = "k";
          result = number / 1000;
       }
-      return result.toFixed(1)+suffix;
+      return result.toFixed(3)+suffix;
    };
 
    function addSuffix(number, axis) {
