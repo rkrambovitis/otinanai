@@ -216,7 +216,7 @@ class OtiNanaiWeb implements Runnable {
       boolean lastSet = false;
       long howLongAgo = 0l;
       String last = new String("0");
-      ArrayList<String> allData = new ArrayList<String>();
+      ArrayList<Float> allData = new ArrayList<Float>();
       //TreeSet sortedValues = new TreeSet<String>();
       for (String dato : data) {
          logger.finest("[Web]: Dato is : "+dato);
@@ -250,7 +250,7 @@ class OtiNanaiWeb implements Runnable {
                max=val;
             }
          }
-         allData.add(twowords[1]);
+         allData.add(Float.parseFloat(twowords[1]));
       }
       int nfth = 0;
       int fifth = 0;
@@ -277,7 +277,7 @@ class OtiNanaiWeb implements Runnable {
          Collections.sort(allData);
          //logger.fine("[Web]: 1st:"+allData.get(0)+" last:"+allData.get(samples-1)+" total:"+samples+" 95th:("+nfth+") "+allData.get(nfth));
       } else {
-         allData.add("0");
+         allData.add(0f);
       }
       String[] toReturn = new String[12];
       //toReturn[0]=Double.toString(nfth);
@@ -288,14 +288,14 @@ class OtiNanaiWeb implements Runnable {
       toReturn[1]=String.format("%.3f", max);
       toReturn[2]=String.format("%.3f", mean);
       toReturn[3]=output.toString();
-      toReturn[4]=allData.get(nfth);
+      toReturn[4]=allData.get(nfth).toString();
       toReturn[5]=last;
       toReturn[6]=Integer.toString(samples);
-      toReturn[7]=allData.get(fifth);
-      toReturn[8]=allData.get(tfifth);
-      toReturn[9]=allData.get(fiftieth);
-      toReturn[10]=allData.get(sfifth);
-      toReturn[11]=allData.get(nninth);
+      toReturn[7]=allData.get(fifth).toString();
+      toReturn[8]=allData.get(tfifth).toString();
+      toReturn[9]=allData.get(fiftieth).toString();
+      toReturn[10]=allData.get(sfifth).toString();
+      toReturn[11]=allData.get(nninth).toString();
       //return output;
       return toReturn;
    }
@@ -404,6 +404,9 @@ class OtiNanaiWeb implements Runnable {
 
             if (type == OtiNanai.GRAPH_MERGED_AXES) 
                output = output + "yaxis: "+ ++i +",\n";
+
+            if (type == OtiNanai.GRAPH_PREVIEW)
+               output = output + "nn:  "+ graphData[11] +",\n";
 
             output = output + "data: ["
                + graphData[3]

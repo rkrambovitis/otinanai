@@ -62,7 +62,9 @@ class MemTracker implements KeyWordTracker {
    public void put(float value) {
       if (recordType == OtiNanai.UNSET) 
          recordType = OtiNanai.GAUGE;
-      if (recordType == OtiNanai.GAUGE) {
+      if (recordType == OtiNanai.SUM) {
+         currentFloat += value;
+      } else if (recordType == OtiNanai.GAUGE) {
          currentFloat += value;
          currentDataCount ++;
          if (currentDataCount == 0)
@@ -94,6 +96,11 @@ class MemTracker implements KeyWordTracker {
       if (recordType == OtiNanai.GAUGE) {
          logger.fine("[MemTracker]: currentFloat = " +currentFloat);
          perSec = (currentFloat / currentDataCount);
+         currentFloat = 0f;
+         currentDataCount = 0;
+      } else if (recordType == OtiNanai.SUM) {
+         perSec = (1000f*currentFloat)/timeDiff;
+         currentFloat = 0f;
       } else if (recordType == OtiNanai.COUNTER) {
          if (currentLong != currentPrev) {
             logger.fine("[MemTracker]: currentLong = " + currentLong);
@@ -249,6 +256,11 @@ class MemTracker implements KeyWordTracker {
 
    public short getType() {
       return recordType;
+   }
+
+   public void setType(short type) {
+      if (recordType == OtiNanai.UNSET)
+         recordType = type;
    }
 
 	private long alarm;

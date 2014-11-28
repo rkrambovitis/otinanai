@@ -10,6 +10,8 @@ interface KeyWordTracker {
 
    public short getType();
 
+   public void setType(short type);
+
 	public void put() ;
 
    public void delete() ;

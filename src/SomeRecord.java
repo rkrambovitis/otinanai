@@ -68,6 +68,20 @@ class SomeRecord {
             IAmCounter = true;
             keyWords.add(tokens[0]);
          }
+      } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[1].equals("sum")) {
+         Float w3 = toFloat(tokens[2]);
+         if (w3 != null) {
+            theSum = w3;
+            IAmSum = true;
+            keyWords.add(tokens[0]);
+         }
+      } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[2].equals("sum")) {
+         Float w2 = toFloat(tokens[1]);
+         if (w2 != null) {
+            theSum = w2;
+            IAmSum = true;
+            keyWords.add(tokens[0]);
+         }
       }
 	}
 
@@ -266,6 +280,13 @@ class SomeRecord {
    /**
     * Access Method
     */
+   public boolean isSum() {
+      return IAmSum;
+   }
+
+   /**
+    * Access Method
+    */
    public Float getGauge() {
       if (IAmGauge)
          return theGauge;
@@ -281,14 +302,25 @@ class SomeRecord {
       return 0l;
    }
 
+   /**
+    * Access Method
+    */
+   public Float getSum() {
+      if (IAmSum)
+         return theSum;
+      return -1337f;
+   }
+
 	private long timeStamp;
 	private String timeNano;
 	private InetAddress myip;
 	private String theRecord;
    private Float theGauge;
-   private Long theCounter;
    private boolean IAmGauge;
+   private Long theCounter;
    private boolean IAmCounter;
+   private Float theSum;
+   private boolean IAmSum;
 	private String theDate;
 	private ArrayList<String> keyWords;
 	//private String masterKey;

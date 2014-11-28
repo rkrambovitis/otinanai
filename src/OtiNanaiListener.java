@@ -130,6 +130,8 @@ class OtiNanaiListener implements Runnable {
             recType = OtiNanai.GAUGE;
          } else if (newRecord.isCounter()) {
             recType = OtiNanai.COUNTER;
+         } else if (newRecord.isSum()) {
+            recType = OtiNanai.SUM;
          } else {
             try { 
                Float.parseFloat(kw);
@@ -151,10 +153,16 @@ class OtiNanaiListener implements Runnable {
                kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
             else
                kwt = new MemTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
+
+            kwt.setType(recType);
          }
 
          if (newRecord.isGauge()) {
+            kwt.setType(recType);
             kwt.put(newRecord.getGauge());
+         } else if (newRecord.isSum()) {
+            kwt.setType(recType);
+            kwt.put(newRecord.getSum());
          } else if (newRecord.isCounter()) {
             kwt.put(newRecord.getCounter());
          } else {

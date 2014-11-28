@@ -16,6 +16,8 @@ class RedisTracker implements KeyWordTracker {
       logger = l;
       jedis = new Jedis("localhost");
 		sampleCount = 1;
+      currentFloat = 0f;
+      currentDataCount = -1;
       recordType = OtiNanai.UNSET;
 		alarm = 0L;
       logger.finest("[RedisTracker]: new RedisTracker initialized for \"" +keyWord+"\"");
@@ -53,6 +55,8 @@ class RedisTracker implements KeyWordTracker {
       }
       if (recordType == OtiNanai.COUNTER) {
          currentLong = value;
+         if (currentDataCount == 0)
+            currentDataCount++;
          logger.finest("[RedisTracker]: currentLong is now " +currentLong);
       } else {
          logger.info("[RedisTracker]: Ignoring put of wrong type ("+keyWord+" is COUNTER)");
@@ -65,7 +69,9 @@ class RedisTracker implements KeyWordTracker {
          currentFloat = 0f;
          currentDataCount = 0;
       }
-      if (recordType == OtiNanai.GAUGE) {
+      if (recordType == OtiNanai.SUM ) {
+         currentFloat += value;
+      } else if (recordType == OtiNanai.GAUGE) {
          currentFloat += value;
          currentDataCount ++;
          logger.finest("[RedisTracker]: currentFloat is now " +currentFloat);
@@ -102,7 +108,9 @@ class RedisTracker implements KeyWordTracker {
          perSec = (currentFloat / currentDataCount);
          currentFloat = 0f;
          currentDataCount = 0;
-
+      } else if (recordType == OtiNanai.SUM) {
+         perSec = ((float)((1000f*currentFloat)/timeDiff));
+         currentFloat = 0f;
       } else if (recordType == OtiNanai.COUNTER) {
          if (currentLong != currentPrev) {
             logger.fine("[RedisTracker]: currentLong = " + currentLong);
@@ -141,7 +149,9 @@ class RedisTracker implements KeyWordTracker {
             }
          }
       } catch (Exception e) {
-         logger.severe("[RedisTracker]: "+e);
+         logger.severe("[RedisTracker]: tick(): "+e);
+         logger.severe("toPush: "+toPush);
+         System.err.println("[RedisTracker]: tick(): "+e.getMessage());
       }
       logger.finest("[RedisTracker]: lpush "+step1Key+" "+toPush);
       jedis.lpush(step1Key, toPush);
@@ -252,7 +262,8 @@ class RedisTracker implements KeyWordTracker {
          returner.addAll(jedis.lrange(keyWord+"fiveMin",0,-1));
          returner.addAll(jedis.lrange(keyWord+"thirtyMin",0,-1));
       } catch (Exception e) {
-         logger.severe("[RedisTracker]: " + e);
+         logger.severe("[RedisTracker]: getMemory(): " + e);
+         System.err.println("[RedisTracker]: getMemory(): " +e.getMessage());
       }
       return returner;
    }
@@ -263,6 +274,11 @@ class RedisTracker implements KeyWordTracker {
 
    public short getType() {
       return recordType;
+   }
+
+   public void setType(short type) {
+      if (recordType == OtiNanai.UNSET)
+         recordType = type;
    }
 
 	private long alarm;

@@ -352,6 +352,8 @@ class OtiNanai {
 	public static final short GAUGE = 1;
 	public static final short COUNTER = 2;
 	public static final short FREQ = 3;
+	public static final short SUM = 4;
+
 	public static final short MEM = 1;
 	public static final short RIAK = 2;
 	public static final short REDIS = 3;
