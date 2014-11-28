@@ -238,6 +238,8 @@ class RedisTracker implements KeyWordTracker {
             if (alarmCount >= alarmConsecutiveSamples) {
                logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
                alarm=ts;
+               OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm Threshold Breached by "+keyWord+" mean: "+mean+" deviation: "+deviation+" consecutive: "+alarmCount+" url: "+OtiNanai.WEBURL+"/"+keyWord);
+               onn.send();
             } else {
                logger.info("[RedisTracker]: Error threshold breached " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
             }

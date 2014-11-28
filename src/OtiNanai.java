@@ -2,6 +2,8 @@ package gr.phaistosnetworks.admin.otinanai;
 
 import java.net.ServerSocket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.logging.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -44,6 +46,8 @@ class OtiNanai {
 			logger.config("[Init]: riakPort: "+riakPort);
          logger.config("[Init]: redisKeyWordList: "+redisKeyWordList);
          logger.config("[Init]: redisSavedQueries: "+redisSavedQueries);
+         logger.config("[Init]: notifyScript: "+NOTIFYSCRIPT);
+         logger.config("[Init]: Web url: "+WEBURL);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
 			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList, redisSavedQueries);
@@ -66,6 +70,7 @@ class OtiNanai {
 				logger.config("[Init]: Starting web thread: "+i+"/"+webThreads);
 				new Thread(onw).start();
 			}
+         
 		} catch (java.lang.Exception e) {
 			System.err.println(e);
 			logger.severe("[Init]: "+e.getStackTrace());
@@ -141,7 +146,17 @@ class OtiNanai {
       String riakRedisHost = new String("localhost");
       String redisKeyWordList = new String("existing_keywords_list"); 
       String redisSavedQueries = new String("saved_queries_list");
+      String notifyScript = new String("/tmp/otinanai_notifier");
+      String webUrl = new String();
+      try {
+         webUrl = "http://"+InetAddress.getLocalHost().getHostName();
+      } catch (UnknownHostException uhe) {
+         System.out.println("Unable to determine local hostname, using 127.0.0.1 instead");
+         System.err.println(uhe);
+         webUrl = "http://127.0.0.1";
+      }
       String sane = new String();
+      boolean customUrl = false;
       int riakPort = 8087;
 		try {
 			for (int i=0; i<args.length; i++) {
@@ -269,10 +284,22 @@ class OtiNanai {
 						System.out.println("GraphsPerPage = " + args[i]);
                   MAXPERPAGE = Short.parseShort(args[i]);
 						break;
+					case "-notify":
+                  i++;
+						System.out.println("notifyScript = " + args[i]);
+                  notifyScript = args[i];
+						break;
+					case "-url":
+                  i++;
+						System.out.println("webUrl = " + args[i]);
+                  webUrl = args[i];
+                  customUrl = true;
+						break;
 					default:
 						System.out.println(
                         "-wp <webPort>          : Web Interface Port (default: 9876)\n"
                         +"-lp <listenerPort>    : UDP listener Port (default: 9876)\n"
+                        +"-url <webUrl>         : Web Url (for links in notifications) (default: host:port)\n"
                         +"-wt <webThreads>      : No Idea, probably unused\n"
                         +"-ct <cacheTime>       : How long (seconds) to cache generated page (default: 120)\n"
                         +"-ci <cacheItems>      : How many pages to store in cache (default: 50)\n"
@@ -280,6 +307,7 @@ class OtiNanai {
                         +"-as <alarmSamples>    : Minimum samples before considering for alarm (default: 20)\n"
                         +"-at <alarmThreshold>  : Alarm threshold multiplier (how many times above/below average is an alarm) (default: 3.0)\n"
                         +"-acs <alarmConsecutiveSamples>    : How many consecutive samples above threshold trigger alarm state (default: 3)\n"
+                        +"-notify <notifyScript>            : Script to use for alarms (default: /tmp/otinanai_notifier)\n"
                         +"-gpp <graphsPerPage>  : Max graphs per page (default: 30)\n"
                         +"-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60)\n"
                         +"-s1samples <step1Samples>         : Samples to keep before aggregating oldest (default: 1440)\n"
@@ -294,7 +322,7 @@ class OtiNanai {
                         +"-rh <riakOrRedisEndPoint>   : Redis or Riak endpoint (default: localhost)\n"
                         +"-rp <riakPort>        : (default: 8087)\n"
                         +"-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)\n"
-                        +"-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)"
+                        +"-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)\n"
                         );
                   System.exit(0);
 						break;
@@ -304,6 +332,14 @@ class OtiNanai {
 			System.out.println(e);
 			System.exit(1);
 		}
+
+      if (!customUrl) {
+         webUrl = webUrl + ":" + webPort;
+      }
+
+      WEBURL = webUrl;
+      NOTIFYSCRIPT = notifyScript;
+
 		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList, redisSavedQueries);
 	}
 
@@ -347,6 +383,9 @@ class OtiNanai {
 
 	//public static final int MAXSAMPLES = 20;
 	//public static int MAX_LOG_OUTPUT=20;
+
+   public static String WEBURL;
+   public static String NOTIFYSCRIPT;
 
 	public static final short UNSET = 0;
 	public static final short GAUGE = 1;
