@@ -23,7 +23,7 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String riakRedisHost, int riakPort, String redisKeyWordList, String redisSavedQueries){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
@@ -42,15 +42,14 @@ class OtiNanai {
 			logger.config("[Init]: logLevel: "+logLevel);
 			logger.config("[Init]: storageEngine: "+storageEngine);
 			logger.config("[Init]: bucketName: "+bucketName);
-			logger.config("[Init]: riakRedisHost: "+riakRedisHost);
-			logger.config("[Init]: riakPort: "+riakPort);
+			logger.config("[Init]: redisHost: "+redisHost);
          logger.config("[Init]: redisKeyWordList: "+redisKeyWordList);
          logger.config("[Init]: redisSavedQueries: "+redisSavedQueries);
          logger.config("[Init]: notifyScript: "+NOTIFYSCRIPT);
          logger.config("[Init]: Web url: "+WEBURL);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList, redisSavedQueries);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, redisHost, redisKeyWordList, redisSavedQueries);
 			new Thread(onl).start();
 
          // Ticker
@@ -143,7 +142,7 @@ class OtiNanai {
       String bucketName = new String("OtiNanai");
       String logFile = new String("/var/log/otinanai.log");
       String logLevel = new String("INFO");
-      String riakRedisHost = new String("localhost");
+      String redisHost = new String("localhost");
       String redisKeyWordList = new String("existing_keywords_list"); 
       String redisSavedQueries = new String("saved_queries_list");
       String notifyScript = new String("/tmp/otinanai_notifier");
@@ -157,7 +156,6 @@ class OtiNanai {
       }
       String sane = new String();
       boolean customUrl = false;
-      int riakPort = 8087;
 		try {
 			for (int i=0; i<args.length; i++) {
 				arg = args[i];
@@ -219,10 +217,6 @@ class OtiNanai {
 						logLevel = args[i];
 						System.out.println("logLevel = " + logLevel);
 						break;
-					case "-riak":
-						System.out.println("storageEngine = Riak");
-                  storageEngine = OtiNanai.RIAK;
-						break;
                case "-bn":
                   i++;
                   System.out.println("Bucket Name = " + args[i]);
@@ -230,13 +224,8 @@ class OtiNanai {
                   break;
                case "-rh":
                   i++;
-                  System.out.println("riak/redis host = " + args[i]);
-                  riakRedisHost = args[i];
-                  break;
-               case "-rp":
-                  i++;
-                  System.out.println("riak port = " + args[i]);
-                  riakPort = Integer.parseInt(args[i]);
+                  System.out.println("redis host = " + args[i]);
+                  redisHost = args[i];
                   break;
 					case "-redis":
 						System.out.println("storageEngine = Redis");
@@ -317,10 +306,7 @@ class OtiNanai {
                         +"-lf <logFile>         : \n"
                         +"-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)\n"
                         +"-redis                : Use redis storage engine (recommended) (default uses volatile memory engine)\n"
-                        +"-riak                 : Use riak storage ending (not recommended)\n"
-                        +"-bn <riakBucketName>  : (default: OtiNanai)\n"
-                        +"-rh <riakOrRedisEndPoint>   : Redis or Riak endpoint (default: localhost)\n"
-                        +"-rp <riakPort>        : (default: 8087)\n"
+                        +"-rh <redisEndPoint>   : Redis endpoint (default: localhost)\n"
                         +"-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)\n"
                         +"-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)\n"
                         );
@@ -341,7 +327,7 @@ class OtiNanai {
       NOTIFYSCRIPT = notifyScript;
       ALARMLIFE = alarmLife;
 
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList, redisSavedQueries);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, redisHost, redisKeyWordList, redisSavedQueries);
 	}
 
 	/**

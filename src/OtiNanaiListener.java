@@ -1,12 +1,5 @@
 package gr.phaistosnetworks.admin.otinanai;
 
-import com.basho.riak.client.*;
-import com.basho.riak.client.bucket.*;
-import com.basho.riak.client.cap.*;
-import com.basho.riak.client.raw.*;
-import com.basho.riak.client.raw.pbc.*;
-
-
 import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
@@ -24,54 +17,20 @@ class OtiNanaiListener implements Runnable {
     * @param   ps Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String riakRedisHost, int riakPort, String redisKeyWordList, String redisSavedQueries) {
+	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries) {
 		logger = l;
       alarmSamples = as;
       alarmThreshold = at;
       alarmConsecutiveSamples = acs;
       storageType = st;
-      riakBucket = null;
       deleteLock = false;
       rKeyList = redisKeyWordList;
       rSavedQueries = redisSavedQueries;
       kwtList = new LLString();
       trackerMap = new HashMap<String, KeyWordTracker>();
 
-      if (st == OtiNanai.RIAK) {
-         try {
-            logger.config("[Listener]: Setting up Riak");
-
-            IRiakClient riakClient = RiakFactory.pbcClient(riakRedisHost, riakPort);
-            //riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).backend("eleveldb").execute();
-            riakBucket = riakClient.createBucket(bucketName).nVal(1).r(1).disableSearch().lastWriteWins(true).execute();
-            logger.config("[Listener]: Riak.getAllowSiblings = " + riakBucket.getAllowSiblings());
-            logger.config("[Listener]: Riak.getBackend = " + riakBucket.getBackend());
-            logger.config("[Listener]: Riak.getBasicQuorum = " + riakBucket.getBasicQuorum());
-            logger.config("[Listener]: Riak.getBigVClock = " + riakBucket.getBigVClock());
-            logger.config("[Listener]: Riak.getSmallVClock = " + riakBucket.getSmallVClock());
-            logger.config("[Listener]: Riak.getOldVClock = " + riakBucket.getOldVClock());
-            logger.config("[Listener]: Riak.getChashKeyFunction = " + riakBucket.getChashKeyFunction());
-            logger.config("[Listener]: Riak.getLastWriteWins = " + riakBucket.getLastWriteWins());
-            logger.config("[Listener]: Riak.getNVal = " + riakBucket.getNVal());
-            logger.config("[Listener]: Riak.getDW = " + riakBucket.getDW().getIntValue());
-            logger.config("[Listener]: Riak.getPR = " + riakBucket.getPR().getIntValue());
-            logger.config("[Listener]: Riak.getPW = " + riakBucket.getPW().getIntValue());
-            logger.config("[Listener]: Riak.getRW = " + riakBucket.getRW().getIntValue());
-            logger.config("[Listener]: Riak.getR = " + riakBucket.getR().getIntValue());
-            logger.config("[Listener]: Riak.getW = " + riakBucket.getW().getIntValue());
-
-            kwtList = getKWTList();
-            for (String kw : kwtList) { 
-               logger.info("[Listener]: Creating new Tracker: "+kw);
-               trackerMap.put(kw, new RiakTracker(kw, as, at, acs, logger, riakBucket));
-            }
-         } catch (RiakException re) {
-            logger.severe("[Listener]: "+re);
-            System.exit(1);
-         }
-         storeKWTList(kwtList);
-      } else if (st == OtiNanai.REDIS) {
-         jedis = new Jedis(riakRedisHost);
+      if (st == OtiNanai.REDIS) {
+         jedis = new Jedis(redisHost);
          kwtList = new LLString();
          if (jedis.exists(rKeyList)) {
             for (String s : jedis.smembers(rKeyList)) {
@@ -146,9 +105,7 @@ class OtiNanaiListener implements Runnable {
          KeyWordTracker kwt = getKWT(kw);
          if (kwt == null) {
             logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
-            if (storageType == OtiNanai.RIAK)
-               kwt = new RiakTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, riakBucket);
-            else if (storageType == OtiNanai.REDIS)
+            if (storageType == OtiNanai.REDIS)
                kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
             else
                kwt = new MemTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
@@ -171,48 +128,15 @@ class OtiNanaiListener implements Runnable {
          trackerMap.put(kw, kwt);
          if (!kwtList.contains(kw)) {
             kwtList.add(kw);
-            if (storageType == OtiNanai.REDIS) {
+            if (storageType == OtiNanai.REDIS)
                jedis.sadd(rKeyList, kw);
-            } else {
-               storeKWTList(kwtList);
-            }
          }
 		}
       
 	}
 
    public LLString getKWTList() {
-      logger.info("[Listener]: Trying to get kwtList");
-      if (storageType == OtiNanai.MEM || storageType == OtiNanai.REDIS) {
-         return kwtList;
-      } else {
-         try {
-            kwtList = riakBucket.fetch(rKeyList, LLString.class).execute();
-            if (kwtList == null) {
-               kwtList = new LLString();
-            }
-         } catch (RiakRetryFailedException rrfe) {
-            kwtList = new LLString();
-            logger.severe("[Listener]: Unable to retrieve keyList from riak\n"+rrfe);
-         }
-      }
       return kwtList;
-   }
-
-   private boolean storeKWTList(LLString toStore) {
-      logger.fine("[Listener]: Trying to store kwtList");
-      if (storageType == OtiNanai.RIAK) {
-         try {
-            riakBucket.store(rKeyList, toStore).execute();
-            logger.fine("[Listener]: kwtList stored on riak");
-         } catch (Exception rrfe) {
-            logger.severe("[Listener]: Unable to store KWTList\n"+rrfe);
-            return false;
-         }
-      } else {
-         logger.severe("[Listener]: Cannot Store KWTlist for this storage engine (type: "+storageType+" - Not Implemented)");
-      }
-      return true;
    }
 
    public KeyWordTracker getKWT(String key) {
@@ -238,13 +162,6 @@ class OtiNanaiListener implements Runnable {
          kwtList.remove(key);
          jedis.srem(rKeyList, key);
          jedis.del(key);
-         trackerMap.remove(key);
-         kwt.delete();
-      } else {
-         KeyWordTracker kwt = getKWT(key);
-         kwtList = getKWTList();
-         kwtList.remove(key);
-         storeKWTList(kwtList);
          trackerMap.remove(key);
          kwt.delete();
       }
@@ -296,7 +213,6 @@ class OtiNanaiListener implements Runnable {
 	private DatagramSocket dataSocket;
 	private Logger logger;
    private short storageType;
-   private Bucket riakBucket;
    private String rKeyList;
    private String rSavedQueries;
    private LLString kwtList;
