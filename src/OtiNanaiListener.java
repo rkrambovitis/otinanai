@@ -17,7 +17,7 @@ class OtiNanaiListener implements Runnable {
     * @param   ps Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries) {
+	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries) {
 		logger = l;
       alarmSamples = as;
       alarmThreshold = at;
@@ -27,6 +27,7 @@ class OtiNanaiListener implements Runnable {
       rKeyList = redisKeyWordList;
       rSavedQueries = redisSavedQueries;
       kwtList = new LLString();
+      redisHost = rh;
       trackerMap = new HashMap<String, KeyWordTracker>();
 
       if (st == OtiNanai.REDIS) {
@@ -39,7 +40,7 @@ class OtiNanaiListener implements Runnable {
          }
          for (String kw : kwtList) { 
             logger.info("[Listener]: Creating new Tracker: "+kw);
-            trackerMap.put(kw, new RedisTracker(kw, as, at, acs, logger));
+            trackerMap.put(kw, new RedisTracker(kw, as, at, acs, redisHost, logger));
          }
       }
 		dataSocket = ds;
@@ -106,7 +107,7 @@ class OtiNanaiListener implements Runnable {
          if (kwt == null) {
             logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
             if (storageType == OtiNanai.REDIS)
-               kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
+               kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, redisHost, logger);
             else
                kwt = new MemTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
 
@@ -217,5 +218,6 @@ class OtiNanaiListener implements Runnable {
    private String rSavedQueries;
    private LLString kwtList;
    private Jedis jedis;
+   private String redisHost;
    private boolean deleteLock;
 }

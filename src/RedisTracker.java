@@ -6,7 +6,7 @@ import redis.clients.jedis.*;
 
 class RedisTracker implements KeyWordTracker {
 
-	public RedisTracker(String key, int as, float at, int acs, Logger l) {
+	public RedisTracker(String key, int as, float at, int acs, String rh, Logger l) {
 		mean = 0f;
       alarmSamples = as;
       alarmThreshold = at;
@@ -14,7 +14,8 @@ class RedisTracker implements KeyWordTracker {
       alarmCount = 0;
 		keyWord = new String(key);
       logger = l;
-      jedis = new Jedis("localhost");
+      redisHost = rh;
+      jedis = new Jedis(redisHost);
 		sampleCount = 1;
       currentFloat = 0f;
       currentDataCount = -1;
@@ -25,7 +26,7 @@ class RedisTracker implements KeyWordTracker {
 
    private void resetJedis() {
       jedis.disconnect();
-      jedis = new Jedis("localhost");
+      jedis = new Jedis(redisHost);
    }
 
 	public String getKeyWord() {
@@ -244,7 +245,7 @@ class RedisTracker implements KeyWordTracker {
             if (alarmCount >= alarmConsecutiveSamples) {
                logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
                if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
-                  OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm Threshold Breached by "+keyWord+" mean: "+String.format("%.3f", mean) +" deviation: "+String.format("%.0f", deviation)+"x url: "+OtiNanai.WEBURL+"/"+keyWord);
+                  OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm: *"+keyWord+"* "+String.format("%.0f", deviation)+"x mean: "+String.format("%.3f", mean) +" url: "+OtiNanai.WEBURL+"/"+keyWord);
                   onn.send();
                }
                alarm=ts;
@@ -309,4 +310,5 @@ class RedisTracker implements KeyWordTracker {
    private int alarmConsecutiveSamples;
    private int alarmCount;
    private Jedis jedis;
+   private String redisHost;
 }
