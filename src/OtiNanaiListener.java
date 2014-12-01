@@ -24,9 +24,8 @@ class OtiNanaiListener implements Runnable {
     * @param   ps Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, long al, int as, float at, int acs, Logger l, short st, String bucketName, String riakRedisHost, int riakPort, String redisKeyWordList, String redisSavedQueries) {
+	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String riakRedisHost, int riakPort, String redisKeyWordList, String redisSavedQueries) {
 		logger = l;
-      alarmLife = al;
       alarmSamples = as;
       alarmThreshold = at;
       alarmConsecutiveSamples = acs;
@@ -281,10 +280,6 @@ class OtiNanaiListener implements Runnable {
       deleteLock=false;
    }
 
-   public long getAlarmLife() {
-      return alarmLife;
-   }
-
    public long getAlarm(String kw) {
       if (!kwtList.contains(kw)) {
          return 0L;
@@ -295,7 +290,6 @@ class OtiNanaiListener implements Runnable {
 
    private HashMap<String,KeyWordTracker> trackerMap;
 	private int port;
-   private long alarmLife;
    private int alarmSamples;
    private float alarmThreshold;
    private int alarmConsecutiveSamples;

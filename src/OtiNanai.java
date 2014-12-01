@@ -23,7 +23,7 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, long alarmLife, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String riakRedisHost, int riakPort, String redisKeyWordList, String redisSavedQueries){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String riakRedisHost, int riakPort, String redisKeyWordList, String redisSavedQueries){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
@@ -34,9 +34,9 @@ class OtiNanai {
 			logger.config("[Init]: webThreads "+webThreads);
 			logger.config("[Init]: cacheTime "+cacheTime + "ms");
 			logger.config("[Init]: cacheItems "+cacheItems);
-			logger.config("[Init]: alarmLife: "+alarmLife + "ms");
 			logger.config("[Init]: alarmSamples: "+alarmSamples);
 			logger.config("[Init]: alarmThreshold: "+alarmThreshold);
+         logger.config("[Init]: alarmLife: "+ALARMLIFE + "ms");
 			logger.config("[Init]: alarmConsecutiveSamples: "+alarmConsecutiveSamples);
 			logger.config("[Init]: logFile: "+logFile);
 			logger.config("[Init]: logLevel: "+logLevel);
@@ -50,7 +50,7 @@ class OtiNanai {
          logger.config("[Init]: Web url: "+WEBURL);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList, redisSavedQueries);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList, redisSavedQueries);
 			new Thread(onl).start();
 
          // Ticker
@@ -339,8 +339,9 @@ class OtiNanai {
 
       WEBURL = webUrl;
       NOTIFYSCRIPT = notifyScript;
+      ALARMLIFE = alarmLife;
 
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmLife, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList, redisSavedQueries);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, riakRedisHost, riakPort, redisKeyWordList, redisSavedQueries);
 	}
 
 	/**
@@ -386,6 +387,7 @@ class OtiNanai {
 
    public static String WEBURL;
    public static String NOTIFYSCRIPT;
+   public static long ALARMLIFE;
 
 	public static final short UNSET = 0;
 	public static final short GAUGE = 1;

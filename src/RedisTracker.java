@@ -23,6 +23,11 @@ class RedisTracker implements KeyWordTracker {
       logger.finest("[RedisTracker]: new RedisTracker initialized for \"" +keyWord+"\"");
 	}
 
+   private void resetJedis() {
+      jedis.disconnect();
+      jedis = new Jedis("localhost");
+   }
+
 	public String getKeyWord() {
 		return keyWord;
    }
@@ -152,6 +157,7 @@ class RedisTracker implements KeyWordTracker {
          logger.severe("[RedisTracker]: tick(): "+e);
          logger.severe("toPush: "+toPush);
          System.err.println("[RedisTracker]: tick(): "+e.getMessage());
+         resetJedis();
       }
       logger.finest("[RedisTracker]: lpush "+step1Key+" "+toPush);
       jedis.lpush(step1Key, toPush);
@@ -237,9 +243,11 @@ class RedisTracker implements KeyWordTracker {
             alarmCount++;
             if (alarmCount >= alarmConsecutiveSamples) {
                logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
+               if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
+                  OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm Threshold Breached by "+keyWord+" mean: "+String.format("%.3f", mean) +" deviation: "+String.format("%.0f", deviation)+"x url: "+OtiNanai.WEBURL+"/"+keyWord);
+                  onn.send();
+               }
                alarm=ts;
-               OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm Threshold Breached by "+keyWord+" mean: "+mean+" deviation: "+deviation+" consecutive: "+alarmCount+" url: "+OtiNanai.WEBURL+"/"+keyWord);
-               onn.send();
             } else {
                logger.info("[RedisTracker]: Error threshold breached " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
             }
@@ -266,6 +274,7 @@ class RedisTracker implements KeyWordTracker {
       } catch (Exception e) {
          logger.severe("[RedisTracker]: getMemory(): " + e);
          System.err.println("[RedisTracker]: getMemory(): " +e.getMessage());
+         resetJedis();
       }
       return returner;
    }

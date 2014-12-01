@@ -220,11 +220,13 @@ class MemTracker implements KeyWordTracker {
             alarmCount++;
             if (alarmCount >= alarmConsecutiveSamples) {
                logger.info("[MemTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
+               if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
+                  OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm Threshold Breached by "+keyWord+" mean: "+String.format("%.3f", mean) +" deviation: "+String.format("%.0f", deviation)+"x url: "+OtiNanai.WEBURL+"/"+keyWord);
+                  onn.send();
+               }
                alarm=ts;
-               OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm Threshold Breached by "+keyWord+" mean: "+mean+" deviation: "+deviation+" consecutive: "+alarmCount+" url: "+OtiNanai.WEBURL+"/"+keyWord);
-               onn.send();
             } else {
-               logger.info("[MemTracker]: Error threshold breached " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
+               logger.info("[MemTracker]: Error threshold breached " + keyWord + " mean: "+ mean +" deviation: "+ deviation + "x count: "+alarmCount);
             }
          } else {
             alarmCount = 0;

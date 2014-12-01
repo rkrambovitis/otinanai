@@ -780,13 +780,12 @@ class OtiNanaiWeb implements Runnable {
          }
       }
       if (showAlarms) {
-         long alarmLife = onl.getAlarmLife();
          long timeNow = System.currentTimeMillis();
          long lastAlarm;
          logger.info("[Web]: kws.size() = "+kws.size());
          for (String kw : allKWTs ) {
             lastAlarm=onl.getAlarm(kw);
-            if (lastAlarm == 0L || (timeNow - lastAlarm) > alarmLife) {
+            if (lastAlarm == 0L || (timeNow - lastAlarm) > OtiNanai.ALARMLIFE) {
                logger.info("[Web]: No alarm for "+kw+ " - Removing");
                kws.remove(kw);
             } else {
