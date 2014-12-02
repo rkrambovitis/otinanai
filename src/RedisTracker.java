@@ -257,6 +257,7 @@ class RedisTracker implements KeyWordTracker {
                }
                alarm=ts;
                jedis.set(alarmKey, Long.toString(ts), null, "PX", OtiNanai.ALARMLIFE);
+               //jedis.set(alarmKey, Long.toString(ts));
             } else {
                logger.info("[RedisTracker]: Error threshold breached " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
             }
@@ -265,9 +266,11 @@ class RedisTracker implements KeyWordTracker {
          }
       }
 
+      /*
       step1Key = null;
       step2Key = null;
       step3Key = null;
+      */
 	}
 
 	public long getAlarm() {
@@ -281,8 +284,8 @@ class RedisTracker implements KeyWordTracker {
          returner.addAll(jedis.lrange(step2Key,0,-1));
          returner.addAll(jedis.lrange(step3Key,0,-1));
       } catch (Exception e) {
-         logger.severe("[RedisTracker]: getMemory(): " + e);
-         System.err.println("[RedisTracker]: getMemory(): " +e.getMessage());
+         logger.severe("[RedisTracker]: getMemory(): "+keyWord + ": " + e);
+         System.err.println("[RedisTracker]: getMemory(): "+keyWord + ": "+e.getMessage());
          resetJedis();
       }
       return returner;
