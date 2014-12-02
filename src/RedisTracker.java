@@ -20,7 +20,17 @@ class RedisTracker implements KeyWordTracker {
       currentFloat = 0f;
       currentDataCount = -1;
       recordType = OtiNanai.UNSET;
-		alarm = 0L;
+      step1Key = keyWord + "thirtySec";
+      step2Key = keyWord + "fiveMin";
+      step3Key = keyWord + "thirtyMin";
+      alarmKey = keyWord + "alarmTS";
+      String alarmSaved = jedis.get(alarmKey);
+      if (alarmSaved == null) {
+         alarm = 0L;
+      } else {
+         alarm = Long.parseLong(alarmSaved);
+      }
+
       logger.finest("[RedisTracker]: new RedisTracker initialized for \"" +keyWord+"\"");
 	}
 
@@ -34,9 +44,9 @@ class RedisTracker implements KeyWordTracker {
    }
 
    public void delete() {
-      jedis.del(keyWord + "thirtySec");
-      jedis.del(keyWord + "fiveMin");
-      jedis.del(keyWord + "thirtyMin");
+      jedis.del(step1Key);
+      jedis.del(step2Key);
+      jedis.del(step3Key);
       jedis.quit();
    }
 
@@ -104,9 +114,6 @@ class RedisTracker implements KeyWordTracker {
       float perSec = 0f;
       float timeDiff = (float)(ts - lastTimeStamp);
 
-      String step1Key = keyWord + "thirtySec";
-      String step2Key = keyWord + "fiveMin";
-      String step3Key = keyWord + "thirtyMin";
 
       lastTimeStamp = ts;
       if (recordType == OtiNanai.GAUGE) {
@@ -249,6 +256,7 @@ class RedisTracker implements KeyWordTracker {
                   onn.send();
                }
                alarm=ts;
+               jedis.set(alarmKey, Long.toString(ts), null, "PX", OtiNanai.ALARMLIFE);
             } else {
                logger.info("[RedisTracker]: Error threshold breached " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
             }
@@ -269,9 +277,9 @@ class RedisTracker implements KeyWordTracker {
    public LinkedList<String> getMemory() {
       LinkedList<String> returner = new LinkedList<String>();
       try {
-         returner.addAll(jedis.lrange(keyWord+"thirtySec",0,-1));
-         returner.addAll(jedis.lrange(keyWord+"fiveMin",0,-1));
-         returner.addAll(jedis.lrange(keyWord+"thirtyMin",0,-1));
+         returner.addAll(jedis.lrange(step1Key,0,-1));
+         returner.addAll(jedis.lrange(step2Key,0,-1));
+         returner.addAll(jedis.lrange(step3Key,0,-1));
       } catch (Exception e) {
          logger.severe("[RedisTracker]: getMemory(): " + e);
          System.err.println("[RedisTracker]: getMemory(): " +e.getMessage());
@@ -311,4 +319,8 @@ class RedisTracker implements KeyWordTracker {
    private int alarmCount;
    private Jedis jedis;
    private String redisHost;
+   private String step1Key;
+   private String step2Key;
+   private String step3Key;
+   private String alarmKey;
 }
