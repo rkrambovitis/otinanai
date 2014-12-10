@@ -250,16 +250,16 @@ class RedisTracker implements KeyWordTracker {
          if ((sampleCount >= alarmSamples) && (deviation >= alarmThreshold)) {
             alarmCount++;
             if (alarmCount >= alarmConsecutiveSamples) {
-               logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
+               logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount + " keyWord: "+alarmKey);
                if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
                   OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm: *"+keyWord+"* "+String.format("%.0f", deviation)+"x mean: "+String.format("%.3f", mean) +" url: "+OtiNanai.WEBURL+"/"+keyWord);
                   onn.send();
                }
                alarm=ts;
-               jedis.set(alarmKey, Long.toString(ts), null, "PX", OtiNanai.ALARMLIFE);
-               //jedis.set(alarmKey, Long.toString(ts));
+               //jedis.set(alarmKey, Long.toString(ts), null, "PX", OtiNanai.ALARMLIFE);
+               jedis.set(alarmKey, Long.toString(ts));
             } else {
-               logger.info("[RedisTracker]: Error threshold breached " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
+               logger.fine("[RedisTracker]: Error threshold breached " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount + " keyWord: "+alarmKey);
             }
          } else {
             alarmCount = 0;
