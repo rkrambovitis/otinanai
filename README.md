@@ -2,13 +2,13 @@
 Simple graphing tool.
 
 ## System Requirements ##
-+ java 7+
+java 7+
 
-+ redis (recommended for data retention)
-    * By default otinanai just writes to memory, and does not retain anything.
+redis (recommended for data retention)
+ By default otinanai just writes to memory, and does not retain anything.
 
-+ jedis ( http://search.maven.org/#browse%7C687224809 )
-    * Place into src/jars
+jedis ( http://search.maven.org/#browse%7C687224809 )
+ Place into src/jars
 
 ## Required js libraries (Place into web dir) ##
 + flot ( http://www.flotcharts.org/ )
@@ -57,40 +57,41 @@ $ java -cp src/jars/jedis-2.6.1.jar:. gr.phaistosnetworks.admin.otinanai.OtiNana
 	-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)
 
 ## Getting data in ##
-+ Frequency (events / sec) - i.e. tail log and graph errors
-    * $ echo key.word > /dev/udp/127.0.0.1/9876
+Frequency (events / sec) - i.e. tail log and graph errors
+* $ echo key.word > /dev/udp/127.0.0.1/9876
 
-+ Gauge (mean value) - i.e. graph mem usage of process
-    * $ echo key.word {value} > /dev/udp/127.0.0.1/9876
+Gauge (mean value) - i.e. graph mem usage of process
+* $ echo key.word {value} > /dev/udp/127.0.0.1/9876
 
-+ Counter (rate of change / sec) - i.e. graph network activity from snmp counter
-    * $ echo key.word {value} COUNTER > /dev/udp/127.0.0.1/9876
+Counter (rate of change / sec) - i.e. graph network activity from snmp counter
+* $ echo key.word {value} COUNTER > /dev/udp/127.0.0.1/9876
 
-+ Sum (sum of values / sec) - i.e. graph virtulhost traffic
-    * $ echo key.word {value} SUM > /dev/udp/127.0.0.1/9876
+Sum (sum of values / sec) - i.e. graph virtulhost traffic
+* $ echo key.word {value} SUM > /dev/udp/127.0.0.1/9876
 
 ## Getting data out ##
 + Just point your browser to 127.0.0.1:9876 and type part of a keyword in the search field.
 
 ### Web Input Switches ###
-    * ^chars (starts with chars)
-    * chars$ (ends with chars)
-    * -chars (exclude keywords that contain chars)
-    * +chars (exclude keywords that don't contain chars)
-    * @hrs (change time range to hrs - default 24)
-    * @+hrs (change start time to hrs back)
-    * --delete (delete data of matching keywords
-    * --gauge|--dial (draw as gauges instead of line graphs)
-    * --sa|--show (show all matching graphs, i.e. override the max-per-page setting)
-    * --nc|--no-cache (ignore cache)
-    * --m|--merge|--combine (merge all graphs into one. Beware, looks like crap)
-    * --ma|--merge-axis|--merge-axes (same as above, but scale data to fit)
-    * --alarms|--alerts (show only matching keywords in "alarm" state)
-    * --nb|--no-bar|--ns|--no-search (Do not show the search bar - for embedding)
++ Use the following to refine the output
+* ^chars (starts with chars)
+* chars$ (ends with chars)
+* -chars (exclude keywords that contain chars)
+* +chars (exclude keywords that don't contain chars)
+* @hrs (change time range to hrs - default 24)
+* @+hrs (change start time to hrs back)
+* --delete (delete data of matching keywords
+* --gauge|--dial (draw as gauges instead of line graphs)
+* --sa|--show (show all matching graphs, i.e. override the max-per-page setting)
+* --nc|--no-cache (ignore cache)
+* --m|--merge|--combine (merge all graphs into one. Beware, looks like crap)
+* --ma|--merge-axis|--merge-axes (same as above, but scale data to fit)
+* --alarms|--alerts (show only matching keywords in "alarm" state)
+* --nb|--no-bar|--ns|--no-search (Do not show the search bar - for embedding)
 
-* Examples:
-    * .com$ +mysite 
-    * host -subdomain --merge --no-cache
-    * crapdata --delete
-    * dataroom.temperature --gauge
-    * some.keyword @+48 @3
++ Examples:
+* .com$ +mysite 
+* host -subdomain --merge --no-cache
+* crapdata --delete
+* dataroom.temperature --gauge
+* some.keyword @+48 @3
