@@ -12,13 +12,13 @@ Simple graphing tool.
 
 ## Required js libraries (Place into web dir) ##
 + flot ( http://www.flotcharts.org/ )
-    jquery.flot.crosshair.js
-    jquery.flot.js
-    jquery.flot.resize.js
-    jquery.flot.selection.js
-    jquery.flot.stack.js
-    jquery.flot.stack.min.js
-    jquery.flot.time.js
+    * jquery.flot.crosshair.js
+    * jquery.flot.js
+    * jquery.flot.resize.js
+    * jquery.flot.selection.js
+    * jquery.flot.stack.js
+    * jquery.flot.stack.min.js
+    * jquery.flot.time.js
 + jquery ( http://jquery.com/ )
 + justgage ( http://justgage.com/ )
 + raphael ( http://raphaeljs.com/ )
@@ -90,10 +90,7 @@ Just point your browser to 127.0.0.1:9876 and type part of a keyword in the sear
 
 * Examples:
     * .com$ +mysite 
-    host -subdomain --merge --no-cache
-    crapdata --delete
-    dataroom.temperature --gauge
-    some.keyword @+48 @3
-
-
-
+    * host -subdomain --merge --no-cache
+    * crapdata --delete
+    * dataroom.temperature --gauge
+    * some.keyword @+48 @3
