@@ -1,5 +1,28 @@
 # otinanai #
-Simple graphing tool.
+
+OtiNanai is a Simple graphing tool, designed to graph anything.
+The main idea is that you can chuck anything at it, and then easily find what you are looking for.
+The search bar is pretty simple, and makes it easy to narrow down on something,
+but at the same time, allows you to browse data you didn't recall you were graphing.
+
+All in all, it makes finding patterns and correlations relatively simple.
+
+## Features ##
++ Multiple data types (gauge, sum, freq, counter)
++ SUM option allows you to easily graph apache traffic per virtualhost using mod_logio.
++ Redis backend: Lightweight, in memory, so you don't need umpteen spinning disks for decent performance.
++ js front end: Browser hog rather than server hog :)
++ Automatic spike handling. No need to clear rrd spikes just because you restarted something :)
++ Multiple metrics per graph. Mean, avg, 99th, 95th, min, max all within the timeframe you choose.
++ Relevant graph viewport. By default spikes are outside graphing area, making graphs relevant.
++ Multiple output visualizations (merged, axis-merged, stacked, gauge or individual)
++ Spike detection and notification
++ Graphs generated on the fly, no need to set up in advance.
++ No fancy queries or programming needed. Just pipe it data, and type keywords in web field.
+
+## Limitations ##
++ 1 socket per keyword to redis. So if you need 65k keywords, you will need to ulimit -n 65535 on both redis and otinanai.
++ Persistence depends on redis with all it's pros and cons. So don't rely on this to store critical data.
 
 ## System Requirements ##
 + java 7+
@@ -12,13 +35,12 @@ Simple graphing tool.
 
 ## Required js libraries (Place into web dir) ##
 + flot ( http://www.flotcharts.org/ )
-    * jquery.flot.crosshair.js
-    * jquery.flot.js
-    * jquery.flot.resize.js
-    * jquery.flot.selection.js
-    * jquery.flot.stack.js
+    * jquery.flot.min.js
+    * jquery.flot.crosshair.min.js
+    * jquery.flot.resize.min.js
+    * jquery.flot.selection.min.js
     * jquery.flot.stack.min.js
-    * jquery.flot.time.js
+    * jquery.flot.time.min.js
 + jquery ( http://jquery.com/ )
 + justgage ( http://justgage.com/ )
 + raphael ( http://raphaeljs.com/ )
@@ -86,6 +108,7 @@ $ java -cp src/jars/jedis-2.6.1.jar:. gr.phaistosnetworks.admin.otinanai.OtiNana
     * --nc|--no-cache (ignore cache)
     * --m|--merge|--combine (merge all graphs into one. Beware, looks like crap)
     * --ma|--merge-axis|--merge-axes (same as above, but scale data to fit)
+    * --stack (stack graphs)
     * --alarms|--alerts (show only matching keywords in "alarm" state)
     * --nb|--no-bar|--ns|--no-search (Do not show the search bar - for embedding)
 
