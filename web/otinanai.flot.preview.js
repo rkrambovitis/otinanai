@@ -43,30 +43,16 @@ $(function() {
       }
       var y = datasets[key].data[j][1];
       $("#"+key+" .legendLabel").text(key + " = " + addSuffix(y));
-      /*
-      $.each(datasets, function(key, val) {
-         if (val.data.length <= 2) {
-         } else {
-            for (j = 0; j < val.data.length; ++j) {
-               if (val.data[j][0] > pos.x) {
-                  break;
-               }
-            }
-            var y = val.data[j][1];
-            $("#"+key+" .legendLabel").text(key + " = " + addSuffix(y));
-         }
-      });
-      */
    };
 
    function drawGraphs() {
       $.each(datasets, function(key, val) {
-         handles[key] =$.plot($("#"+key), [val], {
+         handles[key] = $.plot($("#"+key), [val], {
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max: xmax },
             legend: { show: "true", position: "nw" },
             series: { lines: {show: true, fill: false}},
             crosshair: { mode: "x"},
-            yaxis: { show: true, tickFormatter: addSuffix, min: null, max: null },
+            yaxis: { show: true, tickFormatter: addSuffix, min: null, max: datasets[key]['nn']},
             grid: { hoverable: true, autoHighlight: false, clickable: true},
             selection: { mode: "x" }
          });
