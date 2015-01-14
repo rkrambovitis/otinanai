@@ -6,15 +6,13 @@ Simple graphing tool.
 + java 7+
 
 + redis (recommended for data retention)
-By default otinanai just writes to memory, and does not retain anything.
+   By default otinanai just writes to memory, and does not retain anything.
 
-+ jedis
-http://search.maven.org/#browse%7C687224809
-Place into src/jars
++ jedis ( http://search.maven.org/#browse%7C687224809 )
+   Place into src/jars
 
 ## js libraries (Place into web dir) ##
-+ flot 
-http://www.flotcharts.org/
++ flot ( http://www.flotcharts.org/ )
    jquery.flot.crosshair.js
    jquery.flot.js
    jquery.flot.resize.js
@@ -22,12 +20,9 @@ http://www.flotcharts.org/
    jquery.flot.stack.js
    jquery.flot.stack.min.js
    jquery.flot.time.js
-+ jquery
-http://jquery.com/
-+ justgage
-http://justgage.com/
-+ raphael
-http://raphaeljs.com/
++ jquery ( http://jquery.com/ )
++ justgage ( http://justgage.com/ )
++ raphael ( http://raphaeljs.com/ )
 
 ## HOWTO build ##
 1. $ git clone https://github.com/rkrambovitis/otinanai.git
@@ -64,16 +59,16 @@ $ java -cp src/jars/jedis-2.6.1.jar:. gr.phaistosnetworks.admin.otinanai.OtiNana
 
 ## Getting data in ##
 + Frequency (events / sec) - i.e. tail log and graph errors
-$ echo key.word > /dev/udp/127.0.0.1/9876
+   $ echo key.word > /dev/udp/127.0.0.1/9876
 
 + Gauge (mean value) - i.e. graph mem usage of process
-$ echo key.word <number> > /dev/udp/127.0.0.1/9876
+   $ echo key.word <number> > /dev/udp/127.0.0.1/9876
 
 + Counter (rate of change / sec) - i.e. graph network activity from snmp counter
-$ echo key.word <number> COUNTER > /dev/udp/127.0.0.1/9876
+   $ echo key.word <number> COUNTER > /dev/udp/127.0.0.1/9876
 
 + Sum (sum of values / sec) - i.e. graph virtulhost traffic
-$ echo key.word <number> SUM > /dev/udp/127.0.0.1/9876
+   $ echo key.word <number> SUM > /dev/udp/127.0.0.1/9876
 
 ## HOWTO access ##
 Just point your browser to 127.0.0.1:9876 and type part of a keyword in the search field.
