@@ -61,13 +61,13 @@ $ java -cp src/jars/jedis-2.6.1.jar:. gr.phaistosnetworks.admin.otinanai.OtiNana
     * $ echo key.word > /dev/udp/127.0.0.1/9876
 
 + Gauge (mean value) - i.e. graph mem usage of process
-    * $ echo key.word <number> > /dev/udp/127.0.0.1/9876
+    * $ echo key.word {value} > /dev/udp/127.0.0.1/9876
 
 + Counter (rate of change / sec) - i.e. graph network activity from snmp counter
-    * $ echo key.word <number> COUNTER > /dev/udp/127.0.0.1/9876
+    * $ echo key.word {value} COUNTER > /dev/udp/127.0.0.1/9876
 
 + Sum (sum of values / sec) - i.e. graph virtulhost traffic
-    * $ echo key.word <number> SUM > /dev/udp/127.0.0.1/9876
+    * $ echo key.word {value} SUM > /dev/udp/127.0.0.1/9876
 
 ## Getting data out ##
 + Just point your browser to 127.0.0.1:9876 and type part of a keyword in the search field.
