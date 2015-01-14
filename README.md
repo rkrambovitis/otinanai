@@ -1,0 +1,2 @@
+# otinanai
+Simple graphing tool.
