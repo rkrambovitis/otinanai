@@ -204,9 +204,12 @@ class OtiNanaiWeb implements Runnable {
       //StringBuilder output = new StringBuilder("\n");
       SomeRecord sr;
       LinkedList<String> data = new LinkedList<String>();
+
+      long timePrev = System.currentTimeMillis();
       data = kwt.getMemory();
       //Collections.reverse(data);
       long now=System.currentTimeMillis();
+      logger.finest("[Web]: Timing - Total getMemory time: " + (now - timePrev));
       double total=0;
       int samples=0;
       boolean minMaxSet=false;
@@ -252,6 +255,10 @@ class OtiNanaiWeb implements Runnable {
          }
          allData.add(Float.parseFloat(twowords[1]));
       }
+
+      long post=System.currentTimeMillis();
+      logger.finest("[Web]: Timing - Total processing time: " + (post - now));
+
       int nfth = 0;
       int fifth = 0;
       int tfifth = 0;
@@ -415,7 +422,7 @@ class OtiNanaiWeb implements Runnable {
             if (type == OtiNanai.GRAPH_PREVIEW) {
                body = body 
                   + "<div class=\"wrapper clearfix\">\n"
-                  + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+kwt.getType()+") "
+                  + "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+parseType(kwt.getType())+") "
                   + "<script>"
                   + "document.write("
                   + "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
@@ -460,6 +467,16 @@ class OtiNanaiWeb implements Runnable {
             + commonHTML(OtiNanai.ENDBODY);
       }
       return output;
+   }
+
+   private String parseType(short t) {
+      switch (t) {
+         case OtiNanai.GAUGE: return new String("gauge");
+         case OtiNanai.COUNTER: return new String("count");
+         case OtiNanai.FREQ: return new String("freq");
+         case OtiNanai.SUM: return new String("sum"); 
+      }
+      return new String("unset");
    }
 
    private TreeMap<String, Integer> subTree(ArrayList<String> kws, String start) {

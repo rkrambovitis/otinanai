@@ -1,5 +1,5 @@
 SRC= src
-CPATH= jars/jedis-2.6.1.jar
+CPATH= /home/otinanai/jars/jedis.jar
 BASEPATH= .
 DST= $(BASEPATH)/gr/phaistosnetworks/admin/otinanai
 
