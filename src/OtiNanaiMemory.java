@@ -72,8 +72,8 @@ class OtiNanaiMemory {
       return false;
    }
 
-   public LinkedList<String> getMemory() {
-      return kwt.getMemory();
+   public ArrayList<String> getMemory(Long startTime) {
+      return kwt.getMemory(startTime);
    }
 
    private String defKey;

@@ -12,9 +12,9 @@ class MemTracker implements KeyWordTracker {
       alarmThreshold = at;
       alarmConsecutiveSamples = acs;
       alarmCount = 0;
-      step1Memory = new LinkedList<String> ();
-      step2Memory = new LinkedList<String> ();
-      step3Memory = new LinkedList<String> ();
+      step1Memory = new ArrayList<String> ();
+      step2Memory = new ArrayList<String> ();
+      step3Memory = new ArrayList<String> ();
 		keyWord = new String(key);
       logger = l;
 		sampleCount = 1;
@@ -32,9 +32,9 @@ class MemTracker implements KeyWordTracker {
    }
 
    public void delete() {
-      step1Memory = new LinkedList<String> ();
-      step2Memory = new LinkedList<String> ();
-      step3Memory = new LinkedList<String> ();
+      step1Memory = new ArrayList<String> ();
+      step2Memory = new ArrayList<String> ();
+      step3Memory = new ArrayList<String> ();
    }
 
    public void put() {
@@ -120,7 +120,7 @@ class MemTracker implements KeyWordTracker {
          currentCount = 0;
       }
       logger.fine("[MemTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
-      step1Memory.push(new String(ts+" "+String.format("%.3f", perSec)));
+      step1Memory.add(0, new String(ts+" "+String.format("%.3f", perSec)));
 
 
       if (step1Memory.size() > 2) {
@@ -171,7 +171,7 @@ class MemTracker implements KeyWordTracker {
          logger.fine("[MemTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+ finalts);
 
          String toPush = new String(finalts+" "+String.format("%.3f", finalSum));
-         step2Memory.push(toPush);
+         step2Memory.add(0,toPush);
       }
 
 
@@ -196,7 +196,7 @@ class MemTracker implements KeyWordTracker {
          long finalts = tsMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
 
          logger.fine("[MemTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+ finalts);
-         step3Memory.push(new String(finalts+" "+String.format("%.3f", finalSum)));
+         step3Memory.add(0,new String(finalts+" "+String.format("%.3f", finalSum)));
       }
 
 
@@ -242,11 +242,22 @@ class MemTracker implements KeyWordTracker {
 		return alarm;
 	}
 
-   public LinkedList<String> getMemory() {
-      LinkedList<String> returner = new LinkedList<String>();
+   public ArrayList<String> getMemory(Long startTime) {
+      ArrayList<String> returner = new ArrayList<String>();
+      long initTime = System.currentTimeMillis();
       try {
          returner.addAll(step1Memory);
+         String ldp = returner.get(returner.size()-1);
+         Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
+         if (lastts < (initTime-startTime))
+            return returner;
+
          returner.addAll(step2Memory);
+         ldp = returner.get(returner.size()-1);
+         lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
+         if (lastts < (initTime-startTime))
+            return returner;
+
          returner.addAll(step3Memory);
       } catch (NullPointerException e) {
          logger.severe("[MemTracker] :"+e.getStackTrace());
@@ -277,9 +288,9 @@ class MemTracker implements KeyWordTracker {
    private long currentLong;
    private long currentPrev;
    private long lastTimeStamp;
-   private LinkedList<String> step1Memory;
-   private LinkedList<String> step2Memory;
-   private LinkedList<String> step3Memory;
+   private ArrayList<String> step1Memory;
+   private ArrayList<String> step2Memory;
+   private ArrayList<String> step3Memory;
    private Logger logger;
    private int alarmSamples;
    private float alarmThreshold;

@@ -22,7 +22,7 @@ interface KeyWordTracker {
 
 	public long getAlarm() ;
 
-   public LinkedList<String> getMemory() ;
+   public ArrayList<String> getMemory(Long startTime) ;
 
    public long getCurrentCount() ;
 }

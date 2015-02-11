@@ -277,25 +277,26 @@ class RedisTracker implements KeyWordTracker {
 		return alarm;
 	}
 
-   public LinkedList<String> getMemory() {
-      LinkedList<String> returner = new LinkedList<String>();
-      long timeNow;
-      long timePrev;
+   public ArrayList<String> getMemory(Long startTime) {
+      ArrayList<String> returner = new ArrayList<String>();
+      long initTime = System.currentTimeMillis();
       try {
-         timePrev = System.currentTimeMillis();
          returner.addAll(jedis.lrange(step1Key,0,-1));
-         timeNow = System.currentTimeMillis();
-         logger.finest("[RedisTracker]: Timing - step1Key: "+ (timeNow - timePrev));
-         timePrev=timeNow;
+
+         String ldp = returner.get(returner.size()-1);
+         Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
+
+         if (lastts < (initTime-startTime))
+               return returner;
 
          returner.addAll(jedis.lrange(step2Key,0,-1));
-         timeNow = System.currentTimeMillis();
-         logger.finest("[RedisTracker]: Timing - step2Key: "+ (timeNow - timePrev));
-         timePrev=timeNow;
+         ldp = returner.get(returner.size()-1);
+         lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
+
+         if (lastts < (initTime-startTime))
+               return returner;
 
          returner.addAll(jedis.lrange(step3Key,0,-1));
-         timeNow = System.currentTimeMillis();
-         logger.finest("[RedisTracker]: Timing - step3Key: "+ (timeNow - timePrev));
 
       } catch (Exception e) {
          logger.severe("[RedisTracker]: getMemory(): "+keyWord + ": " + e);

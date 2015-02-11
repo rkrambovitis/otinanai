@@ -203,10 +203,10 @@ class OtiNanaiWeb implements Runnable {
 		String output = new String("");
       //StringBuilder output = new StringBuilder("\n");
       SomeRecord sr;
-      LinkedList<String> data = new LinkedList<String>();
+      ArrayList<String> data = new ArrayList<String>();
 
       long timePrev = System.currentTimeMillis();
-      data = kwt.getMemory();
+      data = kwt.getMemory(startTime);
       //Collections.reverse(data);
       long now=System.currentTimeMillis();
       logger.finest("[Web]: Timing - Total getMemory time: " + (now - timePrev));
