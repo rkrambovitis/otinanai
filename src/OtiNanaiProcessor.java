@@ -46,18 +46,6 @@ class OtiNanaiProcessor {
 		return matchedIDs;
 	}
 
-	/*
-	public ArrayList<String> getAlarms() {
-		Collection<KeyWordTracker> allKWs = keyTrackerMap.values();
-		ArrayList<String> returnMe = new ArrayList<String>();
-		for (KeyWordTracker kwt : allKWs) {
-			System.out.println(kwt.getKeyWord());
-			returnMe.add(kwt.getKeyWord());
-		}
-		return returnMe;
-	}
-	*/
-
 	/**
 	 * Add ids with keyword to list of ids
 	 * @param mid	existing ArrayList to add to
@@ -83,30 +71,6 @@ class OtiNanaiProcessor {
 			mid.removeAll(keyMaps.get(key));
 		return mid;
 	}
-
-/*
-	private Vector<SomeRecord> addWord(Vector<SomeRecord> matched, String key) {
-		for (SomeRecord aRecord : storage ) {
-			if (aRecord.hasKeyword(key)) {
-				matched.add(aRecord);
-			}
-		}
-		return matched;
-	}
-
-	private Vector<SomeRecord> delWord(Vector<SomeRecord> matched, String key) {
-		Vector<SomeRecord> toDel = new Vector<SomeRecord>();
-		for (SomeRecord aRecord : matched ) {
-			if (aRecord.hasKeyword(key)) {
-				toDel.add(aRecord);
-			}
-		}
-		for (SomeRecord foo : toDel) {
-			matched.remove(foo);
-		}
-		return matched;
-	}
-*/
 
 	private OtiNanaiListener onl;
 	private Logger logger;

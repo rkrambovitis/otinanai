@@ -8,24 +8,24 @@ import java.util.logging.*;
 class OtiNanaiTicker implements Runnable {
 	public OtiNanaiTicker(OtiNanaiListener o, Logger l) {
 		onl = o;
-      logger = l;
-      logger.finest("[Ticker]: New OtiNanaiTicker Initialized");
+		logger = l;
+		logger.finest("[Ticker]: New OtiNanaiTicker Initialized");
 	}
 
 	public void run() {
 		while (true) {
-         try {
-            Thread.sleep(OtiNanai.TICKER_INTERVAL);
-            logger.info("[Ticker]: TICK ?");
-            onl.tick();
-            logger.info("[Ticker]: TOCK !");
-         } catch (InterruptedException ie) {
-            logger.severe("[Ticker]: "+ie.getStackTrace());
-         }
+			try {
+				Thread.sleep(OtiNanai.TICKER_INTERVAL);
+				logger.info("[Ticker]: TICK ?");
+				onl.tick();
+				logger.info("[Ticker]: TOCK !");
+			} catch (InterruptedException ie) {
+				logger.severe("[Ticker]: "+ie.getStackTrace());
+			}
 		}
 	}
-	
+
 	private OtiNanaiListener onl;
-   private Logger logger;
+	private Logger logger;
 }
 

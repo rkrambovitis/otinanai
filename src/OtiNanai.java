@@ -28,7 +28,7 @@ class OtiNanai {
 		try {
 			// Listener
 			logger.config("[Init]: Setting up new DatagramSocket Listener");
-         logger.config("[Init]: listenerPort "+listenerPort);
+			logger.config("[Init]: listenerPort "+listenerPort);
 			logger.config("[Init]: listenerThreads "+listenerThreads);
 			logger.config("[Init]: webPort "+webPort);
 			logger.config("[Init]: webThreads "+webThreads);
@@ -36,30 +36,30 @@ class OtiNanai {
 			logger.config("[Init]: cacheItems "+cacheItems);
 			logger.config("[Init]: alarmSamples: "+alarmSamples);
 			logger.config("[Init]: alarmThreshold: "+alarmThreshold);
-         logger.config("[Init]: alarmLife: "+ALARMLIFE + "ms");
+			logger.config("[Init]: alarmLife: "+ALARMLIFE + "ms");
 			logger.config("[Init]: alarmConsecutiveSamples: "+alarmConsecutiveSamples);
 			logger.config("[Init]: logFile: "+logFile);
 			logger.config("[Init]: logLevel: "+logLevel);
 			logger.config("[Init]: storageEngine: "+storageEngine);
 			logger.config("[Init]: bucketName: "+bucketName);
 			logger.config("[Init]: redisHost: "+redisHost);
-         logger.config("[Init]: redisKeyWordList: "+redisKeyWordList);
-         logger.config("[Init]: redisSavedQueries: "+redisSavedQueries);
-         logger.config("[Init]: notifyScript: "+NOTIFYSCRIPT);
-         logger.config("[Init]: Web url: "+WEBURL);
+			logger.config("[Init]: redisKeyWordList: "+redisKeyWordList);
+			logger.config("[Init]: redisSavedQueries: "+redisSavedQueries);
+			logger.config("[Init]: notifyScript: "+NOTIFYSCRIPT);
+			logger.config("[Init]: Web url: "+WEBURL);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
 			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, redisHost, redisKeyWordList, redisSavedQueries);
 			new Thread(onl).start();
 
-         // Ticker
-         logger.config("[Init]: Setting up ticker");
-         OtiNanaiTicker ont = new OtiNanaiTicker(onl, logger);
-         new Thread(ont).start();
+			// Ticker
+			logger.config("[Init]: Setting up ticker");
+			OtiNanaiTicker ont = new OtiNanaiTicker(onl, logger);
+			new Thread(ont).start();
 
-         // Cacher
-         logger.config("[Init]: Setting up cacher (life: " +cacheTime+ " items: "+cacheItems+")");
-         OtiNanaiCache onc = new OtiNanaiCache(cacheTime, cacheItems, logger);
+			// Cacher
+			logger.config("[Init]: Setting up cacher (life: " +cacheTime+ " items: "+cacheItems+")");
+			OtiNanaiCache onc = new OtiNanaiCache(cacheTime, cacheItems, logger);
 
 			// Web Interface
 			logger.config("[Init]: Setting up new Web Listener on port "+webPort);
@@ -69,7 +69,7 @@ class OtiNanai {
 				logger.config("[Init]: Starting web thread: "+i+"/"+webThreads);
 				new Thread(onw).start();
 			}
-         
+
 		} catch (java.lang.Exception e) {
 			System.err.println(e);
 			logger.severe("[Init]: "+e.getStackTrace());
@@ -132,30 +132,30 @@ class OtiNanai {
 		int udpPort = 9876;
 		int tcpPort = 1010;
 		int listenerThreads = 5;
-      short storageEngine = OtiNanai.MEM;
-      Long cacheTime = 120000L;
-      Long alarmLife = 86400000L;
-      int alarmSamples = 20;
-      float alarmThreshold = 3.0f;
-      int cacheItems = 50; 
-      int alarmConsecutiveSamples = 3;
-      String bucketName = new String("OtiNanai");
-      String logFile = new String("/var/log/otinanai.log");
-      String logLevel = new String("INFO");
-      String redisHost = new String("localhost");
-      String redisKeyWordList = new String("existing_keywords_list"); 
-      String redisSavedQueries = new String("saved_queries_list");
-      String notifyScript = new String("/tmp/otinanai_notifier");
-      String webUrl = new String();
-      try {
-         webUrl = "http://"+InetAddress.getLocalHost().getHostName();
-      } catch (UnknownHostException uhe) {
-         System.out.println("Unable to determine local hostname, using 127.0.0.1 instead");
-         System.err.println(uhe);
-         webUrl = "http://127.0.0.1";
-      }
-      String sane = new String();
-      boolean customUrl = false;
+		short storageEngine = OtiNanai.MEM;
+		Long cacheTime = 120000L;
+		Long alarmLife = 86400000L;
+		int alarmSamples = 20;
+		float alarmThreshold = 3.0f;
+		int cacheItems = 50; 
+		int alarmConsecutiveSamples = 3;
+		String bucketName = new String("OtiNanai");
+		String logFile = new String("/var/log/otinanai.log");
+		String logLevel = new String("INFO");
+		String redisHost = new String("localhost");
+		String redisKeyWordList = new String("existing_keywords_list"); 
+		String redisSavedQueries = new String("saved_queries_list");
+		String notifyScript = new String("/tmp/otinanai_notifier");
+		String webUrl = new String();
+		try {
+			webUrl = "http://"+InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException uhe) {
+			System.out.println("Unable to determine local hostname, using 127.0.0.1 instead");
+			System.err.println(uhe);
+			webUrl = "http://127.0.0.1";
+		}
+		String sane = new String();
+		boolean customUrl = false;
 		try {
 			for (int i=0; i<args.length; i++) {
 				arg = args[i];
@@ -202,11 +202,11 @@ class OtiNanai {
 						alarmThreshold = Float.parseFloat(args[i]);
 						System.out.println("alarmThreshold = " + alarmThreshold);
 						break;
-               case "-acs":
-                  i++;
-                  alarmConsecutiveSamples = Integer.parseInt(args[i]);
-                  System.out.println("alarmConsecutiveSamples = " + alarmConsecutiveSamples);
-                  break;
+					case "-acs":
+						i++;
+						alarmConsecutiveSamples = Integer.parseInt(args[i]);
+						System.out.println("alarmConsecutiveSamples = " + alarmConsecutiveSamples);
+						break;
 					case "-lf":
 						i++;
 						logFile = args[i];
@@ -217,100 +217,100 @@ class OtiNanai {
 						logLevel = args[i];
 						System.out.println("logLevel = " + logLevel);
 						break;
-               case "-bn":
-                  i++;
-                  System.out.println("Bucket Name = " + args[i]);
-                  bucketName = args[i];
-                  break;
-               case "-rh":
-                  i++;
-                  System.out.println("redis host = " + args[i]);
-                  redisHost = args[i];
-                  break;
+					case "-bn":
+						i++;
+						System.out.println("Bucket Name = " + args[i]);
+						bucketName = args[i];
+						break;
+					case "-rh":
+						i++;
+						System.out.println("redis host = " + args[i]);
+						redisHost = args[i];
+						break;
 					case "-redis":
 						System.out.println("storageEngine = Redis");
-                  storageEngine = OtiNanai.REDIS;
+						storageEngine = OtiNanai.REDIS;
 						break;
 					case "-rdkwlist":
-                  i++;
-                  sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
+						i++;
+						sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
 						System.out.println("redisKeyWordList = " + sane);
-                  redisKeyWordList = sane;
+						redisKeyWordList = sane;
 						break;
 					case "-rdsvq":
-                  i++;
-                  sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
+						i++;
+						sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
 						System.out.println("redisSavedQueries = " + sane);
-                  redisSavedQueries = sane;
+						redisSavedQueries = sane;
 						break;
 					case "-s1samples":
-                  i++;
+						i++;
 						System.out.println("step1Samples = " + args[i]);
-                  STEP1_MAX_SAMPLES = Integer.parseInt(args[i]);
+						STEP1_MAX_SAMPLES = Integer.parseInt(args[i]);
 						break;
 					case "-s1agg":
-                  i++;
+						i++;
 						System.out.println("step1SamplesToMerge = " + args[i]);
-                  STEP1_SAMPLES_TO_MERGE = Integer.parseInt(args[i]);
+						STEP1_SAMPLES_TO_MERGE = Integer.parseInt(args[i]);
 						break;
 					case "-s2samples":
-                  i++;
+						i++;
 						System.out.println("step2Samples = " + args[i]);
-                  STEP2_MAX_SAMPLES = Integer.parseInt(args[i]);
+						STEP2_MAX_SAMPLES = Integer.parseInt(args[i]);
 						break;
 					case "-s2agg":
-                  i++;
+						i++;
 						System.out.println("step2SamplesToMerge = " + args[i]);
-                  STEP2_SAMPLES_TO_MERGE = Integer.parseInt(args[i]);
+						STEP2_SAMPLES_TO_MERGE = Integer.parseInt(args[i]);
 						break;
 					case "-tick":
-                  i++;
+						i++;
 						System.out.println("TickerInterval (s) = " + args[i]);
-                  TICKER_INTERVAL = 1000*Integer.parseInt(args[i]);
+						TICKER_INTERVAL = 1000*Integer.parseInt(args[i]);
 						break;
 					case "-gpp":
-                  i++;
+						i++;
 						System.out.println("GraphsPerPage = " + args[i]);
-                  MAXPERPAGE = Short.parseShort(args[i]);
+						MAXPERPAGE = Short.parseShort(args[i]);
 						break;
 					case "-notify":
-                  i++;
+						i++;
 						System.out.println("notifyScript = " + args[i]);
-                  notifyScript = args[i];
+						notifyScript = args[i];
 						break;
 					case "-url":
-                  i++;
+						i++;
 						System.out.println("webUrl = " + args[i]);
-                  webUrl = args[i];
-                  customUrl = true;
+						webUrl = args[i];
+						customUrl = true;
 						break;
 					default:
 						System.out.println(
-                        "-wp <webPort>          : Web Interface Port (default: 9876)\n"
-                        +"-lp <listenerPort>    : UDP listener Port (default: 9876)\n"
-                        +"-url <webUrl>         : Web Url (for links in notifications) (default: host:port)\n"
-                        +"-wt <webThreads>      : No Idea, probably unused\n"
-                        +"-ct <cacheTime>       : How long (seconds) to cache generated page (default: 120)\n"
-                        +"-ci <cacheItems>      : How many pages to store in cache (default: 50)\n"
-                        +"-al <alarmLife>       : How long (seconds) an alarm state remains (default: 86400)\n"
-                        +"-as <alarmSamples>    : Minimum samples before considering for alarm (default: 20)\n"
-                        +"-at <alarmThreshold>  : Alarm threshold multiplier (how many times above/below average is an alarm) (default: 3.0)\n"
-                        +"-acs <alarmConsecutiveSamples>    : How many consecutive samples above threshold trigger alarm state (default: 3)\n"
-                        +"-notify <notifyScript>            : Script to use for alarms (default: /tmp/otinanai_notifier)\n"
-                        +"-gpp <graphsPerPage>  : Max graphs per page (default: 30)\n"
-                        +"-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60)\n"
-                        +"-s1samples <step1Samples>         : Samples to keep before aggregating oldest (default: 1440)\n"
-                        +"-s1agg <step1SamplesToAggregate>  : Samples to aggregate when sample count exceeded (default: 10)\n"
-                        +"-s2samples <step2Samples>         : Aggregated samples to keep before further aggregating oldest (default: 2880)\n"
-                        +"-s2agg <step2SamplesToAggregate>  : Aggregates samples to further aggregate when count exceeded (default: 6)\n"
-                        +"-lf <logFile>         : \n"
-                        +"-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)\n"
-                        +"-redis                : Use redis storage engine (recommended) (default uses volatile memory engine)\n"
-                        +"-rh <redisEndPoint>   : Redis endpoint (default: localhost)\n"
-                        +"-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)\n"
-                        +"-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)\n"
-                        );
-                  System.exit(0);
+								"-wp <webPort>          : Web Interface Port (default: 9876)\n"
+								+"-lp <listenerPort>    : UDP listener Port (default: 9876)\n"
+								+"-url <webUrl>         : Web Url (for links in notifications) (default: host:port)\n"
+								+"-wt <webThreads>      : No Idea, probably unused\n"
+								+"-ct <cacheTime>       : How long (seconds) to cache generated page (default: 120)\n"
+								+"-ci <cacheItems>      : How many pages to store in cache (default: 50)\n"
+								+"-al <alarmLife>       : How long (seconds) an alarm state remains (default: 86400)\n"
+								+"-as <alarmSamples>    : Minimum samples before considering for alarm (default: 20)\n"
+								+"-at <alarmThreshold>  : Alarm threshold multiplier (how many times above/below average is an alarm) (default: 3.0)\n"
+								+"-acs <alarmConsecutiveSamples>    : How many consecutive samples above threshold trigger alarm state (default: 3)\n"
+								+"-notify <notifyScript>            : Script to use for alarms (default: /tmp/otinanai_notifier)\n"
+								+"-gpp <graphsPerPage>  : Max graphs per page (default: 30)\n"
+								+"-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60)\n"
+								+"-s1samples <step1Samples>         : Samples to keep before aggregating oldest (default: 1440)\n"
+								+"-s1agg <step1SamplesToAggregate>  : Samples to aggregate when sample count exceeded (default: 10)\n"
+								+"-s2samples <step2Samples>         : Aggregated samples to keep before further aggregating oldest (default: 2880)\n"
+								+"-s2agg <step2SamplesToAggregate>  : Aggregates samples to further aggregate when count exceeded (default: 6)\n"
+								+"-lf <logFile>         : \n"
+								+"-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)\n"
+								+"-redis                : Use redis storage engine (recommended) (default uses volatile memory engine)\n"
+								+"-rh <redisEndPoint>   : Redis endpoint (default: localhost)\n"
+								+"-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)\n"
+								+"-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)\n"
+								);
+						System.exit(0);
 						break;
 				}
 			}
@@ -319,13 +319,13 @@ class OtiNanai {
 			System.exit(1);
 		}
 
-      if (!customUrl) {
-         webUrl = webUrl + ":" + webPort;
-      }
+		if (!customUrl) {
+			webUrl = webUrl + ":" + webPort;
+		}
 
-      WEBURL = webUrl;
-      NOTIFYSCRIPT = notifyScript;
-      ALARMLIFE = alarmLife;
+		WEBURL = webUrl;
+		NOTIFYSCRIPT = notifyScript;
+		ALARMLIFE = alarmLife;
 
 		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, redisHost, redisKeyWordList, redisSavedQueries);
 	}
@@ -360,20 +360,20 @@ class OtiNanai {
 	private Logger logger;
 
 	//public static final int STEP1_MAX_SAMPLES = 20;
-   public static int STEP1_MAX_SAMPLES = 1440;
+	public static int STEP1_MAX_SAMPLES = 1440;
 	public static int STEP1_SAMPLES_TO_MERGE = 10;
 	public static int STEP2_MAX_SAMPLES = 2880;
 	public static int STEP2_SAMPLES_TO_MERGE = 6;
 	public static int TICKER_INTERVAL = 60000;
-   public static long PREVIEWTIME = 86400000l;
+	public static long PREVIEWTIME = 86400000l;
 	public static short MAXPERPAGE=30;
 
 	//public static final int MAXSAMPLES = 20;
 	//public static int MAX_LOG_OUTPUT=20;
 
-   public static String WEBURL;
-   public static String NOTIFYSCRIPT;
-   public static long ALARMLIFE;
+	public static String WEBURL;
+	public static String NOTIFYSCRIPT;
+	public static long ALARMLIFE;
 
 	public static final short UNSET = 0;
 	public static final short GAUGE = 1;
@@ -387,30 +387,30 @@ class OtiNanai {
 
 	public static final short GRAPH_FULL=1;
 	public static final short GRAPH_PREVIEW=2;
-   public static final short GRAPH_MERGED=3;
-   public static final short GRAPH_MERGED_AXES=4;
-   public static final short GRAPH_GAUGE=5;
-   public static final short GRAPH_STACKED=6;
+	public static final short GRAPH_MERGED=3;
+	public static final short GRAPH_MERGED_AXES=4;
+	public static final short GRAPH_GAUGE=5;
+	public static final short GRAPH_STACKED=6;
 
-   public static final short HEADER = 1;
-   public static final short ENDHEAD = 2;
-   public static final short ENDBODY = 3;
-   public static final short GOOGLE = 4;
-   public static final short FLOT = 5;
-   public static final short FLOT_MERGED = 6;
-   public static final short FLOT_PREVIEW = 7;
-   public static final short FLOT_STACKED = 8;
-   public static final short JS = 9;
-   public static final short ENDJS = 10;
-   public static final short GPSCRIPT = 11;
-   public static final short GAGE = 12;
-   public static final short REFRESH = 13;
+	public static final short HEADER = 1;
+	public static final short ENDHEAD = 2;
+	public static final short ENDBODY = 3;
+	public static final short GOOGLE = 4;
+	public static final short FLOT = 5;
+	public static final short FLOT_MERGED = 6;
+	public static final short FLOT_PREVIEW = 7;
+	public static final short FLOT_STACKED = 8;
+	public static final short JS = 9;
+	public static final short ENDJS = 10;
+	public static final short GPSCRIPT = 11;
+	public static final short GAGE = 12;
+	public static final short REFRESH = 13;
 
-   public static final short MAX_KW_LENGTH = 24;
+	public static final short MAX_KW_LENGTH = 24;
 
-   public static final short NADA = 0;
-   public static final short KILO = 1;
-   public static final short MEGA = 2;
-   public static final short GIGA = 3;
-   public static final short PETA = 4;
+	public static final short NADA = 0;
+	public static final short KILO = 1;
+	public static final short MEGA = 2;
+	public static final short GIGA = 3;
+	public static final short PETA = 4;
 }

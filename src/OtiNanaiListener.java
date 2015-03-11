@@ -13,36 +13,36 @@ class OtiNanaiListener implements Runnable {
 	/**
 	 * Multithread constructor
 	 * @param	ds	the DatagraSocket to be used
-    * @param   al Time diff for alarm to still be active
-    * @param   ps Number of samples to keep for preview graphs
+	 * @param	al 	Time diff for alarm to still be active
+	 * @param	ps 	Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
 	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries) {
 		logger = l;
-      alarmSamples = as;
-      alarmThreshold = at;
-      alarmConsecutiveSamples = acs;
-      storageType = st;
-      deleteLock = false;
-      rKeyList = redisKeyWordList;
-      rSavedQueries = redisSavedQueries;
-      kwtList = new LLString();
-      redisHost = rh;
-      trackerMap = new HashMap<String, KeyWordTracker>();
+		alarmSamples = as;
+		alarmThreshold = at;
+		alarmConsecutiveSamples = acs;
+		storageType = st;
+		deleteLock = false;
+		rKeyList = redisKeyWordList;
+		rSavedQueries = redisSavedQueries;
+		kwtList = new LLString();
+		redisHost = rh;
+		trackerMap = new HashMap<String, KeyWordTracker>();
 
-      if (st == OtiNanai.REDIS) {
-         jedis = new Jedis(redisHost);
-         kwtList = new LLString();
-         if (jedis.exists(rKeyList)) {
-            for (String s : jedis.smembers(rKeyList)) {
-               kwtList.add(s);
-            }
-         }
-         for (String kw : kwtList) { 
-            logger.info("[Listener]: Creating new Tracker: "+kw);
-            trackerMap.put(kw, new RedisTracker(kw, as, at, acs, redisHost, logger));
-         }
-      }
+		if (st == OtiNanai.REDIS) {
+			jedis = new Jedis(redisHost);
+			kwtList = new LLString();
+			if (jedis.exists(rKeyList)) {
+				for (String s : jedis.smembers(rKeyList)) {
+					kwtList.add(s);
+				}
+			}
+			for (String kw : kwtList) { 
+				logger.info("[Listener]: Creating new Tracker: "+kw);
+				trackerMap.put(kw, new RedisTracker(kw, as, at, acs, redisHost, logger));
+			}
+		}
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
 	}
@@ -69,7 +69,7 @@ class OtiNanaiListener implements Runnable {
 			parseData(IPAddress, sentence.replaceAll("\u0000.*", "").replaceAll("[\r\n]", ""));
 		}
 	}
-	
+
 	/**
 	 * parses the dato into a SomeRecord object and associates it with keywords.
 	 * For each keyword there is a list with unique dato id (nanoTime).
@@ -81,7 +81,7 @@ class OtiNanaiListener implements Runnable {
 		logger.finest("[Listener]: + Attempting to parse: \""+theDato+"\" from "+hip);
 
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
-      short recType = OtiNanai.FREQ;
+		short recType = OtiNanai.FREQ;
 		if (newRecord.isGauge()) {
 			recType = OtiNanai.GAUGE;
 		} else if (newRecord.isCounter()) {
@@ -94,79 +94,79 @@ class OtiNanaiListener implements Runnable {
 
 		for (String kw : theKeys) {
 			if (recType == OtiNanai.FREQ) {
-            try { 
-               Float.parseFloat(kw);
-               continue;
-            } catch (NumberFormatException e) {}
+				try { 
+					Float.parseFloat(kw);
+					continue;
+				} catch (NumberFormatException e) {}
 
-            if (kw.equals("")) {
-               continue;
-            }
+				if (kw.equals("")) {
+					continue;
+				}
 
 			} 
 
-         KeyWordTracker kwt = getKWT(kw);
-         if (kwt == null) {
-            logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
-            if (storageType == OtiNanai.REDIS)
-               kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, redisHost, logger);
-            else
-               kwt = new MemTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
+			KeyWordTracker kwt = getKWT(kw);
+			if (kwt == null) {
+				logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
+				if (storageType == OtiNanai.REDIS)
+					kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, redisHost, logger);
+				else
+					kwt = new MemTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
 
-            kwt.setType(recType);
-         }
+				kwt.setType(recType);
+			}
 
-         if (newRecord.isGauge()) {
-            kwt.put(newRecord.getGauge());
-         } else if (newRecord.isSum()) {
-            kwt.put(newRecord.getSum());
-         } else if (newRecord.isCounter()) {
-            kwt.put(newRecord.getCounter());
-         } else {
-            kwt.put();
-         }
+			if (newRecord.isGauge()) {
+				kwt.put(newRecord.getGauge());
+			} else if (newRecord.isSum()) {
+				kwt.put(newRecord.getSum());
+			} else if (newRecord.isCounter()) {
+				kwt.put(newRecord.getCounter());
+			} else {
+				kwt.put();
+			}
 
-         trackerMap.put(kw, kwt);
-         if (!kwtList.contains(kw)) {
-            kwtList.add(kw);
-            if (storageType == OtiNanai.REDIS)
-               jedis.sadd(rKeyList, kw);
-         }
+			trackerMap.put(kw, kwt);
+			if (!kwtList.contains(kw)) {
+				kwtList.add(kw);
+				if (storageType == OtiNanai.REDIS)
+					jedis.sadd(rKeyList, kw);
+			}
 		}
 	}
 
-   public LLString getKWTList() {
-      return kwtList;
-   }
+	public LLString getKWTList() {
+		return kwtList;
+	}
 
-   public KeyWordTracker getKWT(String key) {
-      return trackerMap.get(key);
-   }
+	public KeyWordTracker getKWT(String key) {
+		return trackerMap.get(key);
+	}
 
-   public void deleteKWT(String key) {
-      logger.info("[Listener]: Deleting data from "+key);
-      while (deleteLock) {
-         try {
-            Thread.sleep(2000l);
-         } catch (InterruptedException ie) {
-            logger.severe("[Listener]: waiting on ticker to delete: "+ie.getStackTrace());
-            break;
-         }
-      }
-      deleteLock = true;
-      if (storageType == OtiNanai.MEM) {
-         kwtList.remove(key);
-         trackerMap.remove(key);
-      } else if (storageType == OtiNanai.REDIS) {
-         KeyWordTracker kwt = getKWT(key);
-         kwtList.remove(key);
-         jedis.srem(rKeyList, key);
-         jedis.del(key);
-         trackerMap.remove(key);
-         kwt.delete();
-      }
-      deleteLock = false;
-   }
+	public void deleteKWT(String key) {
+		logger.info("[Listener]: Deleting data from "+key);
+		while (deleteLock) {
+			try {
+				Thread.sleep(2000l);
+			} catch (InterruptedException ie) {
+				logger.severe("[Listener]: waiting on ticker to delete: "+ie.getStackTrace());
+				break;
+			}
+		}
+		deleteLock = true;
+		if (storageType == OtiNanai.MEM) {
+			kwtList.remove(key);
+			trackerMap.remove(key);
+		} else if (storageType == OtiNanai.REDIS) {
+			KeyWordTracker kwt = getKWT(key);
+			kwtList.remove(key);
+			jedis.srem(rKeyList, key);
+			jedis.del(key);
+			trackerMap.remove(key);
+			kwt.delete();
+		}
+		deleteLock = false;
+	}
 
 	/**
 	 * Access Method
@@ -175,48 +175,48 @@ class OtiNanaiListener implements Runnable {
 		return logger;
 	}
 
-   public void tick() {
-      while (deleteLock) {
-         try {
-            Thread.sleep(2000l);
-         } catch (InterruptedException ie) {
-            logger.severe("[Listener]: waiting on deletion to tick: "+ie.getStackTrace());
-            break;
-         }
-      }
-      deleteLock=true;
-      LLString tempKW = new LLString();
-      tempKW.addAll(trackerMap.keySet());
-      for (String kw : tempKW) {
-         try {
-            trackerMap.get(kw).tick();
-         } catch (Exception e) {
-            logger.severe("[Listener]: Unable to tick "+kw+" :\n"+e);
-         }
-      }
-      deleteLock=false;
-   }
+	public void tick() {
+		while (deleteLock) {
+			try {
+				Thread.sleep(2000l);
+			} catch (InterruptedException ie) {
+				logger.severe("[Listener]: waiting on deletion to tick: "+ie.getStackTrace());
+				break;
+			}
+		}
+		deleteLock=true;
+		LLString tempKW = new LLString();
+		tempKW.addAll(trackerMap.keySet());
+		for (String kw : tempKW) {
+			try {
+				trackerMap.get(kw).tick();
+			} catch (Exception e) {
+				logger.severe("[Listener]: Unable to tick "+kw+" :\n"+e);
+			}
+		}
+		deleteLock=false;
+	}
 
-   public long getAlarm(String kw) {
-      if (!kwtList.contains(kw)) {
-         return 0L;
-      } else {
-         return getKWT(kw).getAlarm();
-      }
-   }
+	public long getAlarm(String kw) {
+		if (!kwtList.contains(kw)) {
+			return 0L;
+		} else {
+			return getKWT(kw).getAlarm();
+		}
+	}
 
-   private HashMap<String,KeyWordTracker> trackerMap;
+	private HashMap<String,KeyWordTracker> trackerMap;
 	private int port;
-   private int alarmSamples;
-   private float alarmThreshold;
-   private int alarmConsecutiveSamples;
+	private int alarmSamples;
+	private float alarmThreshold;
+	private int alarmConsecutiveSamples;
 	private DatagramSocket dataSocket;
 	private Logger logger;
-   private short storageType;
-   private String rKeyList;
-   private String rSavedQueries;
-   private LLString kwtList;
-   private Jedis jedis;
-   private String redisHost;
-   private boolean deleteLock;
+	private short storageType;
+	private String rKeyList;
+	private String rSavedQueries;
+	private LLString kwtList;
+	private Jedis jedis;
+	private String redisHost;
+	private boolean deleteLock;
 }

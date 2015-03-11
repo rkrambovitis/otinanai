@@ -22,142 +22,142 @@ class SomeRecord {
 		timeNano = Long.toString(System.nanoTime());
 		myip = ip;
 		theRecord = data;
-      keyWords = new ArrayList<String>();
-      IAmGauge = false;
-      IAmCounter = false;
-      process(data.replaceAll("[\r\n]",""), 3, 128);
-   }
+		keyWords = new ArrayList<String>();
+		IAmGauge = false;
+		IAmCounter = false;
+		process(data.replaceAll("[\r\n]",""), 3, 128);
+	}
 
-   private void process(String str, int min, int max) {
-      str = str.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
-      str = str.toLowerCase();
-      storeMetric(str, min, max);
-      if (!IAmGauge && !IAmCounter && !IAmSum) {
-         findKeyWords(str, min, max);
-      }
-   }
+	private void process(String str, int min, int max) {
+		str = str.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
+		str = str.toLowerCase();
+		storeMetric(str, min, max);
+		if (!IAmGauge && !IAmCounter && !IAmSum) {
+			findKeyWords(str, min, max);
+		}
+	}
 
 
 	/**
 	 * Method to break down the string into keywords.
-    * @param   min   the minimum length of a word to be considered as a keyword
-    * @param   max   the maximum ...
+	 * @param   min   the minimum length of a word to be considered as a keyword
+	 * @param   max   the maximum ...
 	 * @param	str	the data to be broken down
 	 */
 	private void storeMetric(String str, int min, int max) {
-      String[] tokens = str.split("[ \t]");
-      if (tokens.length == 2 && isKeyWord(tokens[0], min, max)) {
-         //System.out.println("Record: Gauge");
-         Float w2 = toFloat(tokens[1]);
-         if (w2 != null) {
-            theGauge = w2;
-            IAmGauge = true;
-            keyWords.add(tokens[0]);
-         }
-      } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[1].equals("counter")) {
-         //System.out.println("Record: Counter");
-         Long w3 = toLong(tokens[2]);
-         if (w3 != null) {
-            theCounter = w3;
-            IAmCounter = true;
-            keyWords.add(tokens[0]);
-         }
-      } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[2].equals("counter")) {
-         Long w2 = toLong(tokens[1]);
-         if (w2 != null) {
-            theCounter = w2;
-            IAmCounter = true;
-            keyWords.add(tokens[0]);
-         }
-      } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[1].equals("sum")) {
-         Float w3 = toFloat(tokens[2]);
-         if (w3 != null) {
-            theSum = w3;
-            IAmSum = true;
-            keyWords.add(tokens[0]);
-         }
-      } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[2].equals("sum")) {
-         Float w2 = toFloat(tokens[1]);
-         if (w2 != null) {
-            theSum = w2;
-            IAmSum = true;
-            keyWords.add(tokens[0]);
-         }
-      }
+		String[] tokens = str.split("[ \t]");
+		if (tokens.length == 2 && isKeyWord(tokens[0], min, max)) {
+			//System.out.println("Record: Gauge");
+			Float w2 = toFloat(tokens[1]);
+			if (w2 != null) {
+				theGauge = w2;
+				IAmGauge = true;
+				keyWords.add(tokens[0]);
+			}
+		} else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[1].equals("counter")) {
+			//System.out.println("Record: Counter");
+			Long w3 = toLong(tokens[2]);
+			if (w3 != null) {
+				theCounter = w3;
+				IAmCounter = true;
+				keyWords.add(tokens[0]);
+			}
+		} else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[2].equals("counter")) {
+			Long w2 = toLong(tokens[1]);
+			if (w2 != null) {
+				theCounter = w2;
+				IAmCounter = true;
+				keyWords.add(tokens[0]);
+			}
+		} else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[1].equals("sum")) {
+			Float w3 = toFloat(tokens[2]);
+			if (w3 != null) {
+				theSum = w3;
+				IAmSum = true;
+				keyWords.add(tokens[0]);
+			}
+		} else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[2].equals("sum")) {
+			Float w2 = toFloat(tokens[1]);
+			if (w2 != null) {
+				theSum = w2;
+				IAmSum = true;
+				keyWords.add(tokens[0]);
+			}
+		}
 	}
 
 	/**
 	 * Method to break down the string into keywords.
-    * @param   min   the minimum length of a word to be considered as a keyword
-    * @param   max   the maximum ...
+	 * @param   min   the minimum length of a word to be considered as a keyword
+	 * @param   max   the maximum ...
 	 * @param	str	the data to be broken down
 	 */
 	private void findKeyWords(String str, int min, int max) {
 		String[] tokens = str.split("[ \t]");
-      int i=0;
-      boolean indexAll = false;
-      String genKW = new String();
-      if (tokens[i].equals("index")) {
-         indexAll = true;
-         genKW=getHostName();
-         i++;
-      }
+		int i=0;
+		boolean indexAll = false;
+		String genKW = new String();
+		if (tokens[i].equals("index")) {
+			indexAll = true;
+			genKW=getHostName();
+			i++;
+		}
 		for (; i<tokens.length; i++ ) {
 			String tok = tokens[i];
-         if (toFloat(tok) == null && isKeyWord(tok, min, max)) {
-            if (!indexAll) {
-               keyWords.add(tok);
-               break;
-            }
-            else {
-               if (tok.matches(".*\\d+.*"))
-                  genKW = genKW+".var";
-               else
-                  genKW=genKW+"."+tok;
-            }
+			if (toFloat(tok) == null && isKeyWord(tok, min, max)) {
+				if (!indexAll) {
+					keyWords.add(tok);
+					break;
+				}
+				else {
+					if (tok.matches(".*\\d+.*"))
+						genKW = genKW+".var";
+					else
+						genKW=genKW+"."+tok;
+				}
 			}
 		}
-      if (indexAll) 
-         keyWords.add(genKW);
+		if (indexAll) 
+			keyWords.add(genKW);
 		//tokens = str.split("\\s");
 		//masterKey = tokens[0];
 	}
 
-   /**
-    * Returns true if a word is a metric
-    * @param   str   the word
-    */
-   private Float toFloat(String str) {
-      try {
-         return Float.parseFloat(str);
-      } catch (NumberFormatException nfe) {
-         return null;
-      }
-   }
+	/**
+	 * Returns true if a word is a metric
+	 * @param   str   the word
+	 */
+	private Float toFloat(String str) {
+		try {
+			return Float.parseFloat(str);
+		} catch (NumberFormatException nfe) {
+			return null;
+		}
+	}
 
-   /**
-    * Returns true if a word is a long
-    * @param   str   the word
-    */
-   private Long toLong(String str) {
-      try {
-         return Long.parseLong(str);
-      } catch (NumberFormatException nfe) {
-         return null;
-      }
-   }
+	/**
+	 * Returns true if a word is a long
+	 * @param   str   the word
+	 */
+	private Long toLong(String str) {
+		try {
+			return Long.parseLong(str);
+		} catch (NumberFormatException nfe) {
+			return null;
+		}
+	}
 
-   /**
-    * Returns true if a word has the right length to be a keyword
-    * @param   str   the keyword
-    * @param   min   min word length
-    * @param   max   max word length
-    */
-   private boolean isKeyWord(String str, int min, int max) {
-      if ( str.length() >= min && str.length() < max )
-         return true;
-      return false;
-   }
+	/**
+	 * Returns true if a word has the right length to be a keyword
+	 * @param   str   the keyword
+	 * @param   min   min word length
+	 * @param   max   max word length
+	 */
+	private boolean isKeyWord(String str, int min, int max) {
+		if ( str.length() >= min && str.length() < max )
+			return true;
+		return false;
+	}
 
 	/**
 	 * Changes milliseconds into date with format: MM/dd/YY HH:mm:ss
@@ -258,68 +258,68 @@ class SomeRecord {
 	 * This will most likely not be used
 	 * @return the first word of data (could be useful is all data is org.gnome.desktop.wm.raiseOnFocus 0)
 	 */
-//	public String getKey() {
-//		return masterKey;
-//	}
+	//	public String getKey() {
+	//		return masterKey;
+	//	}
 
-   /**
-    * Access Method
-    */
-   public boolean isGauge() {
-      return IAmGauge;
-   }
+	/**
+	 * Access Method
+	 */
+	public boolean isGauge() {
+		return IAmGauge;
+	}
 
-   /**
-    * Access Method
-    */
-   public boolean isCounter() {
-      return IAmCounter;
-   }
+	/**
+	 * Access Method
+	 */
+	public boolean isCounter() {
+		return IAmCounter;
+	}
 
-   /**
-    * Access Method
-    */
-   public boolean isSum() {
-      return IAmSum;
-   }
+	/**
+	 * Access Method
+	 */
+	public boolean isSum() {
+		return IAmSum;
+	}
 
-   /**
-    * Access Method
-    */
-   public Float getGauge() {
-      if (IAmGauge)
-         return theGauge;
-      return -666f;
-   }
+	/**
+	 * Access Method
+	 */
+	public Float getGauge() {
+		if (IAmGauge)
+			return theGauge;
+		return -666f;
+	}
 
-   /**
-    * Access Method
-    */
-   public Long getCounter() {
-      if (IAmCounter)
-         return theCounter;
-      return 0l;
-   }
+	/**
+	 * Access Method
+	 */
+	public Long getCounter() {
+		if (IAmCounter)
+			return theCounter;
+		return 0l;
+	}
 
-   /**
-    * Access Method
-    */
-   public Float getSum() {
-      if (IAmSum)
-         return theSum;
-      return -1337f;
-   }
+	/**
+	 * Access Method
+	 */
+	public Float getSum() {
+		if (IAmSum)
+			return theSum;
+		return -1337f;
+	}
 
 	private long timeStamp;
 	private String timeNano;
 	private InetAddress myip;
 	private String theRecord;
-   private Float theGauge;
-   private boolean IAmGauge;
-   private Long theCounter;
-   private boolean IAmCounter;
-   private Float theSum;
-   private boolean IAmSum;
+	private Float theGauge;
+	private boolean IAmGauge;
+	private Long theCounter;
+	private boolean IAmCounter;
+	private Float theSum;
+	private boolean IAmSum;
 	private String theDate;
 	private ArrayList<String> keyWords;
 	//private String masterKey;
