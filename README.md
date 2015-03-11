@@ -111,11 +111,12 @@ $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.
     * --ma|--merge-axis|--merge-axes (same as above, but scale data to fit)
     * --stack (stack graphs)
     * --alarms|--alerts (show only matching keywords in "alarm" state)
+	 * #maxMergeCount (change how many graphs are merged, sorted by 99%. Rest are discarded - default 8)
     * --nb|--no-bar|--ns|--no-search (Do not show the search bar - for embedding)
 
 + Examples:
     * .com$ +mysite 
-    * host -subdomain --merge --no-cache
+    * host -subdomain --merge --no-cache #10
     * crapdata --delete
     * dataroom.temperature --gauge
     * some.keyword @+48 @3

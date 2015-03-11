@@ -128,10 +128,13 @@ $(function() {
       var foo = 0;
       choiceContainer.find("input:checked").each(function () {
          var key = $(this).attr("name");
+			data.push(datasets[key]);
+			/*
          if (key && datasets[key] && foo < 8) {
             data.push(datasets[key]);
             foo++;
          }
+			*/
       });
       updatePlot(data);
       updateLegend();

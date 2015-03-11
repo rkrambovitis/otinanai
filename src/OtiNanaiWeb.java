@@ -168,7 +168,7 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-	private String[] toGraph(KeyWordTracker kwt, short type, long time, long endTime) {
+	private String[] toGraph(KeyWordTracker kwt, short type, long time, long endTime, int maxMergeCount) {
 		long startTime = time + endTime;
 		logger.finest("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
 		String output = new String("");
@@ -261,7 +261,7 @@ class OtiNanaiWeb implements Runnable {
 		//toReturn[0]=Double.toString(nfth);
 		//toReturn[0]=String.format("%.3f", sortedValues[nfth]);
 		//sortedValues=null;
-		//      toReturn[1]=Double.toString(mean);
+		//toReturn[1]=Double.toString(mean);
 		toReturn[0]=String.format("%.3f", min);
 		toReturn[1]=String.format("%.3f", max);
 		toReturn[2]=String.format("%.3f", mean);
@@ -302,7 +302,7 @@ class OtiNanaiWeb implements Runnable {
 			return new String(kw.substring(0,5) + "..." +kw.substring(kw.length()-8, kw.length()-1));
 	}
 
-	private String timeGraph(ArrayList<String> keyList, short type, long time, long endTime) {
+	private String timeGraph(ArrayList<String> keyList, short type, long time, long endTime, int maxMergeCount) {
 		ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
 		LLString kwtList = onl.getKWTList();
 
@@ -331,7 +331,7 @@ class OtiNanaiWeb implements Runnable {
 				if (kw.length() > OtiNanai.MAX_KW_LENGTH) 
 					skw = trimKW(kw);
 				kw = kw.replaceAll("\\.","_");
-				graphData = toGraph(kwt, type, time, endTime);
+				graphData = toGraph(kwt, type, time, endTime, maxMergeCount);
 				if (graphData[6].equals("0")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points. - 0");
 					continue;
@@ -357,19 +357,15 @@ class OtiNanaiWeb implements Runnable {
 			output = output 
 				+ commonHTML(OtiNanai.ENDHEAD)
 				+ commonHTML(OtiNanai.ENDBODY);
-		} else {
-			if (type == OtiNanai.GRAPH_PREVIEW)
-				output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_PREVIEW);
-			else if (type == OtiNanai.GRAPH_STACKED)
-				output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_STACKED);
-			else
-				output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_MERGED);
+
+		} else if (type == OtiNanai.GRAPH_PREVIEW) {
+			output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_PREVIEW);
 
 			output = output+ commonHTML(OtiNanai.JS)
 				+ "var datasets = {\n";
 
 			for (KeyWordTracker kwt : kws) {
-				graphData = toGraph(kwt, type, time, endTime);
+				graphData = toGraph(kwt, type, time, endTime, maxMergeCount);
 				String kw = kwt.getKeyWord();
 				if (graphData[6].equals("0") || graphData[6].equals("1")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
@@ -380,58 +376,94 @@ class OtiNanaiWeb implements Runnable {
 				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
 					+ "label: \""+kw+" = 000.000 k \",\n";
 
-				if (type == OtiNanai.GRAPH_MERGED_AXES) 
-					output = output + "yaxis: "+ ++i +",\n";
-
-				if (type == OtiNanai.GRAPH_PREVIEW)
-					output = output + "nn:  "+ graphData[11] +",\n";
+				output = output + "nn:  "+ graphData[11] +",\n";
 
 				output = output + "data: ["
 					+ graphData[3]
 					+ "]},\n\n";
 
-				if (type == OtiNanai.GRAPH_PREVIEW) {
-					body = body 
-						+ "<div class=\"wrapper clearfix\">\n"
-						+ "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+parseType(kwt.getType())+") "
-						+ "<script>"
-						+ "document.write("
-						+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
-						+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
-						+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
-						+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
-						+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
-						+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
-						+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
-						+ "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
-						+ "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
-						+ "+\"</span><span id=output_values> samples:\" + "+graphData[6]
-						+ "+\"</span>\""
-						+ ");"
-						+ "</script>"
-						+ "</li>\n"
-						+ "\t<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n"
-						+ "</div>\n";
-				}
-			}
-
-			if (type != OtiNanai.GRAPH_PREVIEW) {
-				body = body
-					+ "<div>\n"
-					+ "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
-					+ "</div>\n"
-					+ "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
-					+ "\t\t<p id=\"choices\"></p>\n"
-					+ "\t</div>\n"
+				body = body 
+					+ "<div class=\"wrapper clearfix\">\n"
+					+ "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+parseType(kwt.getType())+") "
+					+ "<script>"
+					+ "document.write("
+					+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
+					+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
+					+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
+					+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
+					+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
+					+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
+					+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
+					+ "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
+					+ "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
+					+ "+\"</span><span id=output_values> samples:\" + "+graphData[6]
+					+ "+\"</span>\""
+					+ ");"
+					+ "</script>"
+					+ "</li>\n"
+					+ "\t<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n"
 					+ "</div>\n";
 			}
+		} else {
+			if (type == OtiNanai.GRAPH_STACKED)
+				output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_STACKED);
+			else
+				output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_MERGED);
 
-			output = output + "};\n"
-				+ commonHTML(OtiNanai.ENDJS)
-				+ commonHTML(OtiNanai.ENDHEAD)
-				+ body
-				+ commonHTML(OtiNanai.ENDBODY);
+			output = output+ commonHTML(OtiNanai.JS)
+				+ "var datasets = {\n";
+
+			if (type == OtiNanai.GRAPH_MERGED_AXES) 
+				output = output + "yaxis: "+ ++i +",\n";
+
+			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
+			TreeMap <String, String> nnMap = new TreeMap<String, String>();
+			for (KeyWordTracker kwt : kws) {
+				graphData = toGraph(kwt, type, time, endTime, maxMergeCount);
+				String kw = kwt.getKeyWord();
+				if (graphData[6].equals("0") || graphData[6].equals("1")) {
+					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
+					continue;
+				}
+				dataMap.put(kw, graphData);
+				nnMap.put(graphData[11], kw);
+			}
+
+			if (nnMap.size() < maxMergeCount)
+				maxMergeCount=nnMap.size();
+
+			for (int j=0 ; j < maxMergeCount ; j++) {
+				Map.Entry<String, String> foo = nnMap.pollLastEntry();
+				String kw = foo.getValue();
+				graphData = dataMap.get(kw);
+				System.err.println(foo.getValue() + " " + foo.getKey());
+
+				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
+					+ "label: \""+kw+" = 000.000 k \",\n";
+
+				output = output + "nn:  "+ graphData[11] +",\n";
+
+				output = output + "data: ["
+					+ graphData[3]
+					+ "]},\n\n";
+			}
+
+			body = body
+				+ "<div>\n"
+				+ "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
+				+ "</div>\n"
+				+ "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
+				+ "\t\t<p id=\"choices\"></p>\n"
+				+ "\t</div>\n"
+				+ "</div>\n";
 		}
+
+		output = output + "};\n"
+			+ commonHTML(OtiNanai.ENDJS)
+			+ commonHTML(OtiNanai.ENDHEAD)
+			+ body
+			+ commonHTML(OtiNanai.ENDBODY);
+
 		return output;
 	}
 
@@ -592,6 +624,7 @@ class OtiNanaiWeb implements Runnable {
 		boolean alarm = false;
 		boolean showAll = false;
 		boolean showAlarms = false;
+		int maxMergeCount = 8;
 		short graphType = OtiNanai.GRAPH_PREVIEW;
 		long time = OtiNanai.PREVIEWTIME;
 		long endTime = 0l;
@@ -603,6 +636,7 @@ class OtiNanaiWeb implements Runnable {
 			boolean endsWithKW = false;
 			boolean setTime = false;
 			boolean setStartTime = false;
+			boolean setMaxMergeCount = false;
 			switch (word) {
 				case "--showall":
 				case "--sa":
@@ -655,7 +689,7 @@ class OtiNanaiWeb implements Runnable {
 			word = word.replaceAll("%40", "@");
 			logger.fine("[Web]: word is: \""+word+"\"");
 			firstChar = word.substring(0,1);
-			rest = word.replaceAll("[\\+\\-\\^\\$\\@]", "");
+			rest = word.replaceAll("[\\#\\+\\-\\^\\$\\@]", "");
 
 			if (rest.length() == 0)
 				continue;
@@ -671,6 +705,8 @@ class OtiNanaiWeb implements Runnable {
 				setStartTime = true;
 			else if (firstChar.equals("@"))
 				setTime = true;
+			else if (firstChar.equals("#"))
+				setMaxMergeCount = true;
 			if (firstChar.equals("^") || secondChar.equals("^"))
 				startsWithKW = true;
 			if (lastChar.equals("$"))
@@ -723,6 +759,12 @@ class OtiNanaiWeb implements Runnable {
 						time = 3600000 * Long.parseLong(rest);
 					} catch (NumberFormatException nfe) {
 						logger.severe("[Web]: Not a valid number for duration\n"+nfe);
+					}
+				} else if (setMaxMergeCount) {
+					try {
+						maxMergeCount = Integer.parseInt(rest);
+					} catch (NumberFormatException nfe) {
+						logger.severe("[Web]: Not a valid number for max count\n"+nfe);
 					}
 				}
 			}
@@ -786,7 +828,7 @@ class OtiNanaiWeb implements Runnable {
 			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
 			return kwTree(kws, keyList);
 		}
-		op  = timeGraph(kws, graphType, time, endTime);
+		op  = timeGraph(kws, graphType, time, endTime, maxMergeCount);
 		onc.cache(input, op);
 		return op;
 	}
