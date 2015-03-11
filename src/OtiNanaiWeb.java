@@ -458,11 +458,13 @@ class OtiNanaiWeb implements Runnable {
 				+ "</div>\n";
 		}
 
-		output = output + "};\n"
-			+ commonHTML(OtiNanai.ENDJS)
-			+ commonHTML(OtiNanai.ENDHEAD)
-			+ body
-			+ commonHTML(OtiNanai.ENDBODY);
+		if (type != OtiNanai.GRAPH_GAUGE) {
+			output = output + "};\n"
+				+ commonHTML(OtiNanai.ENDJS)
+				+ commonHTML(OtiNanai.ENDHEAD)
+				+ body
+				+ commonHTML(OtiNanai.ENDBODY);
+		}
 
 		return output;
 	}
