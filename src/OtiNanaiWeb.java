@@ -43,7 +43,7 @@ class OtiNanaiWeb implements Runnable {
 					requestMessageLine = inFromClient.readLine();
 					while (requestMessageLine != null && !requestMessageLine.equals("")) {
 						if (requestMessageLine.startsWith("GET ")) {
-							query=requestMessageLine.replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1|\\?q=", "");
+							query=requestMessageLine.replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1|HTTP1.0|\\?q=", "");
 							logger.info("[Web]: GET: \"" + query + "\"");
 						} else if (requestMessageLine.startsWith("Accept-Encoding:")) {
 							if (requestMessageLine.toLowerCase().contains("gzip"))
