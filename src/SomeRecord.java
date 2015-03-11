@@ -29,8 +29,10 @@ class SomeRecord {
    }
 
    private void process(String str, int min, int max) {
+      str = str.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
+      str = str.toLowerCase();
       storeMetric(str, min, max);
-      if (!IAmGauge && !IAmCounter) {
+      if (!IAmGauge && !IAmCounter && !IAmSum) {
          findKeyWords(str, min, max);
       }
    }
@@ -43,7 +45,6 @@ class SomeRecord {
 	 * @param	str	the data to be broken down
 	 */
 	private void storeMetric(String str, int min, int max) {
-      str = str.toLowerCase();
       String[] tokens = str.split("[ \t]");
       if (tokens.length == 2 && isKeyWord(tokens[0], min, max)) {
          //System.out.println("Record: Gauge");
@@ -92,8 +93,6 @@ class SomeRecord {
 	 * @param	str	the data to be broken down
 	 */
 	private void findKeyWords(String str, int min, int max) {
-      str = str.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
-      str = str.toLowerCase();
 		String[] tokens = str.split("[ \t]");
       int i=0;
       boolean indexAll = false;

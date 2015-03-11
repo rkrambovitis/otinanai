@@ -82,25 +82,27 @@ class OtiNanaiListener implements Runnable {
 
 		SomeRecord newRecord = new SomeRecord(hip, theDato);
       short recType = OtiNanai.FREQ;
+		if (newRecord.isGauge()) {
+			recType = OtiNanai.GAUGE;
+		} else if (newRecord.isCounter()) {
+			recType = OtiNanai.COUNTER;
+		} else if (newRecord.isSum()) {
+			recType = OtiNanai.SUM;
+		}
+
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 
 		for (String kw : theKeys) {
-         if (newRecord.isGauge()) {
-            recType = OtiNanai.GAUGE;
-         } else if (newRecord.isCounter()) {
-            recType = OtiNanai.COUNTER;
-         } else if (newRecord.isSum()) {
-            recType = OtiNanai.SUM;
-         } else {
+			if (recType == OtiNanai.FREQ) {
             try { 
                Float.parseFloat(kw);
-               logger.finest("[Listener]: Number, ignored");
                continue;
             } catch (NumberFormatException e) {}
+
             if (kw.equals("")) {
-               logger.finest("[Listener]: Blank Keyword, ignored");
                continue;
             }
+
 			} 
 
          KeyWordTracker kwt = getKWT(kw);
@@ -115,10 +117,8 @@ class OtiNanaiListener implements Runnable {
          }
 
          if (newRecord.isGauge()) {
-            kwt.setType(recType);
             kwt.put(newRecord.getGauge());
          } else if (newRecord.isSum()) {
-            kwt.setType(recType);
             kwt.put(newRecord.getSum());
          } else if (newRecord.isCounter()) {
             kwt.put(newRecord.getCounter());
@@ -133,7 +133,6 @@ class OtiNanaiListener implements Runnable {
                jedis.sadd(rKeyList, kw);
          }
 		}
-      
 	}
 
    public LLString getKWTList() {

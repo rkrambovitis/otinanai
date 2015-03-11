@@ -31,7 +31,7 @@ All in all, it makes finding patterns and correlations relatively simple.
     * By default otinanai just writes to memory, and does not retain anything.
 
 + jedis ( http://search.maven.org/#browse%7C687224809 )
-    * Place into src/jars
+    * Place into directory jars
 
 ## Required js libraries (Place into web dir) ##
 + flot ( http://www.flotcharts.org/ )
@@ -48,16 +48,17 @@ All in all, it makes finding patterns and correlations relatively simple.
 ## HOWTO build ##
 1. $ git clone https://github.com/rkrambovitis/otinanai.git
 2. Fetch requirements and place into correct directories
-3. $ make
+3. Edit path to jedis in Makefile
+4. $ make
 
 ## HOWTO run ##
-$ java -cp src/jars/jedis-2.6.1.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.log
+$ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.log
 
 ## Command line arguments ##
 	-wp <webPort>         : Web Interface Port (default: 9876)
 	-lp <listenerPort>    : UDP listener Port (default: 9876)
 	-url <webUrl>         : Web Url (for links in notifications) (default: host:port)
-	-wt <webThreads>      : No Idea, probably unused
+	-wt <webThreads>      : Unused
 	-ct <cacheTime>       : How long (seconds) to cache generated page (default: 120)
 	-ci <cacheItems>      : How many pages to store in cache (default: 50)
 	-al <alarmLife>       : How long (seconds) an alarm state remains (default: 86400)
