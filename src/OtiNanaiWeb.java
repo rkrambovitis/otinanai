@@ -417,7 +417,7 @@ class OtiNanaiWeb implements Runnable {
 				output = output + "yaxis: "+ ++i +",\n";
 
 			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
-			TreeMap <String, String> nnMap = new TreeMap<String, String>();
+			TreeMap <Float, String> nnMap = new TreeMap<Float, String>();
 			for (KeyWordTracker kwt : kws) {
 				graphData = toGraph(kwt, type, time, endTime, maxMergeCount);
 				String kw = kwt.getKeyWord();
@@ -426,17 +426,17 @@ class OtiNanaiWeb implements Runnable {
 					continue;
 				}
 				dataMap.put(kw, graphData);
-				nnMap.put(graphData[11], kw);
+				nnMap.put(Float.parseFloat(graphData[11]), kw);
 			}
 
 			if (nnMap.size() < maxMergeCount)
 				maxMergeCount=nnMap.size();
 
 			for (int j=0 ; j < maxMergeCount ; j++) {
-				Map.Entry<String, String> foo = nnMap.pollLastEntry();
+				Map.Entry<Float, String> foo = nnMap.pollLastEntry();
 				String kw = foo.getValue();
 				graphData = dataMap.get(kw);
-				System.err.println(foo.getValue() + " " + foo.getKey());
+				//System.err.println(foo.getValue() + " " + foo.getKey());
 
 				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
 					+ "label: \""+kw+" = 000.000 k \",\n";
