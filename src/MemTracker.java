@@ -18,7 +18,7 @@ class MemTracker implements KeyWordTracker {
 		keyWord = new String(key);
 		logger = l;
 		sampleCount = 1;
-		currentDataCount = -1;
+		currentDataCount = 0;
 		currentFloat = 0f;
 		currentLong = 0l;
 		currentPrev = 0l;
@@ -37,7 +37,7 @@ class MemTracker implements KeyWordTracker {
 		step3Memory = new ArrayList<String> ();
 	}
 
-	public void put() {
+	public void putFreq() {
 		if (recordType == OtiNanai.UNSET) 
 			recordType = OtiNanai.FREQ;
 		if (recordType == OtiNanai.FREQ) {
@@ -48,31 +48,17 @@ class MemTracker implements KeyWordTracker {
 		}
 	}
 
-	public void put(long value) {
-		if (recordType == OtiNanai.UNSET) 
-			recordType = OtiNanai.COUNTER;
-		if (recordType == OtiNanai.COUNTER) {
-			currentLong = value;
-			logger.finest("[MemTracker]: currentLong is now " +currentLong);
-		} else {
-			logger.fine("[MemTracker]: Ignoring put of wrong type (keyword is COUNTER)");
-		}  
+	public void putCounter(long value) {
+		currentLong = value;
 	}
 
-	public void put(float value) {
-		if (recordType == OtiNanai.UNSET) 
-			recordType = OtiNanai.GAUGE;
-		if (recordType == OtiNanai.SUM) {
-			currentFloat += value;
-		} else if (recordType == OtiNanai.GAUGE) {
-			currentFloat += value;
-			currentDataCount ++;
-			if (currentDataCount == 0)
-				currentDataCount++;
-			logger.finest("[MemTracker]: currentFloat is now " +currentFloat);
-		} else {
-			logger.fine("[MemTracker]: Ignoring put of wrong type (keyword is GAUGE)");
-		}  
+	public void putGauge(float value) {
+		currentFloat += value;
+		currentDataCount ++;
+	}
+
+	public void putSum(float value) {
+		currentFloat += value;
 	}
 
 

@@ -10,13 +10,15 @@ interface KeyWordTracker {
 
    public void setType(short type);
 
-	public void put() ;
+	public void putFreq() ;
 
    public void delete() ;
 
-   public void put(float value) ;
+   public void putCounter(long value) ;
 
-   public void put(long value) ;
+   public void putGauge(float value) ;
+
+   public void putSum(float value) ;
 
    public void tick() ;
 

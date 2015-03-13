@@ -18,7 +18,7 @@ class RedisTracker implements KeyWordTracker {
 		jedis = new Jedis(redisHost);
 		sampleCount = 1;
 		currentFloat = 0f;
-		currentDataCount = -1;
+		currentDataCount = 0;
 		recordType = OtiNanai.UNSET;
 		step1Key = keyWord + "thirtySec";
 		step2Key = keyWord + "fiveMin";
@@ -50,50 +50,41 @@ class RedisTracker implements KeyWordTracker {
 		jedis.quit();
 	}
 
-	public void put() {
+	public void putFreq() {
 		if (recordType == OtiNanai.UNSET) {
 			recordType = OtiNanai.FREQ;
 			currentCount = 0;
 		}
-		if (recordType == OtiNanai.FREQ) {
-			currentCount ++;
-			logger.finest("[RedisTracker]: currentCount is now " +currentCount);
-		} else {          
-			logger.info("[RedisTracker]: Ignoring put of wrong type ("+keyWord+" is FREQ)");
-		}
+		currentCount ++;
 	}
 
-	public void put(long value) {
+	public void putCounter(long value) {
 		if (recordType == OtiNanai.UNSET) {
 			recordType = OtiNanai.COUNTER;
 			currentLong = 0l;
 			currentPrev = 0l;
 		}
-		if (recordType == OtiNanai.COUNTER) {
-			currentLong = value;
-			if (currentDataCount == 0)
-				currentDataCount++;
-			logger.finest("[RedisTracker]: currentLong is now " +currentLong);
-		} else {
-			logger.info("[RedisTracker]: Ignoring put of wrong type ("+keyWord+" is COUNTER)");
-		}  
+		currentLong = value;
+		logger.finest("[RedisTracker]: currentLong is now " +currentLong);
 	}
 
-	public void put(float value) {
+	public void putGauge(float value) {
 		if (recordType == OtiNanai.UNSET) {
 			recordType = OtiNanai.GAUGE;
 			currentFloat = 0f;
 			currentDataCount = 0;
 		}
-		if (recordType == OtiNanai.SUM ) {
-			currentFloat += value;
-		} else if (recordType == OtiNanai.GAUGE) {
-			currentFloat += value;
-			currentDataCount ++;
-			logger.finest("[RedisTracker]: currentFloat is now " +currentFloat);
-		} else {
-			logger.info("[RedisTracker]: Ignoring put of wrong type ("+keyWord+" is GAUGE)");
-		}  
+		currentFloat += value;
+		currentDataCount ++;
+		logger.finest("[RedisTracker]: currentFloat is now " +currentFloat);
+	}
+
+	public void putSum(float value) {
+		if (recordType == OtiNanai.UNSET) {
+			recordType = OtiNanai.SUM;
+			currentFloat = 0f;
+		}
+		currentFloat += value;
 	}
 
 

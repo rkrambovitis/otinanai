@@ -117,13 +117,13 @@ class OtiNanaiListener implements Runnable {
 			}
 
 			if (newRecord.isGauge()) {
-				kwt.put(newRecord.getGauge());
+				kwt.putGauge(newRecord.getGauge());
 			} else if (newRecord.isSum()) {
-				kwt.put(newRecord.getSum());
+				kwt.putSum(newRecord.getSum());
 			} else if (newRecord.isCounter()) {
-				kwt.put(newRecord.getCounter());
+				kwt.putCounter(newRecord.getCounter());
 			} else {
-				kwt.put();
+				kwt.putFreq();
 			}
 
 			trackerMap.put(kw, kwt);
