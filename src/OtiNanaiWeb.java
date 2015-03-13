@@ -296,10 +296,18 @@ class OtiNanaiWeb implements Runnable {
 		String[] broken = kw.split("\\.");
 		int wc = broken.length;
 		logger.info("[Web]: Detected "+wc+" words while trimming "+kw);
-		if (wc > 2)
-			return new String(broken[0]+"..."+broken[wc-2]+"."+broken[wc-1]);
-		else
-			return new String(kw.substring(0,5) + "..." +kw.substring(kw.length()-8, kw.length()-1));
+      String skw = new String(kw);
+		if (wc > 3)
+			skw  = broken[0]+"."+broken[1]+"..."+broken[wc-2]+"."+broken[wc-1];
+
+      if (skw.length() > OtiNanai.MAX_KW_LENGTH) {
+         if (wc > 3)
+            skw  = broken[0]+"."+broken[1]+"..."+broken[wc-1];
+
+         if (skw.length() > OtiNanai.MAX_KW_LENGTH)
+            skw = skw.substring(0,12) + "..." +skw.substring(skw.length()-12, skw.length()-1);
+      }
+      return skw;
 	}
 
 	private String timeGraph(ArrayList<String> keyList, short type, long time, long endTime, int maxMergeCount) {
