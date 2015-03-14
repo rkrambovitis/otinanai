@@ -19,6 +19,7 @@ class RedisTracker implements KeyWordTracker {
 		sampleCount = 1;
 		currentFloat = 0f;
 		currentDataCount = 0;
+		lastTimeStamp = 0l;
 		recordType = OtiNanai.UNSET;
 		step1Key = keyWord + "thirtySec";
 		step2Key = keyWord + "fiveMin";
@@ -101,12 +102,23 @@ class RedisTracker implements KeyWordTracker {
 			return;
 		if (recordType == OtiNanai.GAUGE && currentDataCount == 0)
 			return;
+		if (recordType == OtiNanai.SUM && currentFloat == 0f)
+			return;
 
+		if (lastTimeStamp == 0l && recordType != OtiNanai.GAUGE) {
+			lastTimeStamp = ts;
+			currentFloat = 0f;
+			currentDataCount = 0;
+			currentCount = 0;
+			currentPrev = currentLong;
+			currentLong = 0l;
+			return;
+		}
+			
 		float perSec = 0f;
 		float timeDiff = (float)(ts - lastTimeStamp);
-
-
 		lastTimeStamp = ts;
+
 		if (recordType == OtiNanai.GAUGE) {
 			logger.fine("[RedisTracker]: currentFloat = " +currentFloat);
 			perSec = (currentFloat / currentDataCount);

@@ -22,6 +22,7 @@ class MemTracker implements KeyWordTracker {
 		currentFloat = 0f;
 		currentLong = 0l;
 		currentPrev = 0l;
+		lastTimeStamp = 0l;
 		recordType = OtiNanai.UNSET;
 		alarm = 0L;
 		logger.finest("[MemTracker]: new MemTracker initialized for \"" +keyWord+"\"");
@@ -75,6 +76,19 @@ class MemTracker implements KeyWordTracker {
 			return;
 		if (recordType == OtiNanai.GAUGE && currentDataCount == 0)
 			return;
+		if (recordType == OtiNanai.SUM && currentFloat == 0f)
+			return;
+
+		if (lastTimeStamp == 0l && recordType != OtiNanai.GAUGE) {
+			lastTimeStamp = ts;
+			currentFloat = 0f;
+			currentDataCount = 0;
+			currentCount = 0;
+			currentPrev = currentLong;
+			currentLong = 0l;
+			return;
+		}
+			
 
 		float perSec = 0f;
 		float timeDiff = (float)(ts - lastTimeStamp);
