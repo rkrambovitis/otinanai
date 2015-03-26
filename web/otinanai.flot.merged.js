@@ -37,16 +37,6 @@ $(function() {
       plotAccordingToChoices();
    });
 
-   /*
-   $("#overview").bind("plotselected", function (event, ranges) {
-      xmin = ranges.xaxis.from;
-      xmax = ranges.xaxis.to;
-      ymin = ranges.yaxis.from;
-      ymax = ranges.yaxis.to;
-      plotAccordingToChoices();
-   });
-   */
-
    $("#placeholder").bind("plotunselected", function (event, ranges) {
       xmin = null;
       xmax = null;
@@ -55,48 +45,59 @@ $(function() {
       plotAccordingToChoices();
    });
 
-   /*
-   $("#overview").bind("plotunselected", function (event, ranges) {
-      xmin = null;
-      xmax = null;
-      ymin = null;
-      ymax = null;
-      plotAccordingToChoices();
-   });
-   */
+	$("#placeholder").bind("plothover",  function (event, pos, item) {
+		latestPosition = pos;
+		if (!updateLegendTimeout) {
+			updateLegendTimeout = setTimeout(updateLegend, 50);
+		}
+		updateLegendTimeout = false;
+	});
 
-   $("#placeholder").bind("plothover",  function (event, pos, item) {
-      latestPosition = pos;
-      if (!updateLegendTimeout) {
-         updateLegendTimeout = setTimeout(updateLegend, 50);
-      }
-      updateLegendTimeout = null;
-   });
 
-   function updateLegend() {
-      var temp = $('#placeholder .legendLabel');
-      var pos = latestPosition;
-      var axes = myPlot.getAxes();
-      if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
-         return;
-      }
-      var j,i = 0;
-      $.each(datasets, function(key, val) {
-         if (val.data.length <= 2) {
-            //console.log("Not enough data");
-         } else {
-            for (j = 0; j < val.data.length; ++j) {
-               if (val.data[j][0] > pos.x) {
-                  break;
-               }
-            }
-            var y = val.data[j][1];
-            temp[i].innerHTML = key + " = " + addSuffix(y);
-            //console.log(i+" "+val.data.length);
-         }
-         i++;
-      });
-   };
+	$("#placeholder").bind("plothover", function (event, pos, item) {
+		if (item) {
+			var x = item.datapoint[0], y = item.datapoint[1];
+
+			$("#tooltip").html(addSuffix(y))
+		.css({top: item.pageY+10, left: item.pageX+10})
+		.fadeIn(10);
+		} else {
+			$("#tooltip").hide();
+		}
+	});
+
+
+	$("<div id='tooltip'></div>").css({
+		position: "absolute",
+		display: "none",
+		border: "1px solid #fdd",
+		padding: "2px",
+		"background-color": "#fee",
+		opacity: 0.80
+	}).appendTo("body");
+
+	function updateLegend() {
+		var temp = $('#placeholder .legendLabel');
+		var pos = latestPosition;
+		var axes = myPlot.getAxes();
+		if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
+			return;
+		}
+		var j,i = 0;
+		$.each(datasets, function(key, val) {
+			if (val.data.length <= 2) {
+			} else {
+				for (j = 0; j < val.data.length; ++j) {
+					if (val.data[j][0] > pos.x) {
+						break;
+					}
+				}
+				var y = val.data[j][1];
+				temp[i].innerHTML = key + " = " + addSuffix(y);
+			}
+			i++;
+		});
+	};
 
    function updatePlot(data) {
       if (data.length > 0) {
@@ -106,21 +107,11 @@ $(function() {
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max:xmax},
             yaxis: {show: true, min: ymin, max: ymax},
             series: { lines: {show: true, fill: false}},
-            crosshair: { mode: "xy"},
+            crosshair: { mode: "y" },
             grid: { hoverable: true, autoHighlight: false},
             selection: { mode: "xy" }
          });
-         /*
-         myOverview=$.plot("#overview", data, {
-            legend: { show: false},
-            series: { lines: {show: true, lineWidth: 1 }, shadowSize: 0 },
-            xaxis: {show: false, ticks: 4, min: null, max: null},
-            yaxis: {show: false, ticks: 3, min: null, max: null},
-            grid: {color: "#999" },
-            selection: { mode: "xy" }
-         });
-         */
-      }
+		}
    }
 
    function plotAccordingToChoices() {
@@ -129,15 +120,9 @@ $(function() {
       choiceContainer.find("input:checked").each(function () {
          var key = $(this).attr("name");
 			data.push(datasets[key]);
-			/*
-         if (key && datasets[key] && foo < 8) {
-            data.push(datasets[key]);
-            foo++;
-         }
-			*/
-      });
+		});
       updatePlot(data);
-      updateLegend();
+		updateLegend();
    }
 
    plotAccordingToChoices();

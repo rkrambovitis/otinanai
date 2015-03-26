@@ -21,7 +21,8 @@ $(function() {
 			if (item) {
 				var x = item.datapoint[0], y = item.datapoint[1];
 
-				$("#tooltip").html(key + ": "+ addSuffix(y))
+				//$("#tooltip").html(key + ": "+ addSuffix(y))
+				$("#tooltip").html(addSuffix(y))
 					.css({top: item.pageY+10, left: item.pageX+10})
 					.fadeIn(10);
 			} else {

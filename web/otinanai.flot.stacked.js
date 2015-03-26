@@ -53,6 +53,29 @@ $(function() {
       updateLegendTimeout = false;
    });
 
+	$("#placeholder").bind("plothover", function (event, pos, item) {
+		if (item) {
+			var x = item.datapoint[0], y = item.datapoint[1];
+			var tot = pos.y;
+
+			$("#tooltip").html(addSuffix(tot))
+		.css({top: item.pageY+10, left: item.pageX+10})
+		.fadeIn(10);
+		} else {
+			$("#tooltip").hide();
+		}
+	});
+
+	$("<div id='tooltip'></div>").css({
+		position: "absolute",
+		display: "none",
+		border: "1px solid #fdd",
+		padding: "2px",
+		"background-color": "#fee",
+		opacity: 0.80
+	}).appendTo("body");
+
+
    function updateLegend() {
       var temp = $('#placeholder .legendLabel');
       var pos = latestPosition;
@@ -84,7 +107,7 @@ $(function() {
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max:xmax},
             yaxis: { show: true, min: ymin, max: ymax},
             series: { stack: true, lines: {show: true, fill: true}},
-            crosshair: { mode: "xy"},
+            crosshair: { mode: "xy" },
             grid: { hoverable: true, autoHighlight: false},
             selection: { mode: "xy" }
          });
