@@ -23,8 +23,8 @@ $(function() {
 				y = item.datapoint[1].toFixed(2);
 
 				$("#tooltip").html(key + ": "+ addSuffix(y))
-					.css({top: item.pageY+5, left: item.pageX+5})
-					.fadeIn(100);
+					.css({top: item.pageY+15, left: item.pageX+15})
+					.fadeIn(10);
 			} else {
 				$("#tooltip").hide();
 			}
@@ -49,6 +49,7 @@ $(function() {
             series: { lines: {show: true, fill: false}},
             yaxis: { show: true, tickFormatter: addSuffix, min: null, max: datasets[key]['nn']},
             grid: { hoverable: true, autoHighlight: false, clickable: true},
+            crosshair: { mode: "y" },
             selection: { mode: "x" }
          });
       });
