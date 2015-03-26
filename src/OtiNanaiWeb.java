@@ -413,12 +413,16 @@ class OtiNanaiWeb implements Runnable {
 					+ "</div>\n";
 			}
 		} else {
+			/*
 			if (type == OtiNanai.GRAPH_STACKED)
 				output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_STACKED);
 			else
-				output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_MERGED);
+			*/
+			output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_MERGED);
 
 			output = output+ commonHTML(OtiNanai.JS)
+				+ "var maxMergeCount = "+maxMergeCount+";\n"
+				+ "var stackedGraph = "+(type == OtiNanai.GRAPH_STACKED)+";\n"
 				+ "var datasets = {\n";
 
 			if (type == OtiNanai.GRAPH_MERGED_AXES) 
@@ -440,14 +444,18 @@ class OtiNanaiWeb implements Runnable {
 			if (nnMap.size() < maxMergeCount)
 				maxMergeCount=nnMap.size();
 
-			for (int j=0 ; j < maxMergeCount ; j++) {
+			int graphCount = (int)Math.ceil(nnMap.size() / (float)maxMergeCount);
+			//System.err.println(nnMap.size() +" "+ maxMergeCount + " " + graphCount);
+
+			for (int j=0 ; j <= nnMap.size() ; j++) {
 				Map.Entry<Float, String> foo = nnMap.pollLastEntry();
 				String kw = foo.getValue();
 				graphData = dataMap.get(kw);
 				//System.err.println(foo.getValue() + " " + foo.getKey());
 
 				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
-					+ "label: \""+kw+" = 000.000 k \",\n";
+					+ "label: \""+kw+"\",\n";
+					//+ "label: \""+kw+" = 000.000 k \",\n";
 
 				output = output + "nn:  "+ graphData[11] +",\n";
 
@@ -456,14 +464,12 @@ class OtiNanaiWeb implements Runnable {
 					+ "]},\n\n";
 			}
 
-			body = body
-				+ "<div>\n"
-				+ "\t<div id=\"placeholder\" class=\"mergedGraph\"></div>\n"
-				+ "</div>\n"
-				+ "\t<div id=\"choicesDiv\" class=\"checkList\">\n"
-				+ "\t\t<p id=\"choices\"></p>\n"
-				+ "\t</div>\n"
-				+ "</div>\n";
+			for (int j = 0 ; j < graphCount ; j++) {
+				body = body
+					+ "<div>\n"
+					+ "\t<div id=\"placeholder_"+j+"\" class=\"previewGraph\"></div>\n"
+					+ "</div>\n";
+			}
 		}
 
 		if (type != OtiNanai.GRAPH_GAUGE) {
@@ -572,7 +578,8 @@ class OtiNanaiWeb implements Runnable {
 					//+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.gridster.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.common.js\"></script>\n");
 		} else if (out == OtiNanai.FLOT_MERGED) {
-			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.merged.js\"></script>\n");
+			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.js\"></script>\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.merged.js\"></script>\n");
 		} else if (out == OtiNanai.FLOT_STACKED) {
 			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.stacked.js\"></script>\n");

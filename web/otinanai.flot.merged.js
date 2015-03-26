@@ -3,7 +3,7 @@ $(function() {
    $.each(datasets, function(key, val) {
       val.color = i;++i;
    });
-
+/*
    var choiceContainer = $("#choices");
 
    $.each(datasets, function(key, val) {
@@ -24,7 +24,9 @@ $(function() {
    legends.each(function () {
       $(this).css('width', $(this).width());
    });
+	*/
 
+/*
    var xmin = null;
    var xmax = null;
    var ymin = null;
@@ -44,7 +46,6 @@ $(function() {
       ymax = null;
       plotAccordingToChoices();
    });
-
 	$("#placeholder").bind("plothover",  function (event, pos, item) {
 		latestPosition = pos;
 		if (!updateLegendTimeout) {
@@ -52,19 +53,9 @@ $(function() {
 		}
 		updateLegendTimeout = false;
 	});
+	*/
 
 
-	$("#placeholder").bind("plothover", function (event, pos, item) {
-		if (item) {
-			var x = item.datapoint[0], y = item.datapoint[1];
-
-			$("#tooltip").html(addSuffix(y))
-		.css({top: item.pageY+10, left: item.pageX+10})
-		.fadeIn(10);
-		} else {
-			$("#tooltip").hide();
-		}
-	});
 
 
 	$("<div id='tooltip'></div>").css({
@@ -76,6 +67,53 @@ $(function() {
 		opacity: 0.80
 	}).appendTo("body");
 
+	function drawGraphs() {
+		var it=0;
+		var ph=0;
+		var data = [];
+		console.log("maxMergeCount: " + maxMergeCount);
+		console.log("datasets.length: " + Object.keys(datasets).length);
+		console.log("stacked ? : " + stackedGraph);
+      $.each(datasets, function(key, val) {
+			console.log("it: " + it);
+			console.log("ph: " + ph);
+			console.log("data.length: " + data.length);
+			if ( it < maxMergeCount ) {
+				console.log("Pushing: "+key);
+				data.push(datasets[key]);
+				it++;
+			}
+
+			if ( (it % maxMergeCount == 0) || it == Object.keys(datasets).length) {
+				console.log("graphing: #placeholder_"+ph);
+				$.plot($("#placeholder_"+ph), data, {
+					xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: null, max: null },
+					yaxis: { show: true, tickFormatter: addSuffix, min: null, max: null},
+					grid: { hoverable: true, autoHighlight: false, clickable: true},
+					legend: {show: true, position: "nw" },
+					series: { stack: stackedGraph, lines: {show: true, fill: stackedGraph}},
+					selection: { mode: "xy" }
+				});
+				$("#placeholder_"+ph).bind("plothover", function (event, pos, item) {
+					if (item) {
+						var x = item.datapoint[0], y = item.datapoint[1];
+
+						$("#tooltip").html(addSuffix(y))
+					.css({top: item.pageY+10, left: item.pageX+10})
+					.fadeIn(10);
+					} else {
+						$("#tooltip").hide();
+					}
+				});
+
+				data = [];
+				ph++;
+			}
+      });
+   };
+
+   drawGraphs();
+/*
 	function updateLegend() {
 		var temp = $('#placeholder .legendLabel');
 		var pos = latestPosition;
@@ -126,5 +164,5 @@ $(function() {
    }
 
    plotAccordingToChoices();
-
+*/
 });
