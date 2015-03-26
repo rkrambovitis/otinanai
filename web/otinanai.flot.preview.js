@@ -46,7 +46,6 @@ $(function() {
       $.each(datasets, function(key, val) {
          handles[key] = $.plot($("#"+key), [val], {
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max: xmax },
-            legend: { show: "false" },
             series: { lines: {show: true, fill: false}, points: {show: true}},
             yaxis: { show: true, tickFormatter: addSuffix, min: null, max: datasets[key]['nn']},
             grid: { hoverable: true, autoHighlight: false, clickable: true},

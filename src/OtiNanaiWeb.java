@@ -381,8 +381,8 @@ class OtiNanaiWeb implements Runnable {
 				}
 
 
-				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
-					+ "label: \""+kw+" = 000.000 k \",\n";
+				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n";
+					//+ "label: \""+kw+" = 000.000 k \",\n";
 
 				output = output + "nn:  "+ graphData[11] +",\n";
 
