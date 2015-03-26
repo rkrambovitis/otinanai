@@ -5,7 +5,7 @@ $(function() {
    var myPlot = null;
    var handles = {};
    var xmin = null;
-   var xmax = null;
+   var xmax = null;	
    $.each(datasets, function(key) {
       $("#"+key).bind("plotselected", function (event, ranges) {
          xmin = ranges.xaxis.from;
@@ -17,41 +17,37 @@ $(function() {
          xmax = null;
          drawGraphs();
       });
-      $("#"+key).bind("plothover",  function (event, pos) {
-         //debugger;
-	      latestPosition = pos;
-	      if (!updateLegendTimeout) {
-		      updateLegendTimeout = setTimeout(updateLegend(key), 50);
-		   //   updateLegend(key);
-	      }
-         updateLegendTimeout = null;
-      });
+		$("#"+key).bind("plothover", function (event, pos, item) {
+			if (item) {
+				var x = item.datapoint[0].toFixed(2),
+				y = item.datapoint[1].toFixed(2);
+
+				$("#tooltip").html(key + ": "+ addSuffix(y))
+					.css({top: item.pageY+5, left: item.pageX+5})
+					.fadeIn(100);
+			} else {
+				$("#tooltip").hide();
+			}
+		});
+
    });
 
-   function updateLegend(key) {
-      //console.log(key);
-      var pos = latestPosition;
-      var axes = handles[key].getAxes();
-      if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max) {
-         return;
-      }
-      var j = 0;
-      for (j = 0 ; j < datasets[key].data.length ; ++j) {
-         if (datasets[key].data[j][0] > pos.x) {
-            break;
-         }
-      }
-      var y = datasets[key].data[j][1];
-      $("#"+key+" .legendLabel").text(key + " = " + addSuffix(y));
-   };
+	$("<div id='tooltip'></div>").css({
+		position: "absolute",
+		display: "none",
+		border: "1px solid #fdd",
+		padding: "2px",
+		"background-color": "#fee",
+		opacity: 0.80
+	}).appendTo("body");
 
-   function drawGraphs() {
+
+	function drawGraphs() {
       $.each(datasets, function(key, val) {
          handles[key] = $.plot($("#"+key), [val], {
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max: xmax },
-            legend: { show: "true", position: "nw" },
-            series: { lines: {show: true, fill: false}},
-            crosshair: { mode: "x"},
+            legend: { show: "false" },
+            series: { lines: {show: true, fill: false}, points: {show: true}},
             yaxis: { show: true, tickFormatter: addSuffix, min: null, max: datasets[key]['nn']},
             grid: { hoverable: true, autoHighlight: false, clickable: true},
             selection: { mode: "x" }
