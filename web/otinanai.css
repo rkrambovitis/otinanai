@@ -21,11 +21,11 @@ body, html {
    margin-bottom: 20px; 
 }
 .mergedGraph { 
-   height: 70%;
+   height: 240px;
    width: 100%;
    border-bottom: 1px solid #ccc; 
-   padding-bottom: 20px; 
-   margin-bottom: 20px; 
+   padding-bottom: 15px; 
+   margin-bottom: 10px; 
 }
 .previewGraph {
    width: 100%;

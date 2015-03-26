@@ -441,13 +441,13 @@ class OtiNanaiWeb implements Runnable {
 				nnMap.put(Float.parseFloat(graphData[11]), kw);
 			}
 
-			if (nnMap.size() < maxMergeCount)
-				maxMergeCount=nnMap.size();
+			if (dataMap.size() < maxMergeCount)
+				maxMergeCount=dataMap.size();
 
-			int graphCount = (int)Math.ceil(nnMap.size() / (float)maxMergeCount);
-			//System.err.println(nnMap.size() +" "+ maxMergeCount + " " + graphCount);
+			int graphCount = (int)Math.ceil(dataMap.size() / (float)maxMergeCount);
+			//System.err.println(dataMap.size() +" "+ maxMergeCount + " " + graphCount);
 
-			for (int j=0 ; j <= nnMap.size() ; j++) {
+			for (int j=0 ; j < dataMap.size() ; j++) {
 				Map.Entry<Float, String> foo = nnMap.pollLastEntry();
 				String kw = foo.getValue();
 				graphData = dataMap.get(kw);
@@ -467,7 +467,7 @@ class OtiNanaiWeb implements Runnable {
 			for (int j = 0 ; j < graphCount ; j++) {
 				body = body
 					+ "<div>\n"
-					+ "\t<div id=\"placeholder_"+j+"\" class=\"previewGraph\"></div>\n"
+					+ "\t<div id=\"placeholder_"+j+"\" class=\"mergedGraph\"></div>\n"
 					+ "</div>\n";
 			}
 		}
