@@ -365,7 +365,7 @@ class OtiNanai {
 	public static int STEP2_MAX_SAMPLES = 2880;
 	public static int STEP2_SAMPLES_TO_MERGE = 6;
 	public static int TICKER_INTERVAL = 60000;
-	public static long PREVIEWTIME = 86400000l;
+	public static long PREVIEWTIME = 21600000l;
 	public static short MAXPERPAGE=30;
 
 	//public static final int MAXSAMPLES = 20;
@@ -413,4 +413,5 @@ class OtiNanai {
 	public static final short MEGA = 2;
 	public static final short GIGA = 3;
 	public static final short PETA = 4;
+        public static final int MAXMERGECOUNT = 3;
 }
