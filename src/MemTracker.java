@@ -23,6 +23,7 @@ class MemTracker implements KeyWordTracker {
 		currentLong = 0l;
 		currentPrev = 0l;
 		lastTimeStamp = 0l;
+		curTS = 0l;
 		recordType = OtiNanai.UNSET;
 		alarm = 0L;
 		logger.finest("[MemTracker]: new MemTracker initialized for \"" +keyWord+"\"");
@@ -51,11 +52,13 @@ class MemTracker implements KeyWordTracker {
 
 	public void putCounter(long value) {
 		currentLong = value;
+		curTS = System.currentTimeMillis();
 	}
 
 	public void putGauge(float value) {
 		currentFloat += value;
 		currentDataCount ++;
+		curTS = System.currentTimeMillis();
 	}
 
 	public void putSum(float value) {
@@ -64,9 +67,10 @@ class MemTracker implements KeyWordTracker {
 
 
 	public void tick() {
-		long ts = System.currentTimeMillis();
 		logger.fine("[MemTracker]: ticking " + keyWord );
-		flush(ts);
+		if (recordType == OtiNanai.COUNTER || recordType == OtiNanai.GAUGE)
+			flush(curTS);
+		flush(System.currentTimeMillis());
 	}
 
 	private void flush(long ts) {
@@ -288,6 +292,7 @@ class MemTracker implements KeyWordTracker {
 	private long currentLong;
 	private long currentPrev;
 	private long lastTimeStamp;
+	private long curTS;
 	private ArrayList<String> step1Memory;
 	private ArrayList<String> step2Memory;
 	private ArrayList<String> step3Memory;

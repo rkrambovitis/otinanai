@@ -1,5 +1,5 @@
 SRC= src
-CPATH= /home/otinanai/jars/jedis.jar
+CPATH= /home/robert/foo/otinanai/jars/jedis.jar
 BASEPATH= .
 DST= $(BASEPATH)/gr/phaistosnetworks/admin/otinanai
 

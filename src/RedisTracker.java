@@ -20,6 +20,7 @@ class RedisTracker implements KeyWordTracker {
 		currentFloat = 0f;
 		currentDataCount = 0;
 		lastTimeStamp = 0l;
+		curTS = 0l;
 		recordType = OtiNanai.UNSET;
 		step1Key = keyWord + "thirtySec";
 		step2Key = keyWord + "fiveMin";
@@ -66,6 +67,7 @@ class RedisTracker implements KeyWordTracker {
 			currentPrev = 0l;
 		}
 		currentLong = value;
+		curTS = System.currentTimeMillis();
 		logger.finest("[RedisTracker]: currentLong is now " +currentLong);
 	}
 
@@ -77,6 +79,7 @@ class RedisTracker implements KeyWordTracker {
 		}
 		currentFloat += value;
 		currentDataCount ++;
+		curTS = System.currentTimeMillis();
 		logger.finest("[RedisTracker]: currentFloat is now " +currentFloat);
 	}
 
@@ -90,9 +93,10 @@ class RedisTracker implements KeyWordTracker {
 
 
 	public void tick() {
-		long ts = System.currentTimeMillis();
 		logger.fine("[RedisTracker]: ticking " + keyWord );
-		flush(ts);
+		if (recordType == OtiNanai.COUNTER || recordType == OtiNanai.GAUGE)
+			flush(curTS);
+		flush(System.currentTimeMillis());
 	}
 
 	private void flush(long ts) {
@@ -332,6 +336,7 @@ class RedisTracker implements KeyWordTracker {
 	private long currentLong;
 	private long currentPrev;
 	private long lastTimeStamp;
+	private long curTS;
 	private Logger logger;
 	private int alarmSamples;
 	private float alarmThreshold;
