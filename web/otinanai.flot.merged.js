@@ -17,9 +17,6 @@ $(function() {
       var ph=0;
       var data = [];
       var maxy = null;
-      console.log("maxMergeCount: " + maxMergeCount);
-      console.log("datasets.length: " + Object.keys(datasets).length);
-      console.log("stacked ? : " + stackedGraph);
       $.each(datasets, function(key, val) {
          if (maxy == null && !stackedGraph)
             maxy = datasets[key]['nn'];
@@ -29,15 +26,10 @@ $(function() {
             else
                maxy += datasets[key]['nn'];
          }
-         console.log("it: " + it);
-         console.log("ph: " + ph);
-         console.log("data.length: " + data.length);
-         console.log("Pushing: "+key);
          data.push(datasets[key]);
          it++;
 
          if ( (it % maxMergeCount == 0) || it == Object.keys(datasets).length) {
-            console.log("graphing: #placeholder_"+ph);
             $.plot($("#placeholder_"+ph), data, {
                xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: null, max: null },
                yaxis: { show: true, tickFormatter: addSuffix, min: null, max: maxy},
