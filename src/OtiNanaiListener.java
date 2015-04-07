@@ -40,7 +40,7 @@ class OtiNanaiListener implements Runnable {
 			}
 			for (String kw : kwtList) { 
 				logger.info("[Listener]: Creating new Tracker: "+kw);
-				trackerMap.put(kw, new RedisTracker(kw, as, at, acs, redisHost, logger));
+				trackerMap.put(kw, new RedisTracker(kw, as, at, acs, redisHost, jedis, logger));
 			}
 		}
 		dataSocket = ds;
@@ -109,7 +109,7 @@ class OtiNanaiListener implements Runnable {
 			if (kwt == null) {
 				logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
 				if (storageType == OtiNanai.REDIS)
-					kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, redisHost, logger);
+					kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, redisHost, jedis, logger);
 				else
 					kwt = new MemTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
 

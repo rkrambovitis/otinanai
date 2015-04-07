@@ -6,7 +6,7 @@ import redis.clients.jedis.*;
 
 class RedisTracker implements KeyWordTracker {
 
-	public RedisTracker(String key, int as, float at, int acs, String rh, Logger l) {
+	public RedisTracker(String key, int as, float at, int acs, String rh, Jedis j, Logger l) {
 		mean = 0f;
 		alarmSamples = as;
 		alarmThreshold = at;
@@ -15,7 +15,7 @@ class RedisTracker implements KeyWordTracker {
 		keyWord = new String(key);
 		logger = l;
 		redisHost = rh;
-		jedis = new Jedis(redisHost);
+		jedis = j;
 		sampleCount = 1;
 		currentFloat = 0f;
 		currentDataCount = 0;
@@ -37,6 +37,7 @@ class RedisTracker implements KeyWordTracker {
 	}
 
 	private void resetJedis() {
+                logger.info("[RedisTracker]: Resetting jedis for \"" + keyWord+"\"");
 		jedis.disconnect();
 		jedis = new Jedis(redisHost);
 	}
