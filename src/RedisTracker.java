@@ -26,12 +26,17 @@ class RedisTracker implements KeyWordTracker {
 		step2Key = keyWord + "fiveMin";
 		step3Key = keyWord + "thirtyMin";
 		alarmKey = keyWord + "alarmTS";
-		String alarmSaved = jedis.get(alarmKey);
-		if (alarmSaved == null) {
-			alarm = 0L;
-		} else {
-			alarm = Long.parseLong(alarmSaved);
-		}
+                try {
+                        String alarmSaved = jedis.get(alarmKey);
+                        if (alarmSaved == null) {
+                                alarm = 0L;
+                        } else {
+                                        alarm = Long.parseLong(alarmSaved);
+                        }
+                } catch (Exception e) {
+                        logger.severe("[RedisTracker]: Unable to retrieve stored alarm state\n"+e);
+                        alarm = 0L;
+                }
 
 		logger.finest("[RedisTracker]: new RedisTracker initialized for \"" +keyWord+"\"");
 	}

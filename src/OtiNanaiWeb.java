@@ -429,7 +429,6 @@ class OtiNanaiWeb implements Runnable {
 				output = output + "yaxis: "+ ++i +",\n";
 
 			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
-			TreeMap <Float, String> nnMap = new TreeMap<Float, String>();
 			for (KeyWordTracker kwt : kws) {
 				graphData = toGraph(kwt, type, time, endTime, maxMergeCount);
 				String kw = kwt.getKeyWord();
@@ -438,19 +437,23 @@ class OtiNanaiWeb implements Runnable {
 					continue;
 				}
 				dataMap.put(kw, graphData);
-				nnMap.put(Float.parseFloat(graphData[11]), kw);
 			}
+
+                        NNComparator nnc = new NNComparator(dataMap);
+                        TreeMap <String, String[]> sortedMap = new TreeMap<String, String[]>(nnc);
+                        sortedMap.putAll(dataMap);
 
 			if (dataMap.size() < maxMergeCount)
                                 maxMergeCount=dataMap.size();
 
                         int graphCount = (int)Math.ceil(dataMap.size() / (float)maxMergeCount);
-                        //System.err.println(dataMap.size() +" "+ maxMergeCount + " " + graphCount);
-                        int totalGraphs = nnMap.size();
-                        for (int j=0 ; j < totalGraphs ; j++) {
-                                Map.Entry<Float, String> foo = nnMap.pollLastEntry();
-				String kw = foo.getValue();
-				graphData = dataMap.get(kw);
+                        //System.out.println(sortedMap.size() + " " + dataMap.size() +" "+ maxMergeCount + " " + graphCount);
+                        int totalKeys = sortedMap.size();
+                        for (int j=0 ; j < totalKeys ; j++) {
+                                Map.Entry<String, String[]> foo = sortedMap.pollLastEntry();
+				String kw = foo.getKey();
+                                graphData = foo.getValue();
+				//graphData = dataMap.get(kw);
 				//System.err.println(foo.getValue() + " " + foo.getKey());
 
 				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"

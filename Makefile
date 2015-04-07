@@ -4,7 +4,7 @@ BASEPATH= .
 DST= $(BASEPATH)/gr/phaistosnetworks/admin/otinanai
 
 FLAGS= -Xlint:unchecked -Xlint:deprecation -cp $(CPATH)
-SRCFILES= OtiNanai.java SomeRecord.java OtiNanaiListener.java OtiNanaiWeb.java KeyWordTracker.java OtiNanaiTicker.java OtiNanaiCache.java MemTracker.java LLString.java RedisTracker.java OtiNanaiNotifier.java
+SRCFILES= OtiNanai.java SomeRecord.java OtiNanaiListener.java OtiNanaiWeb.java KeyWordTracker.java OtiNanaiTicker.java OtiNanaiCache.java MemTracker.java LLString.java RedisTracker.java OtiNanaiNotifier.java NNComparator.java
 JAVAC= /usr/bin/javac
 
 all:

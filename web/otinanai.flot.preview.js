@@ -49,8 +49,8 @@ $(function() {
             xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max: xmax },
             series: { lines: {show: true, fill: false}},
             yaxis: { show: true, tickFormatter: addSuffix, min: null, max: datasets[key]['nn']},
-            grid: { hoverable: true, autoHighlight: false, clickable: true}
-//            crosshair: { mode: "y" }
+            grid: { hoverable: true, autoHighlight: false, clickable: true},
+            crosshair: { mode: "y" }
 //            selection: { mode: "x" }
          });
       });
