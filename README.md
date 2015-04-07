@@ -21,7 +21,6 @@ All in all, it makes finding patterns and correlations relatively simple.
 + No fancy queries or programming needed. Just pipe it data, and type keywords in web field.
 
 ## Limitations ##
-+ 1 socket per keyword to redis. So if you need 65k keywords, you will need to ulimit -n 65535 on both redis and otinanai.
 + Persistence depends on redis with all it's pros and cons. So don't rely on this to store critical data.
 
 ## System Requirements ##
