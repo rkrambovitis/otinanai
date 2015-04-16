@@ -25,6 +25,7 @@ class SomeRecord {
 		keyWords = new ArrayList<String>();
 		IAmGauge = false;
 		IAmCounter = false;
+                IAmEvent = false;
 		process(data.replaceAll("[\r\n]",""), 3, 128);
 	}
 
@@ -83,7 +84,10 @@ class SomeRecord {
 				IAmSum = true;
 				keyWords.add(tokens[0]);
 			}
-		}
+		} else if (tokens[tokens.length-1].equals("eventmarker") || tokens[0].equals("eventmarker")) {
+                        theEvent = str.replaceAll("eventmarker", "");
+                        IAmEvent = true;
+                }
 	}
 
 	/**
@@ -286,6 +290,13 @@ class SomeRecord {
 	/**
 	 * Access Method
 	 */
+	public boolean isEvent() {
+		return IAmEvent;
+	}
+
+	/**
+	 * Access Method
+	 */
 	public Float getGauge() {
 		if (IAmGauge)
 			return theGauge;
@@ -310,6 +321,15 @@ class SomeRecord {
 		return -1337f;
 	}
 
+	/**
+	 * Access Method
+	 */
+	public String getEvent() {
+		if (IAmEvent)
+			return theEvent;
+		return null;
+	}
+
 	private long timeStamp;
 	private String timeNano;
 	private InetAddress myip;
@@ -321,6 +341,8 @@ class SomeRecord {
 	private Float theSum;
 	private boolean IAmSum;
 	private String theDate;
+        private boolean IAmEvent;
+        private String theEvent;
 	private ArrayList<String> keyWords;
 	//private String masterKey;
 }

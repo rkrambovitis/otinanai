@@ -25,6 +25,8 @@ class OtiNanaiListener implements Runnable {
 		storageType = st;
 		deleteLock = false;
 		rKeyList = redisKeyWordList;
+                rEventList = new String("OtiNanai_Event_List");
+                eventMap = new TreeMap<Long, String>();
 		rSavedQueries = redisSavedQueries;
 		kwtList = new LLString();
 		redisHost = rh;
@@ -43,6 +45,15 @@ class OtiNanaiListener implements Runnable {
 				logger.info("[Listener]: Creating new Tracker: "+kw);
 				trackerMap.put(kw, new RedisTracker(kw, as, at, acs, redisHost, jedis2, logger));
 			}
+                        if (jedis.exists(rEventList)) {
+                                Long tts = 0l;
+                                String tev = new String();
+                                for (String s : jedis.smembers(rEventList)) {
+                                        tts = Long.parseLong(s.substring(0, s.indexOf(" ")-1));
+                                        tev = s.substring(s.indexOf(" "));
+                                        System.err.println("\"tts\" "+"\"tev\"");
+                                }
+                        }
 		}
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
@@ -89,7 +100,11 @@ class OtiNanaiListener implements Runnable {
 			recType = OtiNanai.COUNTER;
 		} else if (newRecord.isSum()) {
 			recType = OtiNanai.SUM;
-		}
+		} else if (newRecord.isEvent()) {
+                        eventMap.put(newRecord.getTimeStamp(), newRecord.getEvent());
+                        jedis.sadd(rEventList, new String(newRecord.getTimeStamp()+" "+newRecord.getEvent()));
+                        return;
+                }
 
 		ArrayList<String> theKeys = newRecord.getKeyWords();
 
@@ -215,10 +230,12 @@ class OtiNanaiListener implements Runnable {
 	private Logger logger;
 	private short storageType;
 	private String rKeyList;
+        private String rEventList;
 	private String rSavedQueries;
 	private LLString kwtList;
 	private Jedis jedis;
         private Jedis jedis2;
 	private String redisHost;
+        private Map<Long, String> eventMap;
 	private boolean deleteLock;
 }
