@@ -296,21 +296,42 @@ class OtiNanaiWeb implements Runnable {
 		String[] broken = kw.split("\\.");
 		int wc = broken.length;
 		logger.info("[Web]: Detected "+wc+" words while trimming "+kw);
-      String skw = new String(kw);
+		String skw = new String(kw);
 		if (wc > 3)
 			skw  = broken[0]+"."+broken[1]+"..."+broken[wc-2]+"."+broken[wc-1];
 
-      if (skw.length() > OtiNanai.MAX_KW_LENGTH) {
-         if (wc > 3)
-            skw  = broken[0]+"."+broken[1]+"..."+broken[wc-1];
+		if (skw.length() > OtiNanai.MAX_KW_LENGTH) {
+			if (wc > 3)
+				skw  = broken[0]+"."+broken[1]+"..."+broken[wc-1];
 
-         if (skw.length() > OtiNanai.MAX_KW_LENGTH)
-            skw = skw.substring(0,12) + "..." +skw.substring(skw.length()-12, skw.length()-1);
-      }
-      return skw;
+			if (skw.length() > OtiNanai.MAX_KW_LENGTH)
+				skw = skw.substring(0,12) + "..." +skw.substring(skw.length()-12, skw.length()-1);
+		}
+		return skw;
 	}
 
-	private String timeGraph(ArrayList<String> keyList, short type, long time, long endTime, int maxMergeCount) {
+	private String getMarkings(boolean showEvents, long time, long endTime) {
+		String markings = new String("var markings = [\n");
+		if (showEvents) {
+			long now = System.currentTimeMillis();
+			long oldest = now - endTime - time;
+			long earliest = now - endTime;
+			NavigableMap<Long, String> eventMap = onl.getEvents().subMap(oldest, true, earliest, true);
+			Long key = 0l;
+			for (int c = 0; c < eventMap.size();c++) {
+				Map.Entry<Long, String> event = eventMap.pollFirstEntry();
+				key = event.getKey();
+
+				markings = markings + "\t{ color: \"#f00\", linewidth: 100, xaxis: { from: "+key+", to: "+key+" } },\n";
+				//System.err.println("Key: "+event.getKey());
+				//System.err.println("Value: "+event.getValue());
+			}
+		}
+		markings = markings + "];\n";
+		return markings;
+	}
+
+	private String timeGraph(ArrayList<String> keyList, short type, long time, long endTime, int maxMergeCount, boolean showEvents) {
 		ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
 		LLString kwtList = onl.getKWTList();
 
@@ -370,6 +391,7 @@ class OtiNanaiWeb implements Runnable {
 			output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_PREVIEW);
 
 			output = output+ commonHTML(OtiNanai.JS)
+				+ getMarkings(showEvents, time, endTime)
 				+ "var datasets = {\n";
 
 			for (KeyWordTracker kwt : kws) {
@@ -644,6 +666,7 @@ class OtiNanaiWeb implements Runnable {
 		boolean alarm = false;
 		boolean showAll = false;
 		boolean showAlarms = false;
+		boolean showEvents = false;
 		int maxMergeCount = OtiNanai.MAXMERGECOUNT;
 		short graphType = OtiNanai.GRAPH_PREVIEW;
 		long time = OtiNanai.PREVIEWTIME;
@@ -694,6 +717,10 @@ class OtiNanaiWeb implements Runnable {
 				case "--store":
 					logger.info("[Web]: Storing query");
 					return storeQuery(input);
+				case "--events":
+					logger.info("[Web]: Showing Events");
+					showEvents = true;
+					continue;
 				case "--no-search":
 				case "--no-bar":
 				case "--ns":
@@ -848,7 +875,7 @@ class OtiNanaiWeb implements Runnable {
 			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
 			return kwTree(kws, keyList);
 		}
-		op  = timeGraph(kws, graphType, time, endTime, maxMergeCount);
+		op  = timeGraph(kws, graphType, time, endTime, maxMergeCount, showEvents);
 		onc.cache(input, op);
 		return op;
 	}

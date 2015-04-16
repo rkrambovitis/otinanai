@@ -85,7 +85,7 @@ class SomeRecord {
 				keyWords.add(tokens[0]);
 			}
 		} else if (tokens[tokens.length-1].equals("eventmarker") || tokens[0].equals("eventmarker")) {
-                        theEvent = str.replaceAll("eventmarker", "");
+                        theEvent = str.replaceAll("eventmarker ", "");
                         IAmEvent = true;
                 }
 	}

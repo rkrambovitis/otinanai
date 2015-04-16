@@ -49,9 +49,9 @@ class OtiNanaiListener implements Runnable {
                                 Long tts = 0l;
                                 String tev = new String();
                                 for (String s : jedis.smembers(rEventList)) {
-                                        tts = Long.parseLong(s.substring(0, s.indexOf(" ")-1));
-                                        tev = s.substring(s.indexOf(" "));
-                                        System.err.println("\"tts\" "+"\"tev\"");
+                                        tts = Long.parseLong(s.substring(0, s.indexOf(" ")));
+                                        tev = s.substring(s.indexOf(" ")+1);
+					eventMap.put(tts, tev);
                                 }
                         }
 		}
@@ -103,6 +103,8 @@ class OtiNanaiListener implements Runnable {
 		} else if (newRecord.isEvent()) {
                         eventMap.put(newRecord.getTimeStamp(), newRecord.getEvent());
                         jedis.sadd(rEventList, new String(newRecord.getTimeStamp()+" "+newRecord.getEvent()));
+			logger.info("[Listener]: New event-> "+newRecord.getEvent());
+			System.err.println("New Event: -> "+newRecord.getEvent());
                         return;
                 }
 
@@ -221,6 +223,12 @@ class OtiNanaiListener implements Runnable {
 		}
 	}
 
+	public TreeMap<Long, String> getEvents() {
+		TreeMap<Long, String> emc = new TreeMap<Long, String>();
+		emc.putAll(eventMap);
+		return emc;
+	}
+
 	private HashMap<String,KeyWordTracker> trackerMap;
 	private int port;
 	private int alarmSamples;
@@ -236,6 +244,6 @@ class OtiNanaiListener implements Runnable {
 	private Jedis jedis;
         private Jedis jedis2;
 	private String redisHost;
-        private Map<Long, String> eventMap;
+        private TreeMap<Long, String> eventMap;
 	private boolean deleteLock;
 }
