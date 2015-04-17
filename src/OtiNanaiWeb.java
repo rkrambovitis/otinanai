@@ -67,11 +67,13 @@ class OtiNanaiWeb implements Runnable {
 				byte[] data;
 				switch (query) {
 					case " favicon.ico ":
+					case " red-pointer.png ":
 					case " otinanai.css ":
 					case " otinanai.flot.common.js ":
 					case " otinanai.flot.merged.js ":
 					case " otinanai.flot.preview.js ":
 					case " otinanai.flot.stacked.js ":
+					case " jquery.flot.events.js ":
 					case " jquery.js ":
 					case " jquery.min.js ":
 					case " jquery.flot.min.js ":
@@ -99,6 +101,8 @@ class OtiNanaiWeb implements Runnable {
 						data = Files.readAllBytes(path);
 						if (noSpaces.endsWith(".ico")) {
 							sendToClient(data, "image/x-icon", true, connectionSocket, gzip);
+						} else if (noSpaces.endsWith(".png")) {
+							sendToClient(data, "image/png", true, connectionSocket, gzip);
 						} else if (noSpaces.endsWith(".css")) {
 							sendToClient(data, "text/css", true, connectionSocket, gzip);
 						} else if (noSpaces.endsWith(".js")) {
@@ -311,24 +315,23 @@ class OtiNanaiWeb implements Runnable {
 	}
 
 	private String getMarkings(boolean showEvents, long time, long endTime) {
-		String markings = new String("var markings = [\n");
+		String marktext = new String("var marktext = [\n");
 		if (showEvents) {
 			long now = System.currentTimeMillis();
 			long oldest = now - endTime - time;
 			long earliest = now - endTime;
 			NavigableMap<Long, String> eventMap = onl.getEvents().subMap(oldest, true, earliest, true);
 			Long key = 0l;
+			String text = new String();
 			for (int c = 0; c < eventMap.size();c++) {
 				Map.Entry<Long, String> event = eventMap.pollFirstEntry();
 				key = event.getKey();
-
-				markings = markings + "\t{ color: \"#f00\", linewidth: 100, xaxis: { from: "+key+", to: "+key+" } },\n";
-				//System.err.println("Key: "+event.getKey());
-				//System.err.println("Value: "+event.getValue());
+				text = event.getValue();
+				marktext = marktext + "\t{ min:"+key+", max:"+key+", title: \""+text+"\"},\n";
 			}
 		}
-		markings = markings + "];\n";
-		return markings;
+		marktext = marktext + "];\n";
+		return marktext;
 	}
 
 	private String timeGraph(ArrayList<String> keyList, short type, long time, long endTime, int maxMergeCount, boolean showEvents) {
@@ -403,8 +406,8 @@ class OtiNanaiWeb implements Runnable {
 				}
 
 
-				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n";
-					//+ "label: \""+kw+" = 000.000 k \",\n";
+				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
+					+ "label: \""+kw+"\",\n";
 
 				output = output + "nn:  "+ graphData[11] +",\n";
 
@@ -599,6 +602,7 @@ class OtiNanaiWeb implements Runnable {
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.js\"></script>\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.events.js\"></script>\n"
 					//+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.resize.js\"></script>\n"
 					//+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.gridster.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.common.js\"></script>\n");
