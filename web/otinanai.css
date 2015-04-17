@@ -30,7 +30,7 @@ body, html {
 .previewGraph {
    width: 100%;
    float: center;
-   height: 160px;
+   height: 240px;
    border-bottom: 1px solid #ccc;
    padding-bottom: 15px;
    margin-bottom: 10px;

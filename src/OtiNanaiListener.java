@@ -17,7 +17,7 @@ class OtiNanaiListener implements Runnable {
 	 * @param	ps 	Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries) {
+	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries, String redisEventList) {
 		logger = l;
 		alarmSamples = as;
 		alarmThreshold = at;
@@ -25,7 +25,7 @@ class OtiNanaiListener implements Runnable {
 		storageType = st;
 		deleteLock = false;
 		rKeyList = redisKeyWordList;
-                rEventList = new String("OtiNanai_Event_List");
+                rEventList = redisEventList;
                 eventMap = new TreeMap<Long, String>();
 		rSavedQueries = redisSavedQueries;
 		kwtList = new LLString();

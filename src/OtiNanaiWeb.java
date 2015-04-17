@@ -666,7 +666,7 @@ class OtiNanaiWeb implements Runnable {
 		boolean alarm = false;
 		boolean showAll = false;
 		boolean showAlarms = false;
-		boolean showEvents = false;
+		boolean showEvents = true;
 		int maxMergeCount = OtiNanai.MAXMERGECOUNT;
 		short graphType = OtiNanai.GRAPH_PREVIEW;
 		long time = OtiNanai.PREVIEWTIME;
@@ -717,9 +717,10 @@ class OtiNanaiWeb implements Runnable {
 				case "--store":
 					logger.info("[Web]: Storing query");
 					return storeQuery(input);
-				case "--events":
+				case "--no-events":
+				case "--ne":
 					logger.info("[Web]: Showing Events");
-					showEvents = true;
+					showEvents = false;
 					continue;
 				case "--no-search":
 				case "--no-bar":
