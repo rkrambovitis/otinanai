@@ -323,7 +323,8 @@ class OtiNanaiWeb implements Runnable {
 			NavigableMap<Long, String> eventMap = onl.getEvents().subMap(oldest, true, earliest, true);
 			Long key = 0l;
 			String text = new String();
-			for (int c = 0; c < eventMap.size();c++) {
+                        int sz=eventMap.size();
+			for (int c = 0; c < sz ; c++) {
 				Map.Entry<Long, String> event = eventMap.pollFirstEntry();
 				key = event.getKey();
 				text = event.getValue();
