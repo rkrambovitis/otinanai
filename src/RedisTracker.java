@@ -292,21 +292,20 @@ class RedisTracker implements KeyWordTracker {
 
 	public ArrayList<String> getMemory(Long startTime) {
 		ArrayList<String> returner = new ArrayList<String>();
-		long initTime = System.currentTimeMillis();
 		try {
 			returner.addAll(jedis.lrange(step1Key,0,-1));
 
 			String ldp = returner.get(returner.size()-1);
 			Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
 
-			if (lastts < (initTime-startTime))
+			if (lastts > startTime)
 				return returner;
 
 			returner.addAll(jedis.lrange(step2Key,0,-1));
 			ldp = returner.get(returner.size()-1);
 			lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
 
-			if (lastts < (initTime-startTime))
+			if (lastts > startTime)
 				return returner;
 
 			returner.addAll(jedis.lrange(step3Key,0,-1));

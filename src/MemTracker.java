@@ -248,18 +248,17 @@ class MemTracker implements KeyWordTracker {
 
 	public ArrayList<String> getMemory(Long startTime) {
 		ArrayList<String> returner = new ArrayList<String>();
-		long initTime = System.currentTimeMillis();
 		try {
 			returner.addAll(step1Memory);
 			String ldp = returner.get(returner.size()-1);
 			Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
-			if (lastts < (initTime-startTime))
+			if (lastts > startTime)
 				return returner;
 
 			returner.addAll(step2Memory);
 			ldp = returner.get(returner.size()-1);
 			lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
-			if (lastts < (initTime-startTime))
+			if (lastts > startTime)
 				return returner;
 
 			returner.addAll(step3Memory);

@@ -172,8 +172,8 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-	private String[] toGraph(KeyWordTracker kwt, short type, long time, long endTime, int maxMergeCount) {
-		long startTime = time + endTime;
+	private String[] toGraph(KeyWordTracker kwt, short type, long startTime, long endTime, int maxMergeCount) {
+		//long startTime = time + endTime;
 		logger.finest("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
 		String output = new String("");
 		//StringBuilder output = new StringBuilder("\n");
@@ -182,6 +182,7 @@ class OtiNanaiWeb implements Runnable {
 
 		long timePrev = System.currentTimeMillis();
 		data = kwt.getMemory(startTime);
+		//System.err.println(data.size());
 		//Collections.reverse(data);
 		long now=System.currentTimeMillis();
 		logger.finest("[Web]: Timing - Total getMemory time: " + (now - timePrev));
@@ -199,11 +200,11 @@ class OtiNanaiWeb implements Runnable {
 		for (String dato : data) {
 			logger.finest("[Web]: Dato is : "+dato);
 			String[] twowords = dato.split("\\s");
-			howLongAgo = now - Long.parseLong(twowords[0]);
+			howLongAgo = Long.parseLong(twowords[0]);
 			//logger.info("now: "+now+ " howLongAgo: "+howLongAgo+" time: "+time+" endTime: "+endTime+" startTime: "+startTime);
-			if (howLongAgo < endTime)
+			if (howLongAgo < startTime)
 				continue;
-			if (howLongAgo > startTime)
+			if (howLongAgo > endTime)
 				break;
 			//output = output.concat("[").concat(twowords[0]).concat(",").concat( twowords[1]).concat("],\n");
 			//output = output + "[" +twowords[0] + "," + twowords[1] + "],\n";
@@ -314,13 +315,11 @@ class OtiNanaiWeb implements Runnable {
 		return skw;
 	}
 
-	private String getMarkings(boolean showEvents, long time, long endTime) {
+	private String getMarkings(boolean showEvents, long startTime, long endTime) {
 		String marktext = new String("var marktext = [\n");
 		if (showEvents) {
 			long now = System.currentTimeMillis();
-			long oldest = now - endTime - time;
-			long earliest = now - endTime;
-			NavigableMap<Long, String> eventMap = onl.getEvents().subMap(oldest, true, earliest, true);
+			NavigableMap<Long, String> eventMap = onl.getEvents().subMap(startTime, true, endTime, true);
 			Long key = 0l;
 			String text = new String();
                         int sz=eventMap.size();
@@ -335,7 +334,7 @@ class OtiNanaiWeb implements Runnable {
 		return marktext;
 	}
 
-	private String timeGraph(ArrayList<String> keyList, short type, long time, long endTime, int maxMergeCount, boolean showEvents) {
+	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents) {
 		ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
 		LLString kwtList = onl.getKWTList();
 
@@ -364,7 +363,7 @@ class OtiNanaiWeb implements Runnable {
 				if (kw.length() > OtiNanai.MAX_KW_LENGTH) 
 					skw = trimKW(kw);
 				kw = kw.replaceAll("\\.","_");
-				graphData = toGraph(kwt, type, time, endTime, maxMergeCount);
+				graphData = toGraph(kwt, type, startTime, endTime, maxMergeCount);
 				if (graphData[6].equals("0")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points. - 0");
 					continue;
@@ -395,11 +394,11 @@ class OtiNanaiWeb implements Runnable {
 			output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_PREVIEW);
 
 			output = output+ commonHTML(OtiNanai.JS)
-				+ getMarkings(showEvents, time, endTime)
+				+ getMarkings(showEvents, startTime, endTime)
 				+ "var datasets = {\n";
 
 			for (KeyWordTracker kwt : kws) {
-				graphData = toGraph(kwt, type, time, endTime, maxMergeCount);
+				graphData = toGraph(kwt, type, startTime, endTime, maxMergeCount);
 				String kw = kwt.getKeyWord();
 				if (graphData[6].equals("0") || graphData[6].equals("1")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
@@ -456,7 +455,7 @@ class OtiNanaiWeb implements Runnable {
 
 			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
 			for (KeyWordTracker kwt : kws) {
-				graphData = toGraph(kwt, type, time, endTime, maxMergeCount);
+				graphData = toGraph(kwt, type, startTime, endTime, maxMergeCount);
 				String kw = kwt.getKeyWord();
 				if (graphData[6].equals("0") || graphData[6].equals("1")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
@@ -674,8 +673,9 @@ class OtiNanaiWeb implements Runnable {
 		boolean showEvents = true;
 		int maxMergeCount = OtiNanai.MAXMERGECOUNT;
 		short graphType = OtiNanai.GRAPH_PREVIEW;
-		long time = OtiNanai.PREVIEWTIME;
-		long endTime = 0l;
+		long now = System.currentTimeMillis();
+		long endTime = now;
+		long startTime = now - OtiNanai.PREVIEWTIME;
 
 		for (String word : keyList) {
 			boolean removeKW = false;
@@ -742,7 +742,7 @@ class OtiNanaiWeb implements Runnable {
 			word = word.replaceAll("%40", "@");
 			logger.fine("[Web]: word is: \""+word+"\"");
 			firstChar = word.substring(0,1);
-			rest = word.replaceAll("[\\#\\+\\-\\^\\$\\@]", "");
+			rest = word.replaceAll("[\\#\\+\\^\\$\\@]", "");
 
 			if (rest.length() == 0)
 				continue;
@@ -764,6 +764,62 @@ class OtiNanaiWeb implements Runnable {
 				startsWithKW = true;
 			if (lastChar.equals("$"))
 				endsWithKW = true;
+
+			if (setTime) {
+				try {
+					String pt1 = new String();
+					String pt2 = new String();
+					long pt1l = 0l;
+					long pt2l = 0l;
+
+					if (rest.contains("-")) {
+						pt1 = rest.substring(0, rest.indexOf("-"));
+						pt2 = rest.substring(rest.indexOf("-")+1);
+						if (pt2.length() > 0) {
+							if (pt2.substring(pt2.length()-1).equals("d")) {
+								pt2 = pt2.substring(0, pt2.length()-1);
+								pt2l = 86400000 * Long.parseLong(pt2);
+							} else {
+								pt2l = 3600000 * Long.parseLong(pt2);
+							}
+						}
+					} else {
+						pt1 = rest;
+					}
+
+					if (pt1.length() > 0) {
+						if (pt1.substring(pt1.length()-1).equals("d")) {
+							pt1 = pt1.substring(0, pt1.length()-1);
+							pt1l = 86400000 * Long.parseLong(pt1);
+						} else {
+							pt1l = 3600000 * Long.parseLong(pt1);
+						}
+					}
+
+					if (pt1l < pt2l) {
+						startTime = now-pt2l;
+						endTime = now-pt1l;
+					} else {
+						startTime = now-pt1l;
+						endTime = now-pt2l;
+					}
+				} catch (Exception e) {
+					System.err.println("bogus entry for time range");
+				}
+			}
+			if (setMaxMergeCount) {
+				try {
+					maxMergeCount = Integer.parseInt(rest);
+				} catch (NumberFormatException nfe) {
+					logger.severe("[Web]: Not a valid number for max count\n"+nfe);
+				}
+			}
+			/*
+			System.out.println("now  : "+now);
+			System.out.println("start: "+startTime);
+			System.out.println("end  : "+endTime);
+			*/
+
 
 			logger.fine("[Web]: removeKW: "+removeKW+" exclusiveKW: "+exclusiveKW+ " startsWithKW: "+startsWithKW+" endsWithKW: "+endsWithKW);
 			ArrayList<String> kwsClone = new ArrayList<String>();
@@ -800,24 +856,6 @@ class OtiNanaiWeb implements Runnable {
 					} else {
 						if (!key.contains(rest))
 							kws.remove(key);
-					}
-				} else if (setStartTime) {
-					try {
-						endTime = 3600000 * Long.parseLong(rest);
-					} catch (NumberFormatException nfe) {
-						logger.severe("[Web]: Not a valid number for end time\n"+nfe);
-					}
-				} else if (setTime) {
-					try {
-						time = 3600000 * Long.parseLong(rest);
-					} catch (NumberFormatException nfe) {
-						logger.severe("[Web]: Not a valid number for duration\n"+nfe);
-					}
-				} else if (setMaxMergeCount) {
-					try {
-						maxMergeCount = Integer.parseInt(rest);
-					} catch (NumberFormatException nfe) {
-						logger.severe("[Web]: Not a valid number for max count\n"+nfe);
 					}
 				}
 			}
@@ -881,7 +919,7 @@ class OtiNanaiWeb implements Runnable {
 			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
 			return kwTree(kws, keyList);
 		}
-		op  = timeGraph(kws, graphType, time, endTime, maxMergeCount, showEvents);
+		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents);
 		onc.cache(input, op);
 		return op;
 	}
