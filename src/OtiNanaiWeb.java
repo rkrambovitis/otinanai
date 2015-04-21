@@ -196,16 +196,15 @@ class OtiNanaiWeb implements Runnable {
 		long howLongAgo = 0l;
 		String last = new String("0");
 		ArrayList<Float> allData = new ArrayList<Float>();
-		//TreeSet sortedValues = new TreeSet<String>();
 		for (String dato : data) {
 			logger.finest("[Web]: Dato is : "+dato);
 			String[] twowords = dato.split("\\s");
 			howLongAgo = Long.parseLong(twowords[0]);
 			//logger.info("now: "+now+ " howLongAgo: "+howLongAgo+" time: "+time+" endTime: "+endTime+" startTime: "+startTime);
-			if (howLongAgo < startTime)
-				continue;
-			if (howLongAgo > endTime)
+			if (howLongAgo < startTime) 
 				break;
+			if (howLongAgo > endTime)
+				continue;
 			//output = output.concat("[").concat(twowords[0]).concat(",").concat( twowords[1]).concat("],\n");
 			//output = output + "[" +twowords[0] + "," + twowords[1] + "],\n";
 			//output = output.append("[").append(twowords[0]).append(",").append( twowords[1]).append("],\n");

@@ -298,14 +298,14 @@ class RedisTracker implements KeyWordTracker {
 			String ldp = returner.get(returner.size()-1);
 			Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
 
-			if (lastts > startTime)
+			if (lastts < startTime)
 				return returner;
 
 			returner.addAll(jedis.lrange(step2Key,0,-1));
 			ldp = returner.get(returner.size()-1);
 			lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
 
-			if (lastts > startTime)
+			if (lastts < startTime)
 				return returner;
 
 			returner.addAll(jedis.lrange(step3Key,0,-1));
