@@ -55,7 +55,6 @@ class RedisTracker implements KeyWordTracker {
 		jedis.del(step1Key);
 		jedis.del(step2Key);
 		jedis.del(step3Key);
-		jedis.quit();
 	}
 
 	public void putFreq() {
