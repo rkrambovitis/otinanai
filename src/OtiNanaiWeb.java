@@ -741,7 +741,7 @@ class OtiNanaiWeb implements Runnable {
 			word = word.replaceAll("%40", "@");
 			logger.fine("[Web]: word is: \""+word+"\"");
 			firstChar = word.substring(0,1);
-			rest = word.replaceAll("[\\#\\+\\^\\$\\@]", "");
+			rest = word;
 
 			if (rest.length() == 0)
 				continue;
@@ -753,16 +753,22 @@ class OtiNanaiWeb implements Runnable {
 				removeKW = true;
 			else if (firstChar.equals("+"))
 				exclusiveKW = true;
-			else if (firstChar.equals("@") && secondChar.equals("+"))
-				setStartTime = true;
 			else if (firstChar.equals("@"))
 				setTime = true;
 			else if (firstChar.equals("#"))
 				setMaxMergeCount = true;
-			if (firstChar.equals("^") || secondChar.equals("^"))
-				startsWithKW = true;
-			if (lastChar.equals("$"))
+			if (exclusiveKW || removeKW || setTime || setMaxMergeCount)
+				rest = rest.substring(1);
+
+			if (lastChar.equals("$")) {
 				endsWithKW = true;
+				rest = rest.substring(0,rest.length()-1);
+			}
+			if (firstChar.equals("^") || secondChar.equals("^")) {
+				startsWithKW = true;
+				rest = rest.substring(1);
+			}
+
 
 			if (setTime) {
 				try {
