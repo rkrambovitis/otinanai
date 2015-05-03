@@ -27,19 +27,19 @@ All in all, it makes finding patterns and correlations relatively simple.
 + java 7+
 
 + redis (recommended for data retention)
-    * By default otinanai just writes to memory, and does not retain anything.
+	* By default otinanai just writes to memory, and does not retain anything.
 
 + jedis ( http://search.maven.org/#browse%7C687224809 )
-    * Place into directory jars
+	* Place into directory jars
 
 ## Required js libraries (Place into web dir) ##
 + flot ( http://www.flotcharts.org/ )
-    * jquery.flot.min.js
-    * jquery.flot.crosshair.min.js
-    * jquery.flot.resize.min.js
-    * jquery.flot.selection.min.js
-    * jquery.flot.stack.min.js
-    * jquery.flot.time.min.js
+	* jquery.flot.min.js
+	* jquery.flot.crosshair.min.js
+	* jquery.flot.resize.min.js
+	* jquery.flot.selection.min.js
+	* jquery.flot.stack.min.js
+	* jquery.flot.time.min.js
 + jquery ( http://jquery.com/ )
 + justgage ( http://justgage.com/ )
 + raphael ( http://raphaeljs.com/ )
@@ -80,42 +80,51 @@ $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.
 
 ## Getting data in ##
 + Frequency (events / sec) - i.e. tail log and graph errors
-    * $ echo key.word > /dev/udp/127.0.0.1/9876
+	* $ echo key.word > /dev/udp/127.0.0.1/9876
 
 + Gauge (mean value) - i.e. graph mem usage of process
-    * $ echo key.word {value} > /dev/udp/127.0.0.1/9876
+	* $ echo key.word {value} > /dev/udp/127.0.0.1/9876
 
 + Counter (rate of change / sec) - i.e. graph network activity from snmp counter
-    * $ echo key.word {value} COUNTER > /dev/udp/127.0.0.1/9876
+	* $ echo key.word {value} COUNTER > /dev/udp/127.0.0.1/9876
 
 + Sum (sum of values / sec) - i.e. graph virtulhost traffic
-    * $ echo key.word {value} SUM > /dev/udp/127.0.0.1/9876
+	* $ echo key.word {value} SUM > /dev/udp/127.0.0.1/9876
+
++ Events - i.e. mark something on graphs
+	* $ echo eventmarker something important happened > /dev/udp/127.0.0.1/9876
 
 ## Getting data out ##
 + Just point your browser to 127.0.0.1:9876 and type part of a keyword in the search field.
 
 ### Web Input Switches ###
 + Use the following to refine the output
-    * ^chars (starts with chars)
-    * chars$ (ends with chars)
-    * -chars (exclude keywords that contain chars)
-    * +chars (exclude keywords that don't contain chars)
-    * @hrs (change time range to hrs - default 24)
-    * @+hrs (change start time to hrs back)
-    * --delete (delete data of matching keywords
-    * --gauge|--dial (draw as gauges instead of line graphs)
-    * --sa|--show (show all matching graphs, i.e. override the max-per-page setting)
-    * --nc|--no-cache (ignore cache)
-    * --m|--merge|--combine (merge all graphs into one. Beware, looks like crap)
-    * --ma|--merge-axis|--merge-axes (same as above, but scale data to fit)
-    * --stack (stack graphs)
-    * --alarms|--alerts (show only matching keywords in "alarm" state)
-	 * #maxMergeCount (change how many graphs are merged, sorted by 99%. Rest are discarded - default 8)
-    * --nb|--no-bar|--ns|--no-search (Do not show the search bar - for embedding)
+	* ^chars (starts with chars)
+	* chars$ (ends with chars)
+	* -chars (exclude keywords that contain chars)
+	* +chars (exclude keywords that don't contain chars)
+	* \@timerange (@24 or @2d or @3d-5d)
+	* --delete (delete data of matching keywords
+	* --gauge|--dial (draw as gauges instead of line graphs)
+	* --sa|--show (show all matching graphs, i.e. override the max-per-page setting)
+	* --nc|--no-cache (ignore cache)
+	* --m|--merge|--combine (merge all graphs into one. Beware, looks like crap)
+	* --ma|--merge-axis|--merge-axes (same as above, but scale data to fit)
+	* --stack (stack graphs)
+	* --alarms|--alerts (show only matching keywords in "alarm" state)
+	* \#maxMergeCount (change how many graphs are merged, sorted by 99%. Rest are discarded - default 3)
+	* --nb|--no-bar|--ns|--no-search (Do not show the search bar - for embedding)
 
 + Examples:
-    * .com$ +mysite 
-    * host -subdomain --merge --no-cache #10
-    * crapdata --delete
-    * dataroom.temperature --gauge
-    * some.keyword @+48 @3
+	* .com$ +mysite 
+	* host -subdomain --merge --no-cache #10
+	* crapdata --delete
+	* dataroom.temperature --gauge
+	* some.keyword @1d-3d
+
+### Demo ###
++ Point your browser to otinanai-demo.phaistosnetworks.gr
+	* http://otinanai-demo.phaistosnetworks.gr/?q=%5Esnmp.laload+--merge+%402d
+	* http://otinanai-demo.phaistosnetworks.gr/?q=random+--gauge
+	* http://otinanai-demo.phaistosnetworks.gr/?q=%5Eredis+%2Bkeyspace+--stack
+	* Send your own data to /dev/udp/217.199.165.34/9876
