@@ -29,29 +29,14 @@ All in all, it makes finding patterns and correlations relatively simple.
 + redis (recommended for data retention)
 	* By default otinanai just writes to memory, and does not retain anything.
 
-+ jedis ( http://search.maven.org/#browse%7C687224809 )
-	* Place into directory jars
-
-## Required js libraries (Place into web dir) ##
-+ flot ( http://www.flotcharts.org/ )
-	* jquery.flot.min.js
-	* jquery.flot.crosshair.min.js
-	* jquery.flot.resize.min.js
-	* jquery.flot.selection.min.js
-	* jquery.flot.stack.min.js
-	* jquery.flot.time.min.js
-+ jquery ( http://jquery.com/ )
-+ justgage ( http://justgage.com/ )
-+ raphael ( http://raphaeljs.com/ )
-
 ## HOWTO build ##
 1. $ git clone https://github.com/rkrambovitis/otinanai.git
-2. Fetch requirements and place into correct directories
-3. Edit path to jedis in Makefile
-4. $ make
+2. cd otinanai
+3. $ make
+(optional: sudo apt-get install redis-server )
 
 ## HOWTO run ##
-$ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.log
+$ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.log -redis
 
 ## Command line arguments ##
 	-wp <webPort>         : Web Interface Port (default: 9876)
@@ -123,8 +108,8 @@ $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.
 	* some.keyword @1d-3d
 
 ### Demo ###
-+ Point your browser to otinanai-demo.phaistosnetworks.gr
-	* http://otinanai-demo.phaistosnetworks.gr/?q=%5Esnmp.laload+--merge+%402d
-	* http://otinanai-demo.phaistosnetworks.gr/?q=random+--gauge
-	* http://otinanai-demo.phaistosnetworks.gr/?q=%5Eredis+%2Bkeyspace+--stack
++ Point your browser to https://otinanai-demo.phaistosnetworks.gr
+	* https://otinanai-demo.phaistosnetworks.gr/?q=%5Esnmp.laload+--merge+%402d
+	* https://otinanai-demo.phaistosnetworks.gr/?q=random+--gauge
+	* https://otinanai-demo.phaistosnetworks.gr/?q=%5Eredis+%2Bkeyspace+--stack
 	* Send your own data to /dev/udp/217.199.165.34/9876

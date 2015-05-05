@@ -1,7 +1,8 @@
 SRC= src
-CPATH= /home/otinanai/jars/jedis.jar
-BASEPATH= .
-DST= $(BASEPATH)/gr/phaistosnetworks/admin/otinanai
+CURDIR = $(shell pwd)
+CPATH= $(CURDIR)/jars/jedis.jar
+DST= $(CURDIR)/gr/phaistosnetworks/admin/otinanai
+
 
 FLAGS= -Xlint:unchecked -Xlint:deprecation -cp $(CPATH)
 SRCFILES= OtiNanai.java SomeRecord.java OtiNanaiListener.java OtiNanaiWeb.java KeyWordTracker.java OtiNanaiTicker.java OtiNanaiCache.java MemTracker.java LLString.java RedisTracker.java OtiNanaiNotifier.java NNComparator.java

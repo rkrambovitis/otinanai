@@ -1,1 +1,1 @@
-java -Xms16m -Xmx1024m -cp src/jars/jedis-2.6.1.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -as 60 -at 5.0 -acs 5 -ll info -gpp 20 -notify notify.sh -url http://127.0.0.1:9876 -al 432000 -lf output.log
+java -Xms16m -Xmx1024m -cp src/jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -as 60 -at 5.0 -acs 5 -ll info -gpp 20 -notify notify.sh -url http://127.0.0.1:9876 -al 432000 -lf output.log
