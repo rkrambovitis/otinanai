@@ -262,7 +262,7 @@ class MemTracker implements KeyWordTracker {
 				return returner;
 
 			returner.addAll(step3Memory);
-		} catch (NullPointerException e) {
+		} catch (Exception e) {
 			logger.severe("[MemTracker] :"+e.getStackTrace());
 		}
 		return returner;

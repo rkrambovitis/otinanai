@@ -596,20 +596,20 @@ class OtiNanaiWeb implements Runnable {
 			return new String("<script src=\"raphael.min.js\"></script>\n"
 					+ "<script src=\"justgage.min.js\"></script>\n");
 		} else if (out == OtiNanai.FLOT) {
-			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.js\"></script>\n"
-					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.js\"></script>\n"
-					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.js\"></script>\n"
-					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.js\"></script>\n"
-					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.js\"></script>\n"
+			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.min.js\"></script>\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.min.js\"></script>\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.min.js\"></script>\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.min.js\"></script>\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.events.js\"></script>\n"
-					//+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.resize.js\"></script>\n"
+					//+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.resize.min.js\"></script>\n"
 					//+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.gridster.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.common.js\"></script>\n");
 		} else if (out == OtiNanai.FLOT_MERGED) {
-			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.js\"></script>\n"
+			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.merged.js\"></script>\n");
 		} else if (out == OtiNanai.FLOT_STACKED) {
-			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.js\"></script>\n"
+			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.stacked.js\"></script>\n");
 		} else if (out == OtiNanai.FLOT_PREVIEW) {
 			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.preview.js\"></script>\n");
