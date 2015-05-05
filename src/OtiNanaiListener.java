@@ -249,7 +249,7 @@ class OtiNanaiListener implements Runnable {
 
 	public String getUnits(String kw) {
 		if (unitMap.containsKey(kw)) 
-			return unitMap.get(kw);
+			return "("+unitMap.get(kw)+")";
 			
 		return new String("");
 	}

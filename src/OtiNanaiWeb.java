@@ -447,6 +447,7 @@ class OtiNanaiWeb implements Runnable {
 			output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_MERGED);
 
 			output = output+ commonHTML(OtiNanai.JS)
+				+ getMarkings(showEvents, startTime, endTime)
 				+ "var maxMergeCount = "+maxMergeCount+";\n"
 				+ "var stackedGraph = "+(type == OtiNanai.GRAPH_STACKED)+";\n"
 				+ "var datasets = {\n";
@@ -480,7 +481,7 @@ class OtiNanaiWeb implements Runnable {
 				//System.err.println(foo.getValue() + " " + foo.getKey());
 
 				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
-					+ "label: \""+kw+" ("+onl.getUnits(kw)+")\",\n";
+					+ "label: \""+kw+" "+onl.getUnits(kw)+"\",\n";
 					//+ "label: \""+kw+" = 000.000 k \",\n";
 
 				output = output + "nn:  "+ graphData[11] +",\n";

@@ -35,6 +35,7 @@ $(function() {
                yaxis: { show: true, tickFormatter: addSuffix, min: null, max: maxy},
                grid: { hoverable: true, autoHighlight: false, clickable: true},
                legend: {show: true, position: "nw" },
+	       events: { data: marktext },
                series: { stack: stackedGraph, lines: {show: true, fill: stackedGraph}}
             //selection: { mode: "xy" }
             });
