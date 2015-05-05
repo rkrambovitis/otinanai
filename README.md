@@ -30,7 +30,7 @@ All in all, it makes finding patterns and correlations relatively simple.
 	* By default otinanai just writes to memory, and does not retain anything.
 
 ## HOWTO build ##
-1. $ git clone https://github.com/rkrambovitis/otinanai.git
+1. $ git clone https://bitbucket.org/robert_krambovitis/otinanai.git
 2. cd otinanai
 3. $ make
 (optional: sudo apt-get install redis-server )
