@@ -17,7 +17,7 @@ class OtiNanaiListener implements Runnable {
 	 * @param	ps 	Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries, String redisEventList) {
+	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList) {
 		logger = l;
 		alarmSamples = as;
 		alarmThreshold = at;
@@ -26,7 +26,9 @@ class OtiNanaiListener implements Runnable {
 		deleteLock = false;
 		rKeyList = redisKeyWordList;
                 rEventList = redisEventList;
+                rUnitList = redisUnitList;
                 eventMap = new TreeMap<Long, String>();
+		unitMap = new HashMap<String, String>();
 		rSavedQueries = redisSavedQueries;
 		kwtList = new LLString();
 		redisHost = rh;
@@ -52,6 +54,15 @@ class OtiNanaiListener implements Runnable {
                                         tts = Long.parseLong(s.substring(0, s.indexOf(" ")));
                                         tev = s.substring(s.indexOf(" ")+1);
 					eventMap.put(tts, tev);
+                                }
+                        }
+                        if (jedis.exists(rUnitList)) {
+                                String kw = new String();
+				String unit = new String();
+                                for (String s : jedis.smembers(rUnitList)) {
+                                        kw = s.substring(0, s.indexOf(" "));
+                                        unit = s.substring(s.indexOf(" ")+1);
+					unitMap.put(kw, unit);
                                 }
                         }
 		}
@@ -102,7 +113,8 @@ class OtiNanaiListener implements Runnable {
 			recType = OtiNanai.SUM;
 		} else if (newRecord.isEvent()) {
                         eventMap.put(newRecord.getTimeStamp(), newRecord.getEvent());
-                        jedis.sadd(rEventList, new String(newRecord.getTimeStamp()+" "+newRecord.getEvent()));
+			if (storageType == OtiNanai.REDIS)
+				jedis.sadd(rEventList, new String(newRecord.getTimeStamp()+" "+newRecord.getEvent()));
 			logger.info("[Listener]: New event-> "+newRecord.getEvent());
 			System.err.println("New Event: -> "+newRecord.getEvent());
                         return;
@@ -229,6 +241,19 @@ class OtiNanaiListener implements Runnable {
 		return emc;
 	}
 
+	public void setUnits(String kw, String units) {
+		unitMap.put(kw, units);
+		if (storageType == OtiNanai.REDIS)
+			jedis.sadd(rUnitList, kw+" "+units);
+	}
+
+	public String getUnits(String kw) {
+		if (unitMap.containsKey(kw)) 
+			return unitMap.get(kw);
+			
+		return new String("");
+	}
+
 	private HashMap<String,KeyWordTracker> trackerMap;
 	private int port;
 	private int alarmSamples;
@@ -239,11 +264,13 @@ class OtiNanaiListener implements Runnable {
 	private short storageType;
 	private String rKeyList;
         private String rEventList;
+	private String rUnitList;
 	private String rSavedQueries;
 	private LLString kwtList;
 	private Jedis jedis;
         private Jedis jedis2;
 	private String redisHost;
         private TreeMap<Long, String> eventMap;
+	private HashMap<String, String> unitMap;
 	private boolean deleteLock;
 }

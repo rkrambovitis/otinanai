@@ -416,7 +416,9 @@ class OtiNanaiWeb implements Runnable {
 
 				body = body 
 					+ "<div class=\"wrapper clearfix\">\n"
-					+ "\t<li><a href = \""+kw+"\">"+kw+"</a> ("+parseType(kwt.getType())+") "
+					+ "\t<li><a href = \""+kw+"\">"+kw+"</a> " 
+					+ onl.getUnits(kw)
+					+ " ("+parseType(kwt.getType())+") "
 					+ "<script>"
 					+ "document.write("
 					+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
@@ -675,8 +677,17 @@ class OtiNanaiWeb implements Runnable {
 		long now = System.currentTimeMillis();
 		long endTime = now;
 		long startTime = now - OtiNanai.PREVIEWTIME;
+		boolean setUnits = false;
+		boolean nextWordIsUnit = false;
+		String units = new String();
 
 		for (String word : keyList) {
+			if (nextWordIsUnit) {
+				units=word;
+				nextWordIsUnit = false;
+				continue;
+			}
+
 			boolean removeKW = false;
 			boolean exclusiveKW = false;
 			boolean startsWithKW = false;
@@ -692,6 +703,12 @@ class OtiNanaiWeb implements Runnable {
 					continue;
 				case "--delete":
 					wipe = true;
+					continue;
+				case "--units":
+				case "--setunits":
+				case "--unit":
+					setUnits=true;
+					nextWordIsUnit=true;
 					continue;
 				case "--force":
 					force = true;
@@ -902,6 +919,15 @@ class OtiNanaiWeb implements Runnable {
 					logger.info("[Web]: Alarm for "+kw);
 				}
 			}
+		} else if (setUnits) {
+			logger.info("[Web]: Setting matching Keyword Units to "+units);
+			String unitsOP = new String("Setting units to "+units+" for keywords:");
+			for (String kw : kws) {
+				logger.info("[Web]: Setting "+kw+" units to "+units);
+				unitsOP = unitsOP + "<li>"+kw+"</li>";
+				onl.setUnits(kw, units);
+			}
+			return unitsOP;
 		} else if (wipe && force) {
 			logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");
 			KeyWordTracker kwt;

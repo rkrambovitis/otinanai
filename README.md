@@ -38,30 +38,6 @@ All in all, it makes finding patterns and correlations relatively simple.
 ## HOWTO run ##
 $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.log -redis
 
-## Command line arguments ##
-	-wp <webPort>         : Web Interface Port (default: 9876)
-	-lp <listenerPort>    : UDP listener Port (default: 9876)
-	-url <webUrl>         : Web Url (for links in notifications) (default: host:port)
-	-wt <webThreads>      : Unused
-	-ct <cacheTime>       : How long (seconds) to cache generated page (default: 120)
-	-ci <cacheItems>      : How many pages to store in cache (default: 50)
-	-al <alarmLife>       : How long (seconds) an alarm state remains (default: 86400)
-	-as <alarmSamples>    : Minimum samples before considering for alarm (default: 20)
-	-at <alarmThreshold>  : Alarm threshold multiplier (how many times above/below average is an alarm) (default: 3.0)
-	-acs <alarmConsecutiveSamples>    : How many consecutive samples above threshold trigger alarm state (default: 3)
-	-notify <notifyScript>            : Script to use for alarms (default: /tmp/otinanai_notifier)
-	-gpp <graphsPerPage>  : Max graphs per page (default: 30)
-	-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60)
-	-s1samples <step1Samples>         : Samples to keep before aggregating oldest (default: 1440)
-	-s1agg <step1SamplesToAggregate>  : Samples to aggregate when sample count exceeded (default: 10)
-	-s2samples <step2Samples>         : Aggregated samples to keep before further aggregating oldest (default: 2880)
-	-s2agg <step2SamplesToAggregate>  : Aggregates samples to further aggregate when count exceeded (default: 6)
-	-lf <logFile>         : 
-	-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)
-	-redis                : Use redis storage engine (recommended) (default uses volatile memory engine)
-	-rh <redisEndPoint>   : Redis endpoint (default: localhost)
-	-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)
-	-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)
 
 ## Getting data in ##
 + Frequency (events / sec) - i.e. tail log and graph errors
@@ -99,12 +75,14 @@ $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.
 	* --alarms|--alerts (show only matching keywords in "alarm" state)
 	* \#maxMergeCount (change how many graphs are merged, sorted by 99%. Rest are discarded - default 3)
 	* --nb|--no-bar|--ns|--no-search (Do not show the search bar - for embedding)
+	* --units somethings (Set the matching keywords units to somethings)
 
 + Examples:
 	* .com$ +mysite 
 	* host -subdomain --merge --no-cache #10
 	* crapdata --delete
 	* dataroom.temperature --gauge
+	* dataroom.temperature --units celcius
 	* some.keyword @1d-3d
 
 ### Demo ###
@@ -113,3 +91,32 @@ $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.
 	* https://otinanai-demo.phaistosnetworks.gr/?q=random+--gauge
 	* https://otinanai-demo.phaistosnetworks.gr/?q=%5Eredis+%2Bkeyspace+--stack
 	* Send your own data to /dev/udp/217.199.165.34/9876
+
+
+## Command line arguments ##
+	-help 	: This output
+	-wp <webPort>         : Web Interface Port (default: 9876)
+	-lp <listenerPort>    : UDP listener Port (default: 9876)
+	-url <webUrl>         : Web Url (for links in notifications) (default: host:port)
+	-wt <webThreads>      : No Idea, probably unused
+	-ct <cacheTime>       : How long (seconds) to cache generated page (default: 120)
+	-ci <cacheItems>      : How many pages to store in cache (default: 50)
+	-al <alarmLife>       : How long (seconds) an alarm state remains (default: 86400)
+	-as <alarmSamples>    : Minimum samples before considering for alarm (default: 20)
+	-at <alarmThreshold>  : Alarm threshold multiplier (how many times above/below average is an alarm) (default: 3.0)
+	-acs <alarmConsecutiveSamples>    : How many consecutive samples above threshold trigger alarm state (default: 3)
+	-notify <notifyScript>            : Script to use for alarms (default: /tmp/otinanai_notifier)
+	-gpp <graphsPerPage>  : Max graphs per page (default: 30)
+	-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60)
+	-s1samples <step1Samples>         : Samples to keep before aggregating oldest (default: 1440)
+	-s1agg <step1SamplesToAggregate>  : Samples to aggregate when sample count exceeded (default: 10)
+	-s2samples <step2Samples>         : Aggregated samples to keep before further aggregating oldest (default: 2880)
+	-s2agg <step2SamplesToAggregate>  : Aggregates samples to further aggregate when count exceeded (default: 6)
+	-lf <logFile>         : 
+	-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)
+	-redis                : Use redis storage engine (recommended) (default uses volatile memory engine)
+	-rh <redisEndPoint>   : Redis endpoint (default: localhost)
+	-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)
+	-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)
+	-rdevtlist <redisEventList>    : Name of event list for redis. (default: OtiNanai_Event_List)
+	-rdunitlist <redisUnitList>    : Name of event list for redis. (default: OtiNanai_Event_List)

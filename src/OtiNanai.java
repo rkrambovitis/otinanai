@@ -23,7 +23,7 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries, String redisEventList){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
@@ -46,11 +46,12 @@ class OtiNanai {
 			logger.config("[Init]: redisKeyWordList: "+redisKeyWordList);
 			logger.config("[Init]: redisSavedQueries: "+redisSavedQueries);
 			logger.config("[Init]: redisEventList: "+redisEventList);
+			logger.config("[Init]: redisUnitList: "+redisUnitList);
 			logger.config("[Init]: notifyScript: "+NOTIFYSCRIPT);
 			logger.config("[Init]: Web url: "+WEBURL);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
 			new Thread(onl).start();
 
 			// Ticker
@@ -147,6 +148,7 @@ class OtiNanai {
 		String redisKeyWordList = new String("existing_keywords_list"); 
 		String redisSavedQueries = new String("saved_queries_list");
                 String redisEventList = new String("OtiNanai_Event_List");
+                String redisUnitList = new String("OtiNanai_Unit_List");
 		String notifyScript = new String("/tmp/otinanai_notifier");
 		String webUrl = new String();
 		try {
@@ -251,6 +253,12 @@ class OtiNanai {
 						System.out.println("redisEventList = " + sane);
 						redisEventList = sane;
 						break;
+					case "-rdunitlist":
+						i++;
+						sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
+						System.out.println("redisUnitList = " + sane);
+						redisUnitList = sane;
+						break;
 					case "-s1samples":
 						i++;
 						System.out.println("step1Samples = " + args[i]);
@@ -294,7 +302,8 @@ class OtiNanai {
 						break;
 					default:
 						System.out.println(
-								"-wp <webPort>          : Web Interface Port (default: 9876)\n"
+								"-help	: This output\n"
+								+"-wp <webPort>          : Web Interface Port (default: 9876)\n"
 								+"-lp <listenerPort>    : UDP listener Port (default: 9876)\n"
 								+"-url <webUrl>         : Web Url (for links in notifications) (default: host:port)\n"
 								+"-wt <webThreads>      : No Idea, probably unused\n"
@@ -318,6 +327,7 @@ class OtiNanai {
 								+"-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)\n"
 								+"-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)\n"
 								+"-rdevtlist <redisEventList>    : Name of event list for redis. (default: OtiNanai_Event_List)\n"
+								+"-rdunitlist <redisUnitList>    : Name of event list for redis. (default: OtiNanai_Event_List)\n"
 								);
 						System.exit(0);
 						break;
@@ -336,7 +346,7 @@ class OtiNanai {
 		NOTIFYSCRIPT = notifyScript;
 		ALARMLIFE = alarmLife;
 
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
 	}
 
 	/**
