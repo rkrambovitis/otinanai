@@ -54,6 +54,7 @@ $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.
 
 + Events - i.e. mark something on graphs
 	* $ echo eventmarker something important happened > /dev/udp/127.0.0.1/9876
+	* $ echo eventmarker `date +%s -d "today 12:30"` older event > /dev/udp/127.0.0.1/9876
 
 ## Getting data out ##
 + Just point your browser to 127.0.0.1:9876 and type part of a keyword in the search field.

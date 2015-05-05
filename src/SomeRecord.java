@@ -85,9 +85,14 @@ class SomeRecord {
 				keyWords.add(tokens[0]);
 			}
 		} else if (tokens[tokens.length-1].equals("eventmarker") || tokens[0].equals("eventmarker")) {
+			Long w2 = toLong(tokens[1]);
+			if (w2 != null && w2 > 1000000000) {
+				str=str.replaceAll(tokens[1]+" ", "");
+				timeStamp = (1000l*w2);
+			}
                         theEvent = str.replaceAll("eventmarker ", "");
                         IAmEvent = true;
-                }
+                } 
 	}
 
 	/**
