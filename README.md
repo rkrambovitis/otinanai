@@ -15,7 +15,7 @@ All in all, it makes finding patterns and correlations relatively simple.
 + Automatic spike handling. No need to clear rrd spikes just because you restarted something :)
 + Multiple metrics per graph. Mean, avg, 99th, 95th, min, max all within the timeframe you choose.
 + Relevant graph viewport. By default spikes are outside graphing area, making graphs relevant.
-+ Multiple output visualizations (merged, axis-merged, stacked, gauge or individual)
++ Multiple output visualizations (merged, stacked, gauge or individual)
 + Spike detection and notification
 + Graphs generated on the fly, no need to set up in advance.
 + No fancy queries or programming needed. Just pipe it data, and type keywords in web field.
@@ -70,7 +70,6 @@ $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.
 	* --sa|--show (show all matching graphs, i.e. override the max-per-page setting)
 	* --nc|--no-cache (ignore cache)
 	* --m|--merge|--combine (merge all graphs into one. Beware, looks like crap)
-	* --ma|--merge-axis|--merge-axes (same as above, but scale data to fit)
 	* --stack (stack graphs)
 	* --alarms|--alerts (show only matching keywords in "alarm" state)
 	* \#maxMergeCount (change how many graphs are merged, sorted by 99%. Rest are discarded - default 3)

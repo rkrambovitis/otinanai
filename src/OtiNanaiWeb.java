@@ -451,9 +451,6 @@ class OtiNanaiWeb implements Runnable {
 				+ "var stackedGraph = "+(type == OtiNanai.GRAPH_STACKED)+";\n"
 				+ "var datasets = {\n";
 
-			if (type == OtiNanai.GRAPH_MERGED_AXES) 
-				output = output + "yaxis: "+ ++i +",\n";
-
 			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
 			for (KeyWordTracker kwt : kws) {
 				graphData = toGraph(kwt, type, startTime, endTime, maxMergeCount);
@@ -483,7 +480,7 @@ class OtiNanaiWeb implements Runnable {
 				//System.err.println(foo.getValue() + " " + foo.getKey());
 
 				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
-					+ "label: \""+kw+"\",\n";
+					+ "label: \""+kw+" ("+onl.getUnits(kw)+")\",\n";
 					//+ "label: \""+kw+" = 000.000 k \",\n";
 
 				output = output + "nn:  "+ graphData[11] +",\n";
@@ -724,11 +721,6 @@ class OtiNanaiWeb implements Runnable {
 				case "--m":
 				case "--combine":
 					graphType = OtiNanai.GRAPH_MERGED;
-					continue;
-				case "--ma":
-				case "--merge-axis":
-				case "--merge-axes":
-					graphType = OtiNanai.GRAPH_MERGED_AXES;
 					continue;
 				case "--alarms":
 				case "--alerts":
