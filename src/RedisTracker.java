@@ -255,25 +255,21 @@ class RedisTracker implements KeyWordTracker {
 			sampleCount = 1;
 		} else if (perSec != 0f) {
 			logger.fine("[RedisTracker]: Calculating new mean");
-			//float deviation = (perSec-mean)/mean;
 			mean += (perSec-mean)/alarmSamples;
 			logger.fine("[RedisTracker]: v: "+perSec+" m: "+mean);
 
-			//if ((sampleCount >= alarmSamples) && (deviation >= alarmThreshold)) {
 			if ((sampleCount >= alarmSamples) && ((perSec >= (alarmThreshold*mean)) || perSec <= (mean / alarmThreshold))) {
 				alarmCount++;
 				if (alarmCount >= alarmConsecutiveSamples) {
 					logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" consecutive: "+alarmCount + " keyWord: "+alarmKey);
 					if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
-						//OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm: *"+keyWord+"* "+String.format("%.0f", deviation)+"x mean: "+String.format("%.3f", mean) +" url: "+OtiNanai.WEBURL+"/"+keyWord);
 						OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm: *"+keyWord+" value:"+String.format("%.0f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
 						onn.send();
 					}
 					alarm=ts;
-					//jedis.set(alarmKey, Long.toString(ts), null, "PX", OtiNanai.ALARMLIFE);
 					jedis.set(alarmKey, Long.toString(ts));
 				} else {
-					logger.fine("[RedisTracker]: Error threshold breached " + keyWord + " value: "+perSec +" (mean: "+mean+") consecutive: "+alarmCount + " keyWord: "+alarmKey);
+					logger.fine("[RedisTracker]: Error threshold breached " + keyWord + " value: "+perSec +" (mean: "+mean+") consecutive: "+alarmCount);
 				}
 			} else {
 				alarmCount = 0;

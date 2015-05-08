@@ -216,21 +216,20 @@ class MemTracker implements KeyWordTracker {
 			sampleCount = 1;
 		} else if (perSec != 0f) {
 			logger.fine("[MemTracker]: Calculating new mean");
-			float deviation = (perSec-mean)/mean;
 			mean += (perSec-mean)/alarmSamples;
-			logger.fine("[MemTracker]: d: "+deviation+" m: "+mean);
+			logger.fine("[MemTracker]: v: "+perSec+" m: "+mean);
 
-			if ((sampleCount >= alarmSamples) && (deviation >= alarmThreshold)) {
+                        if ((sampleCount >= alarmSamples) && ((perSec >= (alarmThreshold*mean)) || perSec <= (mean / alarmThreshold))) {
 				alarmCount++;
 				if (alarmCount >= alarmConsecutiveSamples) {
-					logger.info("[MemTracker]: Error conditions met for " + keyWord + " mean: "+mean +" deviation: "+deviation+" consecutive: "+alarmCount);
+					logger.info("[MemTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" consecutive: "+alarmCount);
 					if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
-						OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm Threshold Breached by "+keyWord+" mean: "+String.format("%.3f", mean) +" deviation: "+String.format("%.0f", deviation)+"x url: "+OtiNanai.WEBURL+"/"+keyWord);
+                                                OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm: *"+keyWord+" value:"+String.format("%.0f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
 						onn.send();
 					}
 					alarm=ts;
 				} else {
-					logger.info("[MemTracker]: Error threshold breached " + keyWord + " mean: "+ mean +" deviation: "+ deviation + "x count: "+alarmCount);
+                                        logger.fine("[MemTracker]: Error threshold breached " + keyWord + " value: "+perSec +" (mean: "+mean+") consecutive: "+alarmCount);
 				}
 			} else {
 				alarmCount = 0;
