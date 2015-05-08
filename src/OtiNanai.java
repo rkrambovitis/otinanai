@@ -204,6 +204,10 @@ class OtiNanai {
 					case "-at":
 						i++;
 						alarmThreshold = Float.parseFloat(args[i]);
+                                                if (alarmThreshold <= 0f) {
+                                                        alarmThreshold = 3.0f;
+                                                        System.out.println("Invalid Alarm Threshold given. Using default value");
+                                                }
 						System.out.println("alarmThreshold = " + alarmThreshold);
 						break;
 					case "-acs":
