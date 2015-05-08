@@ -219,7 +219,7 @@ class MemTracker implements KeyWordTracker {
 			mean += (perSec-mean)/alarmSamples;
 			logger.fine("[MemTracker]: v: "+perSec+" m: "+mean);
 
-                        if ((sampleCount >= alarmSamples) && ((perSec >= (alarmThreshold*mean)) || perSec <= (mean / alarmThreshold))) {
+                        if ((sampleCount >= alarmSamples) && (perSec != 0) && ((perSec >= (alarmThreshold*mean)) || perSec <= (mean / alarmThreshold))) {
 				alarmCount++;
 				if (alarmCount >= alarmConsecutiveSamples) {
 					logger.info("[MemTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" consecutive: "+alarmCount);
