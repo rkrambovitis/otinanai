@@ -258,7 +258,9 @@ class RedisTracker implements KeyWordTracker {
 			mean += (perSec-mean)/alarmSamples;
 			logger.fine("[RedisTracker]: v: "+perSec+" m: "+mean);
 
-			if ((sampleCount >= alarmSamples) && (perSec != 0) && ((perSec >= (alarmThreshold*mean)) || perSec <= (mean / alarmThreshold))) {
+			//if ((sampleCount >= alarmSamples) && (perSec != 0) && ((perSec >= (alarmThreshold*mean)) || perSec <= (mean / alarmThreshold))) {
+                        //too many false positives. Disable for now
+			if ((sampleCount >= alarmSamples) && (perSec >= (alarmThreshold*mean))) {
 				alarmCount++;
 				if (alarmCount >= alarmConsecutiveSamples) {
 					logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" consecutive: "+alarmCount + " keyWord: "+alarmKey);
