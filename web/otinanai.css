@@ -1,167 +1,168 @@
-.log { 
-   border-bottom: 1px solid #ccc;  
-   padding-bottom: 15px; 
-   margin-bottom: 10px; 
+.log {
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 15px;
+        margin-bottom: 10px;
 }
 body, html {
-   font-family:verdana,helvetica,arial,sans-serif; 
-   font-size: 13px; 
-   background: #fefefe;
+        font-family:verdana,helvetica,arial,sans-serif;
+        font-size: 13px;
+        background: #fefefe;
 }
 
 #mygraph,
-#wrapper { 
-   width: 85%; 
-   margin: 0 auto; 
+#wrapper {
+        width: 85%;
+        margin: 0 auto;
 }
-.mygraph { 
-   height: 50%;
-   border-bottom: 1px solid #ccc; 
-   padding-bottom: 20px; 
-   margin-bottom: 20px; 
+.mygraph {
+        height: 50%;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
 }
-.mergedGraph { 
-   height: 240px;
-   width: 100%;
-   border-bottom: 1px solid #ccc; 
-   padding-bottom: 15px; 
-   margin-bottom: 10px; 
+.mergedGraph {
+        height: 240px;
+        width: 100%;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 15px;
+        margin-bottom: 10px;
 }
 .previewGraph {
-   width: 100%;
-   float: center;
-   height: 240px;
-   border-bottom: 1px solid #ccc;
-   padding-bottom: 15px;
-   margin-bottom: 10px;
+        width: 100%;
+        float: center;
+        height: 240px;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 15px;
+        margin-bottom: 10px;
 }
 
 .gage {
-   width: 23%;
-   height: 16%; 
-   float: left;
-   border: 1px solid #ccc;
-   border-radius: 8px;
-   padding: 2px;
-   margin: 2px;
+        width: 23%;
+        height: 16%;
+        float: left;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 2px;
+        margin: 2px;
 }
 .checkList {
-   width: 100%;
-   float: left;
+        width: 100%;
+        float: left;
 }
-.date { 
-   color: green; 
-   display: inline-block; 
-   padding-right: 20px; 
-   margin-right: 20px; 
-   border-right: 1px dotted #bbb;
+.date {
+        color: green;
+        display: inline-block;
+        padding-right: 20px;
+        margin-right: 20px;
+        border-right: 1px dotted #bbb;
 }
-.server { 
-   color: orange;
-   display: inline-block; 
-   padding-right: 20px; 
-   margin-right: 20px; 
-   border-right: 1px dotted #bbb;
+.server {
+        color: orange;
+        display: inline-block;
+        padding-right: 20px;
+        margin-right: 20px;
+        border-right: 1px dotted #bbb;
 }
-.data { 
-   color: black;
+.data {
+        color: black;
 }
 
 .clearfix:after {
-   content: ".";
-   display: block;
-   clear: both;
-   visibility: hidden;
-   line-height: 0;
-   height: 0;
+        content: ".";
+        display: block;
+        clear: both;
+        visibility: hidden;
+        line-height: 0;
+        height: 0;
 }
 
 .clearfix {
-   width: 100%;
-   display: inline-block;
+        width: 100%;
+        display: inline-block;
 }
 
-.wrapper:last-child { 
-   padding-bottom: 10px; 
+.wrapper:last-child {
+        padding-bottom: 10px;
 }
 
 html[xmlns] .clearfix {
-   display: block;
+        display: block;
 }
 
 * html .clearfix {
-   height: 1%;
-}
+        *    height: 1%;
+        *    }
+        *
+        */*
+        body, html {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        }
+          */
 
-/*
-body, html {
-   height: 100%;
-   margin: 0;
-   padding: 0;
-}
-*/
+        form {
+                margin: 0;
+                padding: 10px 0;
+                text-align: center;
+                background: #eee;
+                border: 2px solid #999;
+        }
+        form input {
+                font-size: 25px;
+                width: 80%;
+                padding: 3px;
+        }
+        .section {
+                height: 100%;
+                border: none;
+        }
+        .section div {
+                padding: 2px;
+                background: #fefefe;
+                height: 100%;
+                padding-left: 0;
+        }
 
-form {
-   margin: 0;
-   padding: 10px 0;
-   text-align: center;
-   background: #eee;
-   border: 2px solid #999;
-}
-form input {
-   font-size: 25px;
-   width: 80%;
-   padding: 3px;
-}
-.section {
-   height: 100%;
-   border: none;
-}
-.section div {
-   padding: 2px;
-   background: #fefefe;
-   height: 100%;
-   padding-left: 0;
-}
+        #output_values {
+                display: inline-block;
+                padding: 3px 6px;
+                margin: 0 3px;
+                background: #9B9B9B;
+                color: #fff;
+        }
 
-#output_values {
-   display: inline-block;
-   padding: 3px 6px;
-   margin: 0 3px;
-   background: #9B9B9B;
-   color: #fff;
-}
+        #tooltip {
+                position: absolute;
+                display: none;
+                width: 200px;
+                border: 1px solid #fdd;
+                padding: 2px;
+                background-color: #fee;
+                opacity: 0.80;
+                font-size: smaller;
+                cursor:move;
+                font-weight: bold;
+        }
+        a {
+                color: #969696;
+                display: block;
+                text-decoration:none;
+        }
+        a:hover {
+                text-decoration:underline;
+        }
+        li {
+                padding: 5px 10px;
+                border: 1px solid #ccc;
+                display: list-item;
+                margin: 10px;
+                background-color: #eee;
+                color: #969696;
+                border-radius: 5px;
+        }
+        ul {
+                list-style-type: none;
+                display: inline-block;
+        }
 
-#tooltip {
-	position: absolute;
-	display: none;
-	width: 200px;
-	border: 1px solid #fdd;
-	padding: 2px;
-	background-color: #fee;
-	opacity: 0.80;
-	font-size: smaller;
-	cursor:move;
-	font-weight: bold;
-}
-a {
-        color: #969696;
-        display: block;
-        text-decoration:none;
-}
-a:hover {
-        text-decoration:underline;
-}
-li {
-        padding: 5px 10px;
-        border: 1px solid #ccc;
-        display: list-item;
-        margin: 10px;
-        background-color: #eee;
-        color: #969696;
-        border-radius: 5px;
-}
-ul {
-        list-style-type: none;
-        display: inline-block;
-}
