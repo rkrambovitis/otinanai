@@ -249,15 +249,21 @@ class RedisTracker implements KeyWordTracker {
 		/*
 		 * Alarm detection
 		 */
-		if ( sampleCount < alarmSamples)
+                float zeroPct = 0f;
+		if ( sampleCount < alarmSamples )
 			sampleCount++;
-		if (mean == 0f && perSec != 0f) {
+		
+                if (mean == 0f && perSec != 0f) {
 			logger.fine("[RedisTracker]: mean is 0, setting new value");
 			mean = perSec;
 			sampleCount = 1;
+                        return;
                 } else if (perSec == 0f) {
                         zeroesCount ++;
-		} else if (perSec != 0f) {
+                        if (sampleCount >= alarmSamples)
+                                zeroPct = 100 * (zeroesCount / sampleCount);
+		} 
+                if (perSec != 0f || zeroPct < 2) {
 			logger.fine("[RedisTracker]: Calculating new mean");
 			mean += (perSec-mean)/alarmSamples;
 			logger.fine("[RedisTracker]: v: "+perSec+" m: "+mean);
