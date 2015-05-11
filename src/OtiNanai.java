@@ -23,7 +23,7 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, short storageEngine, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
@@ -40,7 +40,6 @@ class OtiNanai {
 			logger.config("[Init]: alarmConsecutiveSamples: "+alarmConsecutiveSamples);
 			logger.config("[Init]: logFile: "+logFile);
 			logger.config("[Init]: logLevel: "+logLevel);
-			logger.config("[Init]: storageEngine: "+storageEngine);
 			logger.config("[Init]: bucketName: "+bucketName);
 			logger.config("[Init]: redisHost: "+redisHost);
 			logger.config("[Init]: redisKeyWordList: "+redisKeyWordList);
@@ -51,7 +50,7 @@ class OtiNanai {
 			logger.config("[Init]: Web url: "+WEBURL);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, storageEngine, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
 			new Thread(onl).start();
 
 			// Ticker
@@ -134,7 +133,6 @@ class OtiNanai {
 		int udpPort = 9876;
 		int tcpPort = 1010;
 		int listenerThreads = 5;
-		short storageEngine = OtiNanai.MEM;
 		Long cacheTime = 120000L;
 		Long alarmLife = 86400000L;
 		int alarmSamples = 20;
@@ -235,10 +233,6 @@ class OtiNanai {
 						System.out.println("redis host = " + args[i]);
 						redisHost = args[i];
 						break;
-					case "-redis":
-						System.out.println("storageEngine = Redis");
-						storageEngine = OtiNanai.REDIS;
-						break;
 					case "-rdkwlist":
 						i++;
 						sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
@@ -326,7 +320,6 @@ class OtiNanai {
 								+"-s2agg <step2SamplesToAggregate>  : Aggregates samples to further aggregate when count exceeded (default: 6)\n"
 								+"-lf <logFile>         : \n"
 								+"-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)\n"
-								+"-redis                : Use redis storage engine (recommended) (default uses volatile memory engine)\n"
 								+"-rh <redisEndPoint>   : Redis endpoint (default: localhost)\n"
 								+"-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)\n"
 								+"-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)\n"
@@ -350,7 +343,7 @@ class OtiNanai {
 		NOTIFYSCRIPT = notifyScript;
 		ALARMLIFE = alarmLife;
 
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, storageEngine, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
 	}
 
 	/**
@@ -403,10 +396,6 @@ class OtiNanai {
 	public static final short COUNTER = 2;
 	public static final short FREQ = 3;
 	public static final short SUM = 4;
-
-	public static final short MEM = 1;
-	public static final short RIAK = 2;
-	public static final short REDIS = 3;
 
 	public static final short GRAPH_FULL=1;
 	public static final short GRAPH_PREVIEW=2;

@@ -17,12 +17,11 @@ class OtiNanaiListener implements Runnable {
 	 * @param	ps 	Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, short st, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList) {
+	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList) {
 		logger = l;
 		alarmSamples = as;
 		alarmThreshold = at;
 		alarmConsecutiveSamples = acs;
-		storageType = st;
 		deleteLock = false;
 		rKeyList = redisKeyWordList;
                 rEventList = redisEventList;
@@ -34,38 +33,36 @@ class OtiNanaiListener implements Runnable {
 		redisHost = rh;
 		trackerMap = new HashMap<String, KeyWordTracker>();
 
-		if (st == OtiNanai.REDIS) {
-			jedis = new Jedis(redisHost);
-			jedis2 = new Jedis(redisHost);
-			kwtList = new LLString();
-			if (jedis.exists(rKeyList)) {
-				for (String s : jedis.smembers(rKeyList)) {
-					kwtList.add(s);
-				}
-			}
-			for (String kw : kwtList) { 
-				logger.info("[Listener]: Creating new Tracker: "+kw);
-				trackerMap.put(kw, new RedisTracker(kw, as, at, acs, redisHost, jedis2, logger));
-			}
-                        if (jedis.exists(rEventList)) {
-                                Long tts = 0l;
-                                String tev = new String();
-                                for (String s : jedis.smembers(rEventList)) {
-                                        tts = Long.parseLong(s.substring(0, s.indexOf(" ")));
-                                        tev = s.substring(s.indexOf(" ")+1);
-					eventMap.put(tts, tev);
-                                }
+                jedis = new Jedis(redisHost);
+                jedis2 = new Jedis(redisHost);
+                kwtList = new LLString();
+                if (jedis.exists(rKeyList)) {
+                        for (String s : jedis.smembers(rKeyList)) {
+                                kwtList.add(s);
                         }
-                        if (jedis.exists(rUnitList)) {
-                                String kw = new String();
-				String unit = new String();
-                                for (String s : jedis.smembers(rUnitList)) {
-                                        kw = s.substring(0, s.indexOf(" "));
-                                        unit = s.substring(s.indexOf(" ")+1);
-					unitMap.put(kw, unit);
-                                }
+                }
+                for (String kw : kwtList) { 
+                        logger.info("[Listener]: Creating new Tracker: "+kw);
+                        trackerMap.put(kw, new RedisTracker(kw, as, at, acs, redisHost, jedis2, logger));
+                }
+                if (jedis.exists(rEventList)) {
+                        Long tts = 0l;
+                        String tev = new String();
+                        for (String s : jedis.smembers(rEventList)) {
+                                tts = Long.parseLong(s.substring(0, s.indexOf(" ")));
+                                tev = s.substring(s.indexOf(" ")+1);
+                                eventMap.put(tts, tev);
                         }
-		}
+                }
+                if (jedis.exists(rUnitList)) {
+                        String kw = new String();
+                        String unit = new String();
+                        for (String s : jedis.smembers(rUnitList)) {
+                                kw = s.substring(0, s.indexOf(" "));
+                                unit = s.substring(s.indexOf(" ")+1);
+                                unitMap.put(kw, unit);
+                        }
+                }
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
 	}
@@ -113,8 +110,7 @@ class OtiNanaiListener implements Runnable {
 			recType = OtiNanai.SUM;
 		} else if (newRecord.isEvent()) {
                         eventMap.put(newRecord.getTimeStamp(), newRecord.getEvent());
-			if (storageType == OtiNanai.REDIS)
-				jedis.sadd(rEventList, new String(newRecord.getTimeStamp()+" "+newRecord.getEvent()));
+                        jedis.sadd(rEventList, new String(newRecord.getTimeStamp()+" "+newRecord.getEvent()));
 			logger.info("[Listener]: New event-> "+newRecord.getEvent());
 			System.err.println("New Event: -> "+newRecord.getEvent());
                         return;
@@ -138,11 +134,7 @@ class OtiNanaiListener implements Runnable {
 			KeyWordTracker kwt = getKWT(kw);
 			if (kwt == null) {
 				logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
-				if (storageType == OtiNanai.REDIS)
-					kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, redisHost, jedis2, logger);
-				else
-					kwt = new MemTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger);
-
+                                kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, redisHost, jedis2, logger);
 				kwt.setType(recType);
 			}
 
@@ -159,8 +151,7 @@ class OtiNanaiListener implements Runnable {
 			trackerMap.put(kw, kwt);
 			if (!kwtList.contains(kw)) {
 				kwtList.add(kw);
-				if (storageType == OtiNanai.REDIS)
-					jedis.sadd(rKeyList, kw);
+                                jedis.sadd(rKeyList, kw);
 			}
 		}
 	}
@@ -184,17 +175,12 @@ class OtiNanaiListener implements Runnable {
 			}
 		}
 		deleteLock = true;
-		if (storageType == OtiNanai.MEM) {
-			kwtList.remove(key);
-			trackerMap.remove(key);
-		} else if (storageType == OtiNanai.REDIS) {
-			KeyWordTracker kwt = getKWT(key);
-			kwtList.remove(key);
-			jedis.srem(rKeyList, key);
-			jedis.del(key);
-			trackerMap.remove(key);
-			kwt.delete();
-		}
+                KeyWordTracker kwt = getKWT(key);
+                kwtList.remove(key);
+                jedis.srem(rKeyList, key);
+                jedis.del(key);
+                trackerMap.remove(key);
+                kwt.delete();
 		deleteLock = false;
 	}
 
@@ -243,8 +229,7 @@ class OtiNanaiListener implements Runnable {
 
 	public void setUnits(String kw, String units) {
 		unitMap.put(kw, units);
-		if (storageType == OtiNanai.REDIS)
-			jedis.sadd(rUnitList, kw+" "+units);
+                jedis.sadd(rUnitList, kw+" "+units);
 	}
 
 	public String getUnits(String kw) {
@@ -261,7 +246,6 @@ class OtiNanaiListener implements Runnable {
 	private int alarmConsecutiveSamples;
 	private DatagramSocket dataSocket;
 	private Logger logger;
-	private short storageType;
 	private String rKeyList;
         private String rEventList;
 	private String rUnitList;
