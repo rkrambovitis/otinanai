@@ -11,7 +11,9 @@ class RedisTracker implements KeyWordTracker {
 		alarmSamples = as;
 		alarmThreshold = at;
 		alarmConsecutiveSamples = acs;
-		alarmCount = 0;
+		lowAlarmCount = 0;
+		highAlarmCount = 0;
+                zeroesCount = 0;
 		keyWord = new String(key);
 		logger = l;
 		redisHost = rh;
@@ -253,36 +255,41 @@ class RedisTracker implements KeyWordTracker {
 			logger.fine("[RedisTracker]: mean is 0, setting new value");
 			mean = perSec;
 			sampleCount = 1;
+                } else if (perSec == 0f) {
+                        zeroesCount ++;
 		} else if (perSec != 0f) {
 			logger.fine("[RedisTracker]: Calculating new mean");
 			mean += (perSec-mean)/alarmSamples;
 			logger.fine("[RedisTracker]: v: "+perSec+" m: "+mean);
 
-			//if ((sampleCount >= alarmSamples) && (perSec != 0) && ((perSec >= (alarmThreshold*mean)) || perSec <= (mean / alarmThreshold))) {
-                        //too many false positives. Disable for now
-			if ((sampleCount >= alarmSamples) && (perSec >= (alarmThreshold*mean))) {
-				alarmCount++;
-				if (alarmCount >= alarmConsecutiveSamples) {
-					logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" consecutive: "+alarmCount + " keyWord: "+alarmKey);
+			//if ((sampleCount >= alarmSamples) && (perSec >= (alarmThreshold*mean))) {
+			if (sampleCount >= alarmSamples) {
+                                if (perSec <= (mean / alarmThreshold)) {
+                                        lowAlarmCount++;
+                                        highAlarmCount = 0;
+                                } else if (perSec >= (alarmThreshold*mean)) {
+                                        highAlarmCount++;
+                                        lowAlarmCount = 0;
+                                } else {
+                                        highAlarmCount = 0;
+                                        lowAlarmCount = 0;
+                                }
+				if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
+					logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" keyWord: "+alarmKey);
 					if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
 						OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm: *"+keyWord+" value:"+String.format("%.0f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
 						onn.send();
+                                                alarm=ts;
+                                                jedis.set(alarmKey, Long.toString(ts));
 					}
-					alarm=ts;
-					jedis.set(alarmKey, Long.toString(ts));
 				} else {
-					logger.fine("[RedisTracker]: Error threshold breached " + keyWord + " value: "+perSec +" (mean: "+mean+") consecutive: "+alarmCount);
+					logger.fine("[RedisTracker]: Error threshold breached " + keyWord + " value: "+perSec +" (mean: "+mean+")");
 				}
 			} else {
-				alarmCount = 0;
+				lowAlarmCount = 0;
+				highAlarmCount = 0;
 			}
 		}
-
-		/*
-		   step1Key = null;
-		   step2Key = null;
-		   step3Key = null;
-		   */
 	}
 
 	public long getAlarm() {
@@ -346,7 +353,9 @@ class RedisTracker implements KeyWordTracker {
 	private float alarmThreshold;
 	private short recordType;
 	private int alarmConsecutiveSamples;
-	private int alarmCount;
+	private int highAlarmCount;
+	private int lowAlarmCount;
+        private int zeroesCount;
 	private Jedis jedis;
 	private String redisHost;
 	private String step1Key;
