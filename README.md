@@ -1,11 +1,11 @@
 # otinanai #
 
-OtiNanai is a Simple graphing tool, designed to graph anything.
-The main idea is that you can chuck anything at it, and then easily find what you are looking for.
-Also, it's meant to run with very little i/o + system requirements.
-The search bar is pretty simple, and makes it easy to narrow down on something,
-but at the same time, allows you to browse data you didn't recall you were graphing.
-
+## Description ##
+OtiNanai is a Simple graphing tool, designed to graph anything.  
+The main idea is that you can chuck anything at it, and then easily find what you are looking for.  
+Also, it's meant to run with very little i/o + system requirements.  
+The search bar is pretty simple, and makes it easy to narrow down on something,  
+but at the same time, allows you to browse data you didn't recall you were graphing.  
 All in all, it makes finding patterns and correlations relatively simple *and* it doesn't require a cluster of supercomputers to run.
 
 ## Features ##
