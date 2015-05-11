@@ -73,8 +73,9 @@ $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.
 	* --stack (stack graphs)
 	* --alarms|--alerts (show only matching keywords in "alarm" state)
 	* \#maxMergeCount (change how many graphs are merged, sorted by 99%. Rest are discarded - default 3)
+        * --limit <number> (Limit to first <number> graphs)
 	* --nb|--no-bar|--ns|--no-search (Do not show the search bar - for embedding)
-	* --units somethings (Set the matching keywords units to somethings)
+	* --units <somethings> (Set the matching keywords units to <somethings>)
 
 + Examples:
 	* .com$ +mysite 
@@ -83,6 +84,7 @@ $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.
 	* dataroom.temperature --gauge
 	* dataroom.temperature --units celcius
 	* some.keyword @1d-3d
+        * apache.vhosts --merge --limit 6
 
 ### Demo ###
 + Point your browser to https://otinanai-demo.phaistosnetworks.gr

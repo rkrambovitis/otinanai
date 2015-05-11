@@ -333,7 +333,7 @@ class OtiNanaiWeb implements Runnable {
 		return marktext;
 	}
 
-	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents) {
+	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit) {
 		ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
 		LLString kwtList = onl.getKWTList();
 
@@ -351,7 +351,11 @@ class OtiNanaiWeb implements Runnable {
 		String output;
 		String body = new String("");
 		String[] graphData;
-		int i=0;
+                int drawnGraphs = 0;
+
+                if (graphLimit == 0) 
+                        graphLimit = kws.size();
+
 
 		if (type == OtiNanai.GRAPH_GAUGE) {
 			output = commonHTML(OtiNanai.GAGE) + commonHTML(OtiNanai.REFRESH);
@@ -384,6 +388,9 @@ class OtiNanaiWeb implements Runnable {
 					+ "\t\tlevelColorsGradient: true\n"
 					+ "\t});\n"
 					+ "</script>\n";
+                                drawnGraphs++;
+                                if (drawnGraphs >= graphLimit)
+                                        break;
 			}
 			output = output 
 				+ commonHTML(OtiNanai.ENDHEAD)
@@ -437,6 +444,10 @@ class OtiNanaiWeb implements Runnable {
 					+ "</li>\n"
 					+ "\t<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n"
 					+ "</div>\n";
+
+                                drawnGraphs++;
+                                if (drawnGraphs >= graphLimit)
+                                        break;
 			}
 		} else {
 			/*
@@ -467,18 +478,18 @@ class OtiNanaiWeb implements Runnable {
                         TreeMap <String, String[]> sortedMap = new TreeMap<String, String[]>(nnc);
                         sortedMap.putAll(dataMap);
 
-			if (dataMap.size() < maxMergeCount)
-                                maxMergeCount=dataMap.size();
+			if (sortedMap.size() < maxMergeCount)
+                                maxMergeCount=sortedMap.size();
 
-                        int graphCount = (int)Math.ceil(dataMap.size() / (float)maxMergeCount);
-                        //System.out.println(sortedMap.size() + " " + dataMap.size() +" "+ maxMergeCount + " " + graphCount);
+
+                        if (graphLimit > sortedMap.size())
+                                graphLimit = sortedMap.size();
+                        int graphCount = (int)Math.ceil(graphLimit / (float)maxMergeCount);
                         int totalKeys = sortedMap.size();
                         for (int j=0 ; j < totalKeys ; j++) {
                                 Map.Entry<String, String[]> foo = sortedMap.pollLastEntry();
 				String kw = foo.getKey();
                                 graphData = foo.getValue();
-				//graphData = dataMap.get(kw);
-				//System.err.println(foo.getValue() + " " + foo.getKey());
 
 				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
 					+ "label: \""+kw+" "+onl.getUnits(kw)+"\",\n";
@@ -489,6 +500,10 @@ class OtiNanaiWeb implements Runnable {
 				output = output + "data: ["
 					+ graphData[3]
 					+ "]},\n\n";
+
+                                drawnGraphs++;
+                                if (drawnGraphs >= graphLimit)
+                                        break;
 			}
 
 			for (int j = 0 ; j < graphCount ; j++) {
@@ -677,7 +692,9 @@ class OtiNanaiWeb implements Runnable {
 		long startTime = now - OtiNanai.PREVIEWTIME;
 		boolean setUnits = false;
 		boolean nextWordIsUnit = false;
+                boolean nextWordIsLimit = false;
 		String units = new String();
+                int graphLimit = 0;
 
 		for (String word : keyList) {
 			if (nextWordIsUnit) {
@@ -685,6 +702,14 @@ class OtiNanaiWeb implements Runnable {
 				nextWordIsUnit = false;
 				continue;
 			}
+                        if (nextWordIsLimit) {
+                                try {
+                                        graphLimit = Integer.parseInt(word);
+                                } catch (NumberFormatException nfe) {
+                                        logger.info("Invalid argument for --limit : "+word);
+                                }
+                                continue;
+                        }
 
 			boolean removeKW = false;
 			boolean exclusiveKW = false;
@@ -708,6 +733,9 @@ class OtiNanaiWeb implements Runnable {
 					setUnits=true;
 					nextWordIsUnit=true;
 					continue;
+                                case "--limit":
+                                        nextWordIsLimit=true;
+                                        continue;
 				case "--force":
 					force = true;
 					continue;
@@ -949,7 +977,7 @@ class OtiNanaiWeb implements Runnable {
 			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
 			return kwTree(kws, keyList);
 		}
-		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents);
+		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit);
 		onc.cache(input, op);
 		return op;
 	}
