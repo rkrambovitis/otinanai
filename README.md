@@ -2,21 +2,22 @@
 
 OtiNanai is a Simple graphing tool, designed to graph anything.
 The main idea is that you can chuck anything at it, and then easily find what you are looking for.
+Also, it's meant to run with very little i/o + system requirements.
 The search bar is pretty simple, and makes it easy to narrow down on something,
 but at the same time, allows you to browse data you didn't recall you were graphing.
 
-All in all, it makes finding patterns and correlations relatively simple.
+All in all, it makes finding patterns and correlations relatively simple *and* it doesn't require a cluster of supercomputers to run.
 
 ## Features ##
 + Multiple data types (gauge, sum, freq, counter)
-+ SUM option allows you to easily graph apache traffic per virtualhost using mod_logio.
++ SUM option allows you to easily graph apache traffic per virtualhost.
 + Redis backend: Lightweight, in memory, so you don't need umpteen spinning disks for decent performance.
 + js front end: Browser hog rather than server hog :)
 + Automatic spike handling. No need to clear rrd spikes just because you restarted something :)
 + Multiple metrics per graph. Mean, avg, 99th, 95th, min, max all within the timeframe you choose.
 + Relevant graph viewport. By default spikes are outside graphing area, making graphs relevant.
 + Multiple output visualizations (merged, stacked, gauge or individual)
-+ Spike detection and notification
++ Automatic spike and valley detection and notification
 + Graphs generated on the fly, no need to set up in advance.
 + No fancy queries or programming needed. Just pipe it data, and type keywords in web field.
 
@@ -25,18 +26,16 @@ All in all, it makes finding patterns and correlations relatively simple.
 
 ## System Requirements ##
 + java 7+
-
-+ redis (recommended for data retention)
-	* By default otinanai just writes to memory, and does not retain anything.
++ redis
 
 ## HOWTO build ##
 1. $ git clone https://bitbucket.org/robert_krambovitis/otinanai.git
 2. cd otinanai
 3. $ make
-(optional: sudo apt-get install redis-server )
+4. sudo apt-get install redis-server
 
 ## HOWTO run ##
-$ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.log -redis
+$ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.log
 
 
 ## Getting data in ##
@@ -114,7 +113,6 @@ $ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.
 	-s2agg <step2SamplesToAggregate>  : Aggregates samples to further aggregate when count exceeded (default: 6)
 	-lf <logFile>         : 
 	-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)
-	-redis                : Use redis storage engine (recommended) (default uses volatile memory engine)
 	-rh <redisEndPoint>   : Redis endpoint (default: localhost)
 	-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)
 	-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)
