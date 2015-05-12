@@ -23,6 +23,7 @@ class RedisTracker implements KeyWordTracker {
 		currentDataCount = 0;
 		lastTimeStamp = 0l;
 		curTS = 0l;
+		zeroPct = 0f;
 		recordType = OtiNanai.UNSET;
 		step1Key = keyWord + "thirtySec";
 		step2Key = keyWord + "fiveMin";
@@ -249,17 +250,7 @@ class RedisTracker implements KeyWordTracker {
 		/*
 		 * Alarm detection
 		 */
-                float zeroPct = 0f;
-		if ( sampleCount < alarmSamples ) {
-			sampleCount++;
-                        if (perSec == 0f) {
-                                zeroesCount ++;
-                                if (sampleCount >= alarmSamples)
-                                        zeroPct = 100.0f * ((float)zeroesCount / (float)sampleCount);
-                        }
 
-                }
-		
                 if (mean == 0f && perSec != 0f) {
 			logger.fine("[RedisTracker]: mean is 0, setting new value");
 			mean = perSec;
@@ -267,6 +258,15 @@ class RedisTracker implements KeyWordTracker {
                         return;
                 } 
 
+		if ( sampleCount < alarmSamples ) {
+			sampleCount++;
+                        if (perSec == 0f) {
+                                zeroesCount ++;
+                                zeroPct = 100.0f * ((float)zeroesCount / (float)sampleCount);
+                        }
+
+                }
+		
                 if (perSec != 0f || zeroPct < 2.0f) {
 			logger.fine("[RedisTracker]: Calculating new mean");
 			mean += (perSec-mean)/alarmSamples;
@@ -287,7 +287,7 @@ class RedisTracker implements KeyWordTracker {
 				if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
 					logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" keyWord: "+alarmKey+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount);
 					if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
-						OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm: *"+keyWord+" value:"+String.format("%.0f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
+						OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm: *"+keyWord+" value:"+String.format("%.2f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
 						onn.send();
                                                 alarm=ts;
                                                 jedis.set(alarmKey, Long.toString(ts));
@@ -354,6 +354,7 @@ class RedisTracker implements KeyWordTracker {
 	private int sampleCount;
 	private int currentDataCount;
 	private float currentFloat;
+	private float zeroPct;
 	private long currentLong;
 	private long currentPrev;
 	private long lastTimeStamp;
