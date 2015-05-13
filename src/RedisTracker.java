@@ -162,6 +162,7 @@ class RedisTracker implements KeyWordTracker {
 		String toPush = new String(ts+" "+String.format("%.3f", perSec));
 		//      jedis.lpush(step1Key, new String(ts+" "+String.format("%.2f", perSec)));
 
+                /*
 		try {
 			if (jedis.llen(step1Key) > 1) {
 				//ugly deduplication
@@ -182,6 +183,7 @@ class RedisTracker implements KeyWordTracker {
 			System.err.println("[RedisTracker]: tick(): "+e.getMessage());
 			resetJedis();
 		}
+                */
 		logger.finest("[RedisTracker]: lpush "+step1Key+" "+toPush);
 		jedis.lpush(step1Key, toPush);
 
@@ -260,20 +262,13 @@ class RedisTracker implements KeyWordTracker {
 
 		if ( sampleCount < alarmSamples ) {
 			sampleCount++;
+			mean += (perSec-mean)/alarmSamples;
                         if (perSec == 0f) {
                                 zeroesCount ++;
                                 zeroPct = 100.0f * ((float)zeroesCount / (float)sampleCount);
                         }
-
-                }
-		
-                if (perSec != 0f || zeroPct < 2.0f) {
-			logger.fine("[RedisTracker]: Calculating new mean");
-			mean += (perSec-mean)/alarmSamples;
-			logger.fine("[RedisTracker]: v: "+perSec+" m: "+mean);
-
-			//if ((sampleCount >= alarmSamples) && (perSec >= (alarmThreshold*mean))) {
-			if (sampleCount >= alarmSamples) {
+                } else {
+                        if (perSec != 0f || zeroPct < 2.0f) {
                                 if (perSec <= (mean / alarmThreshold)) {
                                         lowAlarmCount++;
                                         highAlarmCount = 0;
@@ -281,6 +276,7 @@ class RedisTracker implements KeyWordTracker {
                                         highAlarmCount++;
                                         lowAlarmCount = 0;
                                 } else {
+                                        mean += (perSec-mean)/alarmSamples;
                                         highAlarmCount = 0;
                                         lowAlarmCount = 0;
                                 }
@@ -295,11 +291,8 @@ class RedisTracker implements KeyWordTracker {
 				} else {
 					logger.fine("[RedisTracker]: Error threshold breached " + keyWord + " value: "+perSec +" (mean: "+mean+")");
 				}
-			} else {
-				lowAlarmCount = 0;
-				highAlarmCount = 0;
-			}
-		}
+                        }
+                }
 	}
 
 	public long getAlarm() {

@@ -650,7 +650,7 @@ class OtiNanaiWeb implements Runnable {
 			+ "\" />\n"
 			+ "</form>\n"
 			+ "<!-- END search bar -->\n\n"
-			+ "<script>onload = function () { document.getElementById('q').selectionStart = document.getElementById('q').value.length;}</script>";
+			+ "<script>onload = function () { document.getElementById('q').selectionStart = document.getElementById('q').value.length;}</script>\n";
 		return searchBar;
 	}
 
@@ -705,6 +705,7 @@ class OtiNanaiWeb implements Runnable {
                         if (nextWordIsLimit) {
                                 try {
                                         graphLimit = Integer.parseInt(word);
+                                        nextWordIsLimit = false;
                                 } catch (NumberFormatException nfe) {
                                         logger.info("Invalid argument for --limit : "+word);
                                 }
@@ -942,34 +943,34 @@ class OtiNanaiWeb implements Runnable {
 			}
 		} else if (setUnits) {
 			logger.info("[Web]: Setting matching Keyword Units to "+units);
-			String unitsOP = new String("Setting units to "+units+" for keywords:\n<ul>");
+			String unitsOP = new String("<h2>Setting units to "+units+" for keywords:</h2><br />\n<ul>\n");
 			for (String kw : kws) {
 				logger.info("[Web]: Setting "+kw+" units to "+units);
 				unitsOP = unitsOP + "<li>"+kw+"</li>\n";
 				onl.setUnits(kw, units);
 			}
-                        unitsOP = unitsOP + "</ul>"
+                        unitsOP = unitsOP + "</ul>\n"
                                 + commonHTML(OtiNanai.ENDBODY);
 			return unitsOP;
 		} else if (wipe && force) {
 			logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");
 			KeyWordTracker kwt;
-			String delOP = new String("RIP Data for keywords:\n<ul>\n");
+			String delOP = new String("<h2>RIP Data for keywords:</h2><br />\n<ul>\n");
 			for (String todel : kws) {
 				logger.info("[Web]: Deleting data for " + todel);
 				delOP = delOP + "<li>"+todel+"</li>\n";
 				onl.deleteKWT(todel);
 			}
-                        delOP = delOP + "</ul>"
+                        delOP = delOP + "</ul>\n"
                                 + commonHTML(OtiNanai.ENDBODY);
 			return delOP;
 		} else if (wipe) {
 			logger.fine("[Web]: Wipe command received. Sending Warning");
-			String delOP = new String("[WARNING] : You are about to permanently delete the following keywords<br>Add --force to actually delete\n<ul>\n");
+			String delOP = new String("<h2>[WARNING] : You are about to permanently delete the following keywords</h2><br/>Add --force to actually delete<br />\n<ul>\n");
 			for (String todel : kws) {
 				delOP = delOP + "<li><a href=\"" + todel + "\">"+todel+"</a></li>\n";
 			}
-                        delOP = delOP + "</ul>"
+                        delOP = delOP + "</ul>\n"
                                 + commonHTML(OtiNanai.ENDBODY);
 			return delOP;
 		}
