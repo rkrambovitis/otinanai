@@ -35,56 +35,56 @@ All in all, it makes finding patterns and correlations relatively simple *and* i
 4. sudo apt-get install redis-server
 
 ## HOWTO run ##
-$ java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.log
+$ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out.log`
 
 
 ## Getting data in ##
 + Frequency (events / sec) - i.e. tail log and graph errors
-	* $ echo key.word > /dev/udp/127.0.0.1/9876
+	* $ `echo key.word > /dev/udp/127.0.0.1/9876`
 
 + Gauge (mean value) - i.e. graph mem usage of process
-	* $ echo key.word {value} > /dev/udp/127.0.0.1/9876
+	* $ `echo key.word {value} > /dev/udp/127.0.0.1/9876`
 
 + Counter (rate of change / sec) - i.e. graph network activity from snmp counter
-	* $ echo key.word {value} COUNTER > /dev/udp/127.0.0.1/9876
+	* $ `echo key.word {value} COUNTER > /dev/udp/127.0.0.1/9876`
 
 + Sum (sum of values / sec) - i.e. graph virtulhost traffic
-	* $ echo key.word {value} SUM > /dev/udp/127.0.0.1/9876
+	* $ `echo key.word {value} SUM > /dev/udp/127.0.0.1/9876`
 
 + Events - i.e. mark something on graphs
-	* $ echo eventmarker something important happened > /dev/udp/127.0.0.1/9876
-	* $ echo eventmarker `date +%s -d "today 12:30"` older event > /dev/udp/127.0.0.1/9876
+	* $ `echo eventmarker something important happened > /dev/udp/127.0.0.1/9876`
+	* $ ``echo eventmarker `date +%s -d "today 12:30"` older event > /dev/udp/127.0.0.1/9876``
 
 ## Getting data out ##
 + Just point your browser to 127.0.0.1:9876 and type part of a keyword in the search field.
 
 ### Web Input Switches ###
 + Use the following to refine the output
-	* ^chars (starts with chars)
-	* chars$ (ends with chars)
-	* -chars (exclude keywords that contain chars)
-	* +chars (exclude keywords that don't contain chars)
-	* \@timerange (@24 or @2d or @3d-5d)
-	* --delete (delete data of matching keywords
-	* --gauge|--dial (draw as gauges instead of line graphs)
-	* --sa|--show (show all matching graphs, i.e. override the max-per-page setting)
-	* --nc|--no-cache (ignore cache)
-	* --m|--merge|--combine (merge all graphs into one. Beware, looks like crap)
-	* --stack (stack graphs)
-	* --alarms|--alerts (show only matching keywords in "alarm" state)
-	* \#maxMergeCount (change how many graphs are merged, sorted by 99%. Rest are discarded - default 3)
-        * --limit <number> (Limit to first <number> graphs)
-	* --nb|--no-bar|--ns|--no-search (Do not show the search bar - for embedding)
-	* --units <somethings> (Set the matching keywords units to <somethings>)
+	* `^chars` (starts with chars)
+	* `chars$` (ends with chars)
+	* `-chars` (exclude keywords that contain chars)
+	* `+chars` (exclude keywords that don't contain chars)
+	* `@timerange (@24 or @2d or @3d-5d)`
+	* `--delete` (delete data of matching keywords
+	* `--gauge|--dial` (draw as gauges instead of line graphs)
+	* `--sa|--show` (show all matching graphs, i.e. override the max-per-page setting)
+	* `--nc|--no-cache` (ignore cache)
+	* `--m|--merge|--combine` (merge all graphs into one. Beware, looks like crap)
+	* `--stack` (stack graphs)
+	* `--alarms|--alerts` (show only matching keywords in "alarm" state)
+	* `#maxMergeCount` (change how many graphs are merged per graph, sorted by 99%.)
+	* `--limit <number>` (Limit to first <number> graphs)
+	* `--nb|--no-bar|--ns|--no-search` (Do not show the search bar - for embedding)
+	* `--units <somethings>` (Set the matching keywords units to <somethings>)
 
 + Examples:
-	* .com$ +mysite 
-	* host -subdomain --merge --no-cache #10
-	* crapdata --delete
-	* dataroom.temperature --gauge
-	* dataroom.temperature --units celcius
-	* some.keyword @1d-3d
-        * apache.vhosts --merge --limit 6
+	* `.com$ +mysite`
+	* `host -subdomain --merge --no-cache #10`
+	* `crapdata --delete`
+	* `dataroom.temperature --gauge`
+	* `dataroom.temperature --units celcius`
+	* `some.keyword @1d-3d`
+	* `apache.vhosts --merge --limit 6`
 
 ### Demo ###
 + Point your browser to https://otinanai-demo.phaistosnetworks.gr
