@@ -76,6 +76,7 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	* `--limit <number>` (Limit to first <number> graphs)
 	* `--nb|--no-bar|--ns|--no-search` (Do not show the search bar - for embedding)
 	* `--units <somethings>` (Set the matching keywords units to <somethings>)
+	* `--multiplier number` (Set the matching keywords multiplier to <number> (for converting bytes etc))
 
 + Examples:
 	* `.com$ +mysite`

@@ -23,7 +23,7 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float lowAlarmThreshold, float highAlarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float lowAlarmThreshold, float highAlarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList, String redisMultipList){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
@@ -47,11 +47,12 @@ class OtiNanai {
 			logger.config("[Init]: redisSavedQueries: "+redisSavedQueries);
 			logger.config("[Init]: redisEventList: "+redisEventList);
 			logger.config("[Init]: redisUnitList: "+redisUnitList);
+			logger.config("[Init]: redisMultipList: "+redisMultipList);
 			logger.config("[Init]: notifyScript: "+NOTIFYSCRIPT);
 			logger.config("[Init]: Web url: "+WEBURL);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, logger, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, logger, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList, redisMultipList);
 			new Thread(onl).start();
 
 			// Ticker
@@ -150,6 +151,7 @@ class OtiNanai {
 		String redisSavedQueries = new String("saved_queries_list");
                 String redisEventList = new String("OtiNanai_Event_List");
                 String redisUnitList = new String("OtiNanai_Unit_List");
+                String redisMultipList = new String("OtiNanai_Multiplier_List");
 		String notifyScript = new String("/tmp/otinanai_notifier");
 		String webUrl = new String();
 		try {
@@ -269,6 +271,12 @@ class OtiNanai {
 						System.out.println("redisUnitList = " + sane);
 						redisUnitList = sane;
 						break;
+					case "-rdmultiplist":
+						i++;
+						sane = args[i].replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};]","_"); 
+						System.out.println("redisMultipList = " + sane);
+						redisMultipList = sane;
+						break;
 					case "-s1samples":
 						i++;
 						System.out.println("step1Samples = " + args[i]);
@@ -337,7 +345,8 @@ class OtiNanai {
 								+"-rdkwlist <redisKeyWordListName>  : Name of keyword list, useful for more than one instance running on the same redis. (default: existing_keywords_list)\n"
 								+"-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)\n"
 								+"-rdevtlist <redisEventList>    : Name of event list for redis. (default: OtiNanai_Event_List)\n"
-								+"-rdunitlist <redisUnitList>    : Name of event list for redis. (default: OtiNanai_Event_List)\n"
+								+"-rdunitlist <redisUnitList>    : Name of event list for redis. (default: OtiNanai_Unit_List)\n"
+								+"-rdmultiplist <redisMultiplierList>    : Name of event list for redis. (default: OtiNanai_Multiplier_List)\n"
 								);
 						System.exit(0);
 						break;
@@ -356,7 +365,7 @@ class OtiNanai {
 		NOTIFYSCRIPT = notifyScript;
 		ALARMLIFE = alarmLife;
 
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, logFile, logLevel, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, logFile, logLevel, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList, redisMultipList);
 	}
 
 	/**

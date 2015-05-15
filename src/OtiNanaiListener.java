@@ -10,14 +10,7 @@ import redis.clients.jedis.*;
 
 class OtiNanaiListener implements Runnable {
 
-	/**
-	 * Multithread constructor
-	 * @param	ds	the DatagraSocket to be used
-	 * @param	al 	Time diff for alarm to still be active
-	 * @param	ps 	Number of samples to keep for preview graphs
-	 * @param	l	the logger to log to
-	 */
-	public OtiNanaiListener(DatagramSocket ds, int as, float atl, float ath, int acs, Logger l, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList) {
+	public OtiNanaiListener(DatagramSocket ds, int as, float atl, float ath, int acs, Logger l, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList, String redisMultipList) {
 		logger = l;
 		alarmSamples = as;
 		lowAlarmThreshold = atl;
@@ -27,8 +20,10 @@ class OtiNanaiListener implements Runnable {
 		rKeyList = redisKeyWordList;
                 rEventList = redisEventList;
                 rUnitList = redisUnitList;
+                rMultipList = redisMultipList;
                 eventMap = new TreeMap<Long, String>();
 		unitMap = new HashMap<String, String>();
+		multipMap = new HashMap<String, Float>();
 		rSavedQueries = redisSavedQueries;
 		kwtList = new LLString();
 		redisHost = rh;
@@ -62,6 +57,19 @@ class OtiNanaiListener implements Runnable {
                                 kw = s.substring(0, s.indexOf(" "));
                                 unit = s.substring(s.indexOf(" ")+1);
                                 unitMap.put(kw, unit);
+                        }
+                }
+                if (jedis.exists(rMultipList)) {
+                        String kw = new String();
+                        float multip = 1f;
+                        for (String s : jedis.smembers(rMultipList)) {
+                                kw = s.substring(0, s.indexOf(" "));
+                                try {
+                                        multip = Float.parseFloat(s.substring(s.indexOf(" ")+1));
+                                        multipMap.put(kw, multip);
+                                } catch (NumberFormatException nfe) {
+                                        System.err.println("Broken multiplier: "+s);
+                                }
                         }
                 }
 		dataSocket = ds;
@@ -240,6 +248,17 @@ class OtiNanaiListener implements Runnable {
 		return new String("");
 	}
 
+	public void setMultiplier(String kw, float multip) {
+		multipMap.put(kw, multip);
+                jedis.sadd(rMultipList, kw+" "+multip);
+	}
+
+	public float getMultiplier(String kw) {
+		if (multipMap.containsKey(kw)) 
+			return multipMap.get(kw);
+		return 1f;
+	}
+
 	private HashMap<String,KeyWordTracker> trackerMap;
 	private int port;
 	private int alarmSamples;
@@ -251,6 +270,7 @@ class OtiNanaiListener implements Runnable {
 	private String rKeyList;
         private String rEventList;
 	private String rUnitList;
+	private String rMultipList;
 	private String rSavedQueries;
 	private LLString kwtList;
 	private Jedis jedis;
@@ -258,5 +278,6 @@ class OtiNanaiListener implements Runnable {
 	private String redisHost;
         private TreeMap<Long, String> eventMap;
 	private HashMap<String, String> unitMap;
+	private HashMap<String, Float> multipMap;
 	private boolean deleteLock;
 }

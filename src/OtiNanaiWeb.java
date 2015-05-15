@@ -173,17 +173,13 @@ class OtiNanaiWeb implements Runnable {
 	}
 
 	private String[] toGraph(KeyWordTracker kwt, short type, long startTime, long endTime, int maxMergeCount) {
-		//long startTime = time + endTime;
 		logger.finest("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
 		String output = new String("");
-		//StringBuilder output = new StringBuilder("\n");
 		SomeRecord sr;
 		ArrayList<String> data = new ArrayList<String>();
 
 		long timePrev = System.currentTimeMillis();
 		data = kwt.getMemory(startTime);
-		//System.err.println(data.size());
-		//Collections.reverse(data);
 		long now=System.currentTimeMillis();
 		logger.finest("[Web]: Timing - Total getMemory time: " + (now - timePrev));
 		double total=0;
@@ -193,27 +189,28 @@ class OtiNanaiWeb implements Runnable {
 		float min=0;
 		float max=0;
 		boolean lastSet = false;
-		long howLongAgo = 0l;
-		String last = new String("0");
+		long timeStamp = 0l;
+		float last = 0f;
 		ArrayList<Float> allData = new ArrayList<Float>();
+                float multip = onl.getMultiplier(kwt.getKeyWord());
 		for (String dato : data) {
 			logger.finest("[Web]: Dato is : "+dato);
 			String[] twowords = dato.split("\\s");
-			howLongAgo = Long.parseLong(twowords[0]);
-			//logger.info("now: "+now+ " howLongAgo: "+howLongAgo+" time: "+time+" endTime: "+endTime+" startTime: "+startTime);
-			if (howLongAgo < startTime) 
-				break;
-			if (howLongAgo > endTime)
-				continue;
-			//output = output.concat("[").concat(twowords[0]).concat(",").concat( twowords[1]).concat("],\n");
-			//output = output + "[" +twowords[0] + "," + twowords[1] + "],\n";
-			//output = output.append("[").append(twowords[0]).append(",").append( twowords[1]).append("],\n");
-			if (type != OtiNanai.GAGE)
-				output = "\n[" +twowords[0] + "," + twowords[1] + "]," + output;
-			samples++;
 			val=Float.parseFloat(twowords[1]);
+                        if (multip != 1f)
+                                val = val * multip;
+
+			timeStamp = Long.parseLong(twowords[0]);
+
+			if (timeStamp < startTime) 
+				break;
+			if (timeStamp > endTime)
+				continue;
+			if (type != OtiNanai.GAGE)
+				output = "\n[" +timeStamp + "," + val + "]," + output;
+			samples++;
 			if (!lastSet) {
-				last = twowords[1];
+				last = val;
 				lastSet = true;
 			}
 			total += val;
@@ -228,7 +225,7 @@ class OtiNanaiWeb implements Runnable {
 					max=val;
 				}
 			}
-			allData.add(Float.parseFloat(twowords[1]));
+			allData.add(val);
 		}
 
 		long post=System.currentTimeMillis();
@@ -262,23 +259,18 @@ class OtiNanaiWeb implements Runnable {
 			allData.add(0f);
 		}
 		String[] toReturn = new String[12];
-		//toReturn[0]=Double.toString(nfth);
-		//toReturn[0]=String.format("%.3f", sortedValues[nfth]);
-		//sortedValues=null;
-		//toReturn[1]=Double.toString(mean);
 		toReturn[0]=String.format("%.3f", min);
 		toReturn[1]=String.format("%.3f", max);
 		toReturn[2]=String.format("%.3f", mean);
-		toReturn[3]=output.toString();
+		toReturn[3]=output;
 		toReturn[4]=allData.get(nfth).toString();
-		toReturn[5]=last;
+		toReturn[5]=Float.toString(last);
 		toReturn[6]=Integer.toString(samples);
 		toReturn[7]=allData.get(fifth).toString();
 		toReturn[8]=allData.get(tfifth).toString();
 		toReturn[9]=allData.get(fiftieth).toString();
 		toReturn[10]=allData.get(sfifth).toString();
 		toReturn[11]=allData.get(nninth).toString();
-		//return output;
 		return toReturn;
 	}
 
@@ -693,8 +685,11 @@ class OtiNanaiWeb implements Runnable {
 		boolean setUnits = false;
 		boolean nextWordIsUnit = false;
                 boolean nextWordIsLimit = false;
+                boolean setMultip = false;
+                boolean nextWordIsMultip = false;
 		String units = new String();
                 int graphLimit = 0;
+                float multip = 1f;
 
 		for (String word : keyList) {
 			if (nextWordIsUnit) {
@@ -708,6 +703,16 @@ class OtiNanaiWeb implements Runnable {
                                         nextWordIsLimit = false;
                                 } catch (NumberFormatException nfe) {
                                         logger.info("Invalid argument for --limit : "+word);
+                                }
+                                continue;
+                        }
+                        if (nextWordIsMultip) {
+                                try {
+                                        multip = Float.parseFloat(word);
+                                        nextWordIsMultip = false;
+                                } catch (NumberFormatException nfe) {
+                                        logger.info("Invalid argument for --multip : "+word);
+                                        setMultip = false;
                                 }
                                 continue;
                         }
@@ -734,6 +739,13 @@ class OtiNanaiWeb implements Runnable {
 					setUnits=true;
 					nextWordIsUnit=true;
 					continue;
+                                case "--multip":
+                                case "--setmultip":
+                                case "--multiplier":
+                                case "--setmultiplier":
+                                        setMultip=true;
+                                        nextWordIsMultip=true;
+                                        continue;
                                 case "--limit":
                                         nextWordIsLimit=true;
                                         continue;
@@ -952,6 +964,17 @@ class OtiNanaiWeb implements Runnable {
                         unitsOP = unitsOP + "</ul>\n"
                                 + commonHTML(OtiNanai.ENDBODY);
 			return unitsOP;
+		} else if (setMultip) {
+			logger.info("[Web]: Setting matching Keyword Multiplier to "+multip);
+			String multipOP = new String("<h2>Setting multiplier to "+multip+" for keywords:</h2><br />\n<ul>\n");
+			for (String kw : kws) {
+				logger.info("[Web]: Setting "+kw+" multiplier to "+multip);
+				multipOP = multipOP + "<li>"+kw+"</li>\n";
+				onl.setMultiplier(kw, multip);
+			}
+                        multipOP = multipOP + "</ul>\n"
+                                + commonHTML(OtiNanai.ENDBODY);
+			return multipOP;
 		} else if (wipe && force) {
 			logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");
 			KeyWordTracker kwt;
