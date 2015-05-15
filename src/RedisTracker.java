@@ -6,10 +6,11 @@ import redis.clients.jedis.*;
 
 class RedisTracker implements KeyWordTracker {
 
-	public RedisTracker(String key, int as, float at, int acs, String rh, Jedis j, Logger l) {
+	public RedisTracker(String key, int as, float atl, float ath, int acs, String rh, Jedis j, Logger l) {
 		mean = 0f;
 		alarmSamples = as;
-		alarmThreshold = at;
+		lowAlarmThreshold = atl;
+		highAlarmThreshold = ath;
 		alarmConsecutiveSamples = acs;
 		lowAlarmCount = 0;
 		highAlarmCount = 0;
@@ -268,29 +269,25 @@ class RedisTracker implements KeyWordTracker {
                                 zeroPct = 100.0f * ((float)zeroesCount / (float)sampleCount);
                         }
                 } else {
-                        if (perSec != 0f || zeroPct < 2.0f) {
-                                if (perSec <= (mean / alarmThreshold)) {
-                                        lowAlarmCount++;
-                                        highAlarmCount = 0;
-                                } else if (perSec >= (alarmThreshold*mean)) {
-                                        highAlarmCount++;
-                                        lowAlarmCount = 0;
-                                } else {
-                                        mean += (perSec-mean)/alarmSamples;
-                                        highAlarmCount = 0;
-                                        lowAlarmCount = 0;
+                        if ((perSec < (mean / lowAlarmThreshold)) && (perSec != 0f || zeroPct < 2.0f)) {
+                                lowAlarmCount++;
+                                highAlarmCount = 0;
+                        } else if (perSec > (highAlarmThreshold * mean)) {
+                                highAlarmCount++;
+                                lowAlarmCount = 0;
+                        } else {
+                                mean += (perSec-mean)/alarmSamples;
+                                highAlarmCount = 0;
+                                lowAlarmCount = 0;
+                        }
+                        if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
+                                logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount);
+                                if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
+                                        OtiNanaiNotifier onn = new OtiNanaiNotifier((highAlarmCount >= alarmConsecutiveSamples ? "High " : "Low " ) + "Alarm: *"+keyWord+" value:"+String.format("%.2f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
+                                        onn.send();
+                                        alarm=ts;
+                                        jedis.set(alarmKey, Long.toString(ts));
                                 }
-				if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
-					logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" keyWord: "+alarmKey+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount);
-					if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
-						OtiNanaiNotifier onn = new OtiNanaiNotifier("Alarm: *"+keyWord+" value:"+String.format("%.2f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
-						onn.send();
-                                                alarm=ts;
-                                                jedis.set(alarmKey, Long.toString(ts));
-					}
-				} else {
-					logger.fine("[RedisTracker]: Error threshold breached " + keyWord + " value: "+perSec +" (mean: "+mean+")");
-				}
                         }
                 }
 	}
@@ -354,7 +351,8 @@ class RedisTracker implements KeyWordTracker {
 	private long curTS;
 	private Logger logger;
 	private int alarmSamples;
-	private float alarmThreshold;
+	private float lowAlarmThreshold;
+	private float highAlarmThreshold;
 	private short recordType;
 	private int alarmConsecutiveSamples;
 	private int highAlarmCount;

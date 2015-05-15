@@ -17,10 +17,11 @@ class OtiNanaiListener implements Runnable {
 	 * @param	ps 	Number of samples to keep for preview graphs
 	 * @param	l	the logger to log to
 	 */
-	public OtiNanaiListener(DatagramSocket ds, int as, float at, int acs, Logger l, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList) {
+	public OtiNanaiListener(DatagramSocket ds, int as, float atl, float ath, int acs, Logger l, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList) {
 		logger = l;
 		alarmSamples = as;
-		alarmThreshold = at;
+		lowAlarmThreshold = atl;
+		highAlarmThreshold = ath;
 		alarmConsecutiveSamples = acs;
 		deleteLock = false;
 		rKeyList = redisKeyWordList;
@@ -43,7 +44,7 @@ class OtiNanaiListener implements Runnable {
                 }
                 for (String kw : kwtList) { 
                         logger.info("[Listener]: Creating new Tracker: "+kw);
-                        trackerMap.put(kw, new RedisTracker(kw, as, at, acs, redisHost, jedis2, logger));
+                        trackerMap.put(kw, new RedisTracker(kw, as, atl, ath, acs, redisHost, jedis2, logger));
                 }
                 if (jedis.exists(rEventList)) {
                         Long tts = 0l;
@@ -134,7 +135,7 @@ class OtiNanaiListener implements Runnable {
 			KeyWordTracker kwt = getKWT(kw);
 			if (kwt == null) {
 				logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
-                                kwt = new RedisTracker(kw, alarmSamples, alarmThreshold, alarmConsecutiveSamples, redisHost, jedis2, logger);
+                                kwt = new RedisTracker(kw, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, redisHost, jedis2, logger);
 				kwt.setType(recType);
 			}
 
@@ -242,7 +243,8 @@ class OtiNanaiListener implements Runnable {
 	private HashMap<String,KeyWordTracker> trackerMap;
 	private int port;
 	private int alarmSamples;
-	private float alarmThreshold;
+	private float lowAlarmThreshold;
+	private float highAlarmThreshold;
 	private int alarmConsecutiveSamples;
 	private DatagramSocket dataSocket;
 	private Logger logger;

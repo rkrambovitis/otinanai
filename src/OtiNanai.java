@@ -23,7 +23,7 @@ class OtiNanai {
 	 * @param	webPort	The web interface port
 	 * @param	webThreads	The number of web listener threads
 	 */
-	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float alarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList){
+	public OtiNanai(int listenerPort, int listenerThreads, int webPort, int webThreads, long cacheTime, int cacheItems, int alarmSamples, float lowAlarmThreshold, float highAlarmThreshold, int alarmConsecutiveSamples, String logFile, String logLevel, String bucketName, String redisHost, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList){
 		setupLogger(logFile, logLevel);
 		try {
 			// Listener
@@ -35,7 +35,8 @@ class OtiNanai {
 			logger.config("[Init]: cacheTime "+cacheTime + "ms");
 			logger.config("[Init]: cacheItems "+cacheItems);
 			logger.config("[Init]: alarmSamples: "+alarmSamples);
-			logger.config("[Init]: alarmThreshold: "+alarmThreshold);
+			logger.config("[Init]: lowAlarmThreshold: "+lowAlarmThreshold);
+			logger.config("[Init]: highAlarmThreshold: "+highAlarmThreshold);
 			logger.config("[Init]: alarmLife: "+ALARMLIFE + "ms");
 			logger.config("[Init]: alarmConsecutiveSamples: "+alarmConsecutiveSamples);
 			logger.config("[Init]: logFile: "+logFile);
@@ -50,7 +51,7 @@ class OtiNanai {
 			logger.config("[Init]: Web url: "+WEBURL);
 
 			DatagramSocket ds = new DatagramSocket(listenerPort);
-			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logger, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
+			OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, logger, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
 			new Thread(onl).start();
 
 			// Ticker
@@ -136,7 +137,9 @@ class OtiNanai {
 		Long cacheTime = 120000L;
 		Long alarmLife = 86400000L;
 		int alarmSamples = 20;
-		float alarmThreshold = 3.0f;
+		float lowAlarmThreshold = 15.0f;
+		float highAlarmThreshold = 6.0f;
+                float parsedFloat = 0f;
 		int cacheItems = 50; 
 		int alarmConsecutiveSamples = 3;
 		String bucketName = new String("OtiNanai");
@@ -199,14 +202,23 @@ class OtiNanai {
 						alarmSamples = Integer.parseInt(args[i]);
 						System.out.println("alarmSamples = " + alarmSamples);
 						break;
-					case "-at":
+					case "-atl":
 						i++;
-						alarmThreshold = Float.parseFloat(args[i]);
-                                                if (alarmThreshold <= 0f) {
-                                                        alarmThreshold = 3.0f;
-                                                        System.out.println("Invalid Alarm Threshold given. Using default value");
-                                                }
-						System.out.println("alarmThreshold = " + alarmThreshold);
+						parsedFloat = Float.parseFloat(args[i]);
+                                                if (parsedFloat <= 0f) 
+                                                        System.out.println("Invalid Low Alarm Threshold given.");
+                                                else 
+                                                        lowAlarmThreshold = parsedFloat;
+						System.out.println("lowAlarmThreshold = " + lowAlarmThreshold);
+						break;
+					case "-ath":
+						i++;
+						parsedFloat = Float.parseFloat(args[i]);
+                                                if (parsedFloat <= 0f)
+                                                        System.out.println("Invalid Alarm Threshold given.");
+                                                else
+                                                        highAlarmThreshold = parsedFloat;
+						System.out.println("highAlarmThreshold = " + highAlarmThreshold);
 						break;
 					case "-acs":
 						i++;
@@ -309,7 +321,8 @@ class OtiNanai {
 								+"-ci <cacheItems>      : How many pages to store in cache (default: 50)\n"
 								+"-al <alarmLife>       : How long (seconds) an alarm state remains (default: 86400)\n"
 								+"-as <alarmSamples>    : Minimum samples before considering for alarm (default: 20)\n"
-								+"-at <alarmThreshold>  : Alarm threshold multiplier (how many times above/below average is an alarm) (default: 3.0)\n"
+								+"-atl <lowAlarmThreshold>  : Low alarm threshold multiplier (how many times below mean value is alarm) (default: 10)\n"
+								+"-ath <highAlarmThreshold>  : High alarm threshold multiplier (how many times above mean value is alarm) (default: 6)\n"
 								+"-acs <alarmConsecutiveSamples>    : How many consecutive samples above threshold trigger alarm state (default: 3)\n"
 								+"-notify <notifyScript>            : Script to use for alarms (default: /tmp/otinanai_notifier)\n"
 								+"-gpp <graphsPerPage>  : Max graphs per page (default: 30)\n"
@@ -343,7 +356,7 @@ class OtiNanai {
 		NOTIFYSCRIPT = notifyScript;
 		ALARMLIFE = alarmLife;
 
-		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, alarmThreshold, alarmConsecutiveSamples, logFile, logLevel, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
+		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, logFile, logLevel, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList);
 	}
 
 	/**

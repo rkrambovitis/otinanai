@@ -93,7 +93,6 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	* https://otinanai-demo.phaistosnetworks.gr/?q=%5Eredis+%2Bkeyspace+--stack
 	* Send your own data to /dev/udp/217.199.165.34/9876
 
-
 ## Command line arguments ##
 	-help 	: This output
 	-wp <webPort>         : Web Interface Port (default: 9876)
@@ -104,7 +103,8 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	-ci <cacheItems>      : How many pages to store in cache (default: 50)
 	-al <alarmLife>       : How long (seconds) an alarm state remains (default: 86400)
 	-as <alarmSamples>    : Minimum samples before considering for alarm (default: 20)
-	-at <alarmThreshold>  : Alarm threshold multiplier (how many times above/below average is an alarm) (default: 3.0)
+	-atl <lowAlarmThreshold>   : Low alarm threshold multiplier (how many times below mean is alarm) (default: 10)
+	-ath <highAlarmThreshold>  : High alarm threshold multiplier (how many times above mean is alarm) (default: 6)
 	-acs <alarmConsecutiveSamples>    : How many consecutive samples above threshold trigger alarm state (default: 3)
 	-notify <notifyScript>            : Script to use for alarms (default: /tmp/otinanai_notifier)
 	-gpp <graphsPerPage>  : Max graphs per page (default: 30)
