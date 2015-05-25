@@ -77,8 +77,8 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	* `--nb|--no-bar|--ns|--no-search` (Do not show the search bar - for embedding)
 	* `--units <somethings>` (Set the matching keywords units to <somethings>)
 	* `--multiplier number` (Set the matching keywords multiplier to <number> (for converting bytes etc))
-        * `--noalarm|--na` (disable alarm for matching keywords)
-        * `--enable-alarm|--enalarm|--ea` (enable alarm for matching keywords) (alarms are ON by default)
+	* `--noalarm|--na` (disable alarm for matching 
+	* `--enable-alarm|--enalarm|--ea` (enable alarm for matching keywords) (alarms are ON by default)
 
 + Examples:
 	* `.com$ +mysite`
@@ -88,7 +88,7 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	* `dataroom.temperature --units celcius`
 	* `some.keyword @1d-3d`
 	* `apache.vhosts --merge --limit 6`
-        * `^snmp --noalarm`
+	* `^snmp --noalarm`
 
 ### Demo ###
 + Point your browser to https://otinanai-demo.phaistosnetworks.gr
