@@ -690,6 +690,8 @@ class OtiNanaiWeb implements Runnable {
 		String units = new String();
                 int graphLimit = 0;
                 float multip = 1f;
+                boolean disableAlarm = false;
+                boolean enableAlarm = false;
 
 		for (String word : keyList) {
 			if (nextWordIsUnit) {
@@ -733,6 +735,17 @@ class OtiNanaiWeb implements Runnable {
 				case "--delete":
 					wipe = true;
 					continue;
+                                case "--no-alarm":
+                                case "--noalarm":
+                                case "--na":
+                                case "--da":
+                                        disableAlarm = true;
+                                        continue;
+                                case "--enable-alarm":
+                                case "--enalarm":
+                                case "--ea":
+                                        enableAlarm = true;
+                                        continue;
 				case "--units":
 				case "--setunits":
 				case "--unit":
@@ -953,6 +966,18 @@ class OtiNanaiWeb implements Runnable {
 					logger.info("[Web]: Alarm for "+kw);
 				}
 			}
+                } else if (enableAlarm || disableAlarm) {
+                        boolean onOrOff = (enableAlarm ? true : false);
+                        logger.info("[Web]: Setting alarmEnabled for matching keywords to "+onOrOff);
+                        String listOP = new String("<h2>Setting alarmEnabled to "+onOrOff+" for keywords:</h2><br />\n<ul>\n");
+                        for (String kw : kws) {
+                                logger.info("[Web]: Setting alarmEnabled for "+kw+" to "+onOrOff);
+                                listOP = listOP + "<li>"+kw+"</li>\n";
+                                onl.enableAlarm(kw, onOrOff);
+                        }
+                        listOP = listOP + "</ul>\n"
+                                + commonHTML(OtiNanai.ENDBODY);
+                        return listOP;
 		} else if (setUnits) {
 			logger.info("[Web]: Setting matching Keyword Units to "+units);
 			String unitsOP = new String("<h2>Setting units to "+units+" for keywords:</h2><br />\n<ul>\n");

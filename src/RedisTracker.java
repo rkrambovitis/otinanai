@@ -9,6 +9,7 @@ class RedisTracker implements KeyWordTracker {
 	public RedisTracker(String key, int as, float atl, float ath, int acs, String rh, Jedis j, Logger l) {
 		mean = 0f;
 		alarmSamples = as;
+                alarmEnabled = true;
 		lowAlarmThreshold = atl;
 		highAlarmThreshold = ath;
 		alarmConsecutiveSamples = acs;
@@ -19,6 +20,7 @@ class RedisTracker implements KeyWordTracker {
 		logger = l;
 		redisHost = rh;
 		jedis = j;
+                jedisRetries = 2;
 		sampleCount = 1;
 		currentFloat = 0f;
 		currentDataCount = 0;
@@ -29,6 +31,12 @@ class RedisTracker implements KeyWordTracker {
 		step1Key = keyWord + "thirtySec";
 		step2Key = keyWord + "fiveMin";
 		step3Key = keyWord + "thirtyMin";
+
+                alarmDisabled = keyWord+"alarmDisabled";
+                if (jedis.exists(alarmDisabled)) {
+                        alarmEnabled = false;
+                }
+
 		alarmKey = keyWord + "alarmTS";
                 try {
                         String alarmSaved = jedis.get(alarmKey);
@@ -254,53 +262,56 @@ class RedisTracker implements KeyWordTracker {
 		 * Alarm detection
 		 */
 
-                if (mean == 0f && perSec != 0f) {
-			logger.fine("[RedisTracker]: mean is 0, setting new value");
-			mean = perSec;
-			sampleCount = 1;
-                        return;
-                } 
+                if (alarmEnabled) {
+                        if (mean == 0f && perSec != 0f) {
+                                logger.fine("[RedisTracker]: mean is 0, setting new value");
+                                mean = perSec;
+                                sampleCount = 1;
+                                return;
+                        }
 
-		if ( sampleCount < alarmSamples ) {
-			sampleCount++;
-			mean += (perSec-mean)/alarmSamples;
-                        if (perSec == 0f) {
-                                zeroesCount ++;
-                                zeroPct = 100.0f * ((float)zeroesCount / (float)sampleCount);
-                        }
-                } else {
-                        if ((perSec < (mean / lowAlarmThreshold)) && (perSec != 0f || zeroPct < 2.0f)) {
-                                lowAlarmCount++;
-                                highAlarmCount = 0;
-                        } else if (perSec > (highAlarmThreshold * mean)) {
-                                highAlarmCount++;
-                                lowAlarmCount = 0;
+                        if ( sampleCount < alarmSamples ) {
+                                sampleCount++;
+                                mean += (perSec-mean)/alarmSamples;
+                                if (perSec == 0f) {
+                                        zeroesCount ++;
+                                        zeroPct = 100.0f * ((float)zeroesCount / (float)sampleCount);
+                                }
                         } else {
-                                if (perSec != 0f)
-                                        mean += (perSec-mean)/alarmSamples;
-                                highAlarmCount = 0;
-                                lowAlarmCount = 0;
-                        }
-                        if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
-                                if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
-                                        logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount+" highCount: "+highAlarmCount+" lowCount: "+lowAlarmCount);
-                                        OtiNanaiNotifier onn = new OtiNanaiNotifier((highAlarmCount >= alarmConsecutiveSamples ? "High " : "Low " ) + "Alarm: *"+keyWord+" value:"+String.format("%.2f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
-                                        onn.send();
-                                        alarm=ts;
-                                        jedis.set(alarmKey, Long.toString(ts));
+                                if ((perSec < (mean / lowAlarmThreshold)) && (perSec != 0f || zeroPct < 2.0f)) {
+                                        lowAlarmCount++;
+                                        highAlarmCount = 0;
+                                } else if (perSec > (highAlarmThreshold * mean)) {
+                                        highAlarmCount++;
+                                        lowAlarmCount = 0;
+                                } else {
+                                        if (perSec != 0f)
+                                                mean += (perSec-mean)/alarmSamples;
+                                        highAlarmCount = 0;
+                                        lowAlarmCount = 0;
+                                }
+                                if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
+                                        if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
+                                                logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount+" highCount: "+highAlarmCount+" lowCount: "+lowAlarmCount);
+                                                OtiNanaiNotifier onn = new OtiNanaiNotifier((highAlarmCount >= alarmConsecutiveSamples ? "High " : "Low " ) + "Alarm: *"+keyWord+" value:"+String.format("%.2f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
+                                                onn.send();
+                                                alarm=ts;
+                                                jedis.set(alarmKey, Long.toString(ts));
+                                        }
                                 }
                         }
                 }
 	}
 
 	public long getAlarm() {
+                if (!alarmEnabled)
+                        return 0L;
 		return alarm;
 	}
 
 	public ArrayList<String> getMemory(Long startTime) {
 		ArrayList<String> returner = new ArrayList<String>();
-                int maxtries = 3;
-                for (int i=0;i<maxtries;i++) {
+                for (int i=0;i<jedisRetries;i++) {
                         try {
                                 returner.addAll(jedis.lrange(step1Key,0,-1));
 
@@ -344,7 +355,25 @@ class RedisTracker implements KeyWordTracker {
 			recordType = type;
 	}
 
-	private long alarm;
+        public void enableAlarm(boolean onOrOff) {
+                for (int i=0;i<jedisRetries;i++) {
+                        try {
+                                if (alarmEnabled && (onOrOff == false)) {
+                                        jedis.set(alarmDisabled, "true");
+                                        break;
+                                } else if (!alarmEnabled && (onOrOff == true)) {
+                                        jedis.del(alarmDisabled);
+                                        break;
+                                }
+                        } catch (Exception e) {
+                                logger.severe("[RedisTracker]: enableAlarm(): "+keyWord + ": "+e);
+                                System.err.println("[RedisTracker]: enableAlarm(): "+keyWord + ": "+e);
+                                resetJedis();
+                        }
+                }
+        }
+
+        private int jedisRetries;
 	private String keyWord;
 	private long currentCount;
 	private float mean;
@@ -357,13 +386,15 @@ class RedisTracker implements KeyWordTracker {
 	private long lastTimeStamp;
 	private long curTS;
 	private Logger logger;
+	private long alarm;
+        private boolean alarmEnabled;
 	private int alarmSamples;
 	private float lowAlarmThreshold;
 	private float highAlarmThreshold;
-	private short recordType;
 	private int alarmConsecutiveSamples;
 	private int highAlarmCount;
 	private int lowAlarmCount;
+	private short recordType;
         private int zeroesCount;
 	private Jedis jedis;
 	private String redisHost;
@@ -371,4 +402,5 @@ class RedisTracker implements KeyWordTracker {
 	private String step2Key;
 	private String step3Key;
 	private String alarmKey;
+        private String alarmDisabled;
 }

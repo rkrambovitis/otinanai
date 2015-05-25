@@ -252,6 +252,13 @@ class OtiNanaiListener implements Runnable {
 		multipMap.put(kw, multip);
                 jedis.sadd(rMultipList, kw+" "+multip);
 	}
+        
+        public void enableAlarm(String kw, boolean onOrOff) {
+                 if (kwtList.contains(kw))
+                         getKWT(kw).enableAlarm(onOrOff);
+        }
+
+
 
 	public float getMultiplier(String kw) {
 		if (multipMap.containsKey(kw)) 
