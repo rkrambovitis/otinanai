@@ -276,13 +276,14 @@ class RedisTracker implements KeyWordTracker {
                                 highAlarmCount++;
                                 lowAlarmCount = 0;
                         } else {
-                                mean += (perSec-mean)/alarmSamples;
+                                if (perSec != 0f)
+                                        mean += (perSec-mean)/alarmSamples;
                                 highAlarmCount = 0;
                                 lowAlarmCount = 0;
                         }
                         if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
-                                logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount);
                                 if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
+                                        logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount+" highCount: "+highAlarmCount+" lowCount: "+lowAlarmCount);
                                         OtiNanaiNotifier onn = new OtiNanaiNotifier((highAlarmCount >= alarmConsecutiveSamples ? "High " : "Low " ) + "Alarm: *"+keyWord+" value:"+String.format("%.2f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
                                         onn.send();
                                         alarm=ts;
@@ -298,29 +299,35 @@ class RedisTracker implements KeyWordTracker {
 
 	public ArrayList<String> getMemory(Long startTime) {
 		ArrayList<String> returner = new ArrayList<String>();
-		try {
-			returner.addAll(jedis.lrange(step1Key,0,-1));
+                int maxtries = 3;
+                for (int i=0;i<maxtries;i++) {
+                        try {
+                                returner.addAll(jedis.lrange(step1Key,0,-1));
 
-			String ldp = returner.get(returner.size()-1);
-			Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
+                                String ldp = returner.get(returner.size()-1);
+                                Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
 
-			if (lastts < startTime)
-				return returner;
+                                if (lastts < startTime)
+                                        return returner;
 
-			returner.addAll(jedis.lrange(step2Key,0,-1));
-			ldp = returner.get(returner.size()-1);
-			lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
+                                returner.addAll(jedis.lrange(step2Key,0,-1));
+                                ldp = returner.get(returner.size()-1);
+                                lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
 
-			if (lastts < startTime)
-				return returner;
+                                if (lastts < startTime)
+                                        return returner;
 
-			returner.addAll(jedis.lrange(step3Key,0,-1));
+                                returner.addAll(jedis.lrange(step3Key,0,-1));
 
-		} catch (Exception e) {
-			logger.severe("[RedisTracker]: getMemory(): "+keyWord + ": " + e);
-			System.err.println("[RedisTracker]: getMemory(): "+keyWord + ": "+e.getMessage());
-			resetJedis();
-		}
+                                break;
+
+                        } catch (Exception e) {
+                                logger.severe("[RedisTracker]: getMemory(): "+keyWord + ": " + e);
+                                System.err.println("[RedisTracker]: getMemory(): "+keyWord + ": "+e.getMessage());
+                                returner = new ArrayList<String>();
+                                resetJedis();
+                        }
+                }
 		return returner;
 	}
 
