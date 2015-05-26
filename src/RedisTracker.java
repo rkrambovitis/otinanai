@@ -285,8 +285,7 @@ class RedisTracker implements KeyWordTracker {
                                         highAlarmCount++;
                                         lowAlarmCount = 0;
                                 } else {
-                                        if (perSec != 0f)
-                                                mean += (perSec-mean)/alarmSamples;
+                                        mean += (perSec-mean)/alarmSamples;
                                         highAlarmCount = 0;
                                         lowAlarmCount = 0;
                                 }
@@ -365,6 +364,7 @@ class RedisTracker implements KeyWordTracker {
                                         jedis.del(alarmDisabled);
                                         break;
                                 }
+                                alarmEnabled = onOrOff;
                         } catch (Exception e) {
                                 logger.severe("[RedisTracker]: enableAlarm(): "+keyWord + ": "+e);
                                 System.err.println("[RedisTracker]: enableAlarm(): "+keyWord + ": "+e);
