@@ -264,10 +264,16 @@ class OtiNanaiListener implements Runnable {
                 jedis.sadd(rMultipList, kw+" "+multip);
 	}
         
-        public void enableAlarm(String kw, boolean onOrOff) {
+        public void alarmEnabled(String kw, boolean onOrOff) {
                  if (kwtList.contains(kw))
-                         getKWT(kw).enableAlarm(onOrOff);
+                         getKWT(kw).alarmEnabled(onOrOff);
         }
+
+	public boolean alarmEnabled(String kw) {
+		if (kwtList.contains(kw))
+			return getKWT(kw).alarmEnabled();
+		return false;
+	}
 
 
 

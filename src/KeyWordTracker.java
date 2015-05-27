@@ -24,7 +24,9 @@ interface KeyWordTracker {
 
         public long getAlarm() ;
 
-        public void enableAlarm(boolean onOrOff) ;
+        public void alarmEnabled(boolean onOrOff) ;
+	
+        public boolean alarmEnabled() ;
 
         public ArrayList<String> getMemory(Long startTime) ;
 

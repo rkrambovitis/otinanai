@@ -429,7 +429,8 @@ class OtiNanaiWeb implements Runnable {
 					+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
 					+ "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
 					+ "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
-					+ "+\"</span><span id=output_values> samples:\" + "+graphData[6]
+					+ "+\"</span><span id=output_values> samples:\" + " + graphData[6]
+					+ "+\"</span><span> alarm:\" + " + onl.alarmEnabled(kw)
 					+ "+\"</span>\""
 					+ ");"
 					+ "</script>"
@@ -981,7 +982,7 @@ class OtiNanaiWeb implements Runnable {
                         for (String kw : kws) {
                                 logger.info("[Web]: Setting alarmEnabled for "+kw+" to "+onOrOff);
                                 listOP = listOP + "<li>"+kw+"</li>\n";
-                                onl.enableAlarm(kw, onOrOff);
+                                onl.alarmEnabled(kw, onOrOff);
                         }
                         listOP = listOP + "</ul>\n"
                                 + commonHTML(OtiNanai.ENDBODY);

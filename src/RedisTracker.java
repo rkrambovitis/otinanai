@@ -354,7 +354,11 @@ class RedisTracker implements KeyWordTracker {
 			recordType = type;
 	}
 
-        public void enableAlarm(boolean onOrOff) {
+        public boolean alarmEnabled() {
+		return alarmEnabled;
+	}
+
+        public void alarmEnabled(boolean onOrOff) {
                 for (int i=0;i<jedisRetries;i++) {
                         try {
                                 if (alarmEnabled && (onOrOff == false)) {
@@ -366,8 +370,8 @@ class RedisTracker implements KeyWordTracker {
                                 }
                                 alarmEnabled = onOrOff;
                         } catch (Exception e) {
-                                logger.severe("[RedisTracker]: enableAlarm(): "+keyWord + ": "+e);
-                                System.err.println("[RedisTracker]: enableAlarm(): "+keyWord + ": "+e);
+                                logger.severe("[RedisTracker]: alarmEnabled(): "+keyWord + ": "+e);
+                                System.err.println("[RedisTracker]: alarmEnabled(): "+keyWord + ": "+e);
                                 resetJedis();
                         }
                 }
