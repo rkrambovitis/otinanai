@@ -527,42 +527,50 @@ class OtiNanaiWeb implements Runnable {
 		return new String("unset");
 	}
 
-	private TreeMap<String, Integer> subTree(ArrayList<String> kws, String start) {
-		TreeMap<String, Integer> sortedKeys = new TreeMap<String, Integer>();
-		String portion = new String();
+	private String kwTree(ArrayList<String> kws, String[] existingKeyWords, ArrayList<String> words) {
+		HashMap<String, Integer> keyMap = new HashMap<String, Integer>();
+		String tmp;
+		int sofar;
+		int totalCount = kws.size();
+		int length = 0;
+		int nextDot = 0;
+		for (String word : words) {
+			//System.out.println(word);
+			ArrayList<String> tmpAS = new ArrayList<String>();
+			tmpAS.addAll(kws);
+			for (String kw : tmpAS) {
+				if (kw.contains(word)) {
+					length=kw.indexOf(word)+word.length();
+					nextDot=kw.indexOf(".", length+1);
+					if (nextDot > 0)
+						tmp = kw.substring(0,nextDot);
+					else
+						tmp = kw.substring(0,length);
+					sofar = 0;
+					if (keyMap.containsKey(tmp)) {
+						sofar = keyMap.get(tmp);
+					}
+					keyMap.put(tmp, ++sofar);
+					kws.remove(kw);
+				}
+			}
+		}
 		for (String kw : kws) {
-
-			if (!start.equals("")) {
-				if (kw.startsWith(start))
-					kw = kw.replaceFirst(start, "");
-
-				if (kw.startsWith("."))
-					kw = kw.substring(1);
+			if (kw.contains("."))
+				tmp = kw.substring(0, kw.indexOf("."));
+			else
+				tmp = kw;
+			sofar = 0;
+			if (keyMap.containsKey(tmp)) {
+				sofar = keyMap.get(tmp);
 			}
-
-			if (kw.contains(".")) {
-				portion = kw.substring(0, kw.indexOf("."));
-			} else {
-				portion = kw;
-			}
-			if (!start.equals("")) 
-				portion = start + "." + portion;
-
-			int sofar = 0;
-			if (sortedKeys.containsKey(portion)) {
-				sofar = sortedKeys.get(portion);
-			} 
-			sortedKeys.put(portion, ++sofar);
+			keyMap.put(tmp, ++sofar);
 		}
-		return sortedKeys;
-	}
 
-	private String kwTree(ArrayList<String> kws, String[] existingKeyWords) {
-		TreeMap<String, Integer> sortedKeys = new TreeMap<String, Integer>();
-		sortedKeys = subTree(kws, "");
-		while (sortedKeys.size() == 1) {
-			sortedKeys = subTree(kws, sortedKeys.firstKey());
-		}
+		ValueComparator vc = new ValueComparator(keyMap);
+		TreeMap <String, Integer> sortedKeys = new TreeMap<String, Integer>(vc);
+		sortedKeys.putAll(keyMap);
+
 		String oldKeys = new String();
 		for (String foo : existingKeyWords) {
 			oldKeys = oldKeys + foo + " ";
@@ -570,12 +578,10 @@ class OtiNanaiWeb implements Runnable {
 		oldKeys = oldKeys.substring(0,oldKeys.length()-1);
 
 		String output = commonHTML(OtiNanai.ENDHEAD)
-			//+ commonHTML(OtiNanai.GPSCRIPT)
-			+ "<ul><li><a href=\""+oldKeys + " --sa\">Show All (slow) (--sa) "+kws.size()+"</a></li>\n";
+			+ "<ul><li><a href=\""+oldKeys + " --sa --merge\">Show All (slow) (--sa) "+totalCount+"</a></li>\n";
 
-		for (String key : sortedKeys.keySet()) {
-			//output = output + "<li><a href=\""+oldKeys + " +^"+key+"\">"+key+" "+sortedKeys.get(key)+"</a></li>\n";
-			output = output + "<li><a href=\"^"+key+"\">"+key+" "+sortedKeys.get(key)+"</a></li>\n";
+		for (String key : sortedKeys.descendingKeySet()) {
+			output = output + "<li><a href=\"^"+key+"\">^"+key+" "+keyMap.get(key)+"</a></li>\n";
 		}
 		output = output + "</ul>\n" + commonHTML(OtiNanai.ENDBODY);
 		return output;
@@ -666,6 +672,7 @@ class OtiNanaiWeb implements Runnable {
 		LLString allKWTs = new LLString();
 		allKWTs.addAll(onl.getKWTList());
 		ArrayList<String> kws = new ArrayList<String>();
+		ArrayList<String> words = new ArrayList<String>();
 
 		String firstChar = new String();
 		String secondChar = new String();
@@ -948,10 +955,11 @@ class OtiNanaiWeb implements Runnable {
 				}
 			} else {
 				for (String kw : allKWTs ) {
-					if ((kw.contains(word) || rest.equals("*")) && !kws.contains(kw)) 
+					if ((kw.contains(word) || rest.equals("*")) && !kws.contains(kw))
 						kws.add(kw);
 				}
 			}
+			words.add(rest);
 		}
 		if (showAlarms) {
 			long timeNow = System.currentTimeMillis();
@@ -1024,7 +1032,7 @@ class OtiNanaiWeb implements Runnable {
 		}
 		if (!showAll && kws.size() > OtiNanai.MAXPERPAGE) {
 			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
-			return kwTree(kws, keyList);
+			return kwTree(kws, keyList, words);
 		}
 		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit);
 		onc.cache(input, op);

@@ -32,15 +32,20 @@ class OtiNanaiListener implements Runnable {
                 jedis = new Jedis(redisHost);
                 jedis2 = new Jedis(redisHost);
                 kwtList = new LLString();
+		System.out.println("Loading keys from redis keylist: "+rKeyList);
                 if (jedis.exists(rKeyList)) {
                         for (String s : jedis.smembers(rKeyList)) {
                                 kwtList.add(s);
                         }
                 }
+		System.out.println("Done");
+		System.out.println("Loading existing keywords");
                 for (String kw : kwtList) { 
                         logger.info("[Listener]: Creating new Tracker: "+kw);
                         trackerMap.put(kw, new RedisTracker(kw, as, atl, ath, acs, redisHost, jedis2, logger));
                 }
+		System.out.println("Done");
+		System.out.println("Loading events from eventlist: "+rEventList);
                 if (jedis.exists(rEventList)) {
                         Long tts = 0l;
                         String tev = new String();
@@ -50,6 +55,8 @@ class OtiNanaiListener implements Runnable {
                                 eventMap.put(tts, tev);
                         }
                 }
+		System.out.println("Done");
+		System.out.println("Loading units from unitlist: "+rUnitList);
                 if (jedis.exists(rUnitList)) {
                         String kw = new String();
                         String unit = new String();
@@ -59,6 +66,8 @@ class OtiNanaiListener implements Runnable {
                                 unitMap.put(kw, unit);
                         }
                 }
+		System.out.println("Done");
+		System.out.println("Loading multipliers from multiplierlist: "+rMultipList);
                 if (jedis.exists(rMultipList)) {
                         String kw = new String();
                         float multip = 1f;
@@ -72,8 +81,10 @@ class OtiNanaiListener implements Runnable {
                                 }
                         }
                 }
+		System.out.println("Done");
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
+		System.out.println("Listener Initialized");
 	}
 
 	/**
