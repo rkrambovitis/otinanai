@@ -341,6 +341,7 @@ class OtiNanaiWeb implements Runnable {
 		}
 
 		String output;
+		String nodata = new String();
 		String body = new String("");
 		String[] graphData;
                 int drawnGraphs = 0;
@@ -361,6 +362,7 @@ class OtiNanaiWeb implements Runnable {
 				graphData = toGraph(kwt, type, startTime, endTime, maxMergeCount);
 				if (graphData[6].equals("0")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points. - 0");
+					nodata = nodata + "No data in timerange for "+kw+"<br>";
 					continue;
 				}
 				output = output
@@ -400,6 +402,7 @@ class OtiNanaiWeb implements Runnable {
 				String kw = kwt.getKeyWord();
 				if (graphData[6].equals("0") || graphData[6].equals("1")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
+					nodata = nodata + "No data in timerange for "+kw+"<br>";
 					continue;
 				}
 
@@ -462,6 +465,7 @@ class OtiNanaiWeb implements Runnable {
 				String kw = kwt.getKeyWord();
 				if (graphData[6].equals("0") || graphData[6].equals("1")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
+					nodata = nodata + "No data in timerange for "+kw+"<br>";
 					continue;
 				}
 				dataMap.put(kw, graphData);
@@ -512,6 +516,7 @@ class OtiNanaiWeb implements Runnable {
 				+ commonHTML(OtiNanai.ENDJS)
 				+ commonHTML(OtiNanai.ENDHEAD)
 				+ body
+				+ (nodata.length() > 1 ? nodata : "")
 				+ commonHTML(OtiNanai.ENDBODY);
 		}
 
@@ -529,7 +534,7 @@ class OtiNanaiWeb implements Runnable {
 	}
 
 	private String kwTree(ArrayList<String> kws, String[] existingKeyWords, ArrayList<String> words) {
-		HashMap<String, Integer> keyMap = new HashMap<String, Integer>();
+		TreeMap<String, Integer> keyMap = new TreeMap<String, Integer>();
 		String tmp;
 		int sofar;
 		int totalCount = kws.size();
@@ -568,9 +573,9 @@ class OtiNanaiWeb implements Runnable {
 			keyMap.put(tmp, ++sofar);
 		}
 
-		ValueComparator vc = new ValueComparator(keyMap);
-		TreeMap <String, Integer> sortedKeys = new TreeMap<String, Integer>(vc);
-		sortedKeys.putAll(keyMap);
+		//ValueComparator vc = new ValueComparator(keyMap);
+		//TreeMap <String, Integer> sortedKeys = new TreeMap<String, Integer>(vc);
+		//sortedKeys.putAll(keyMap);
 
 		String oldKeys = new String();
 		for (String foo : existingKeyWords) {
@@ -581,7 +586,7 @@ class OtiNanaiWeb implements Runnable {
 		String output = commonHTML(OtiNanai.ENDHEAD)
 			+ "<ul><li><a href=\""+oldKeys + " --sa --merge\">Show All (slow) (--sa) "+totalCount+"</a></li>\n";
 
-		for (String key : sortedKeys.descendingKeySet()) {
+		for (String key : keyMap.keySet()) {
 			output = output + "<li><a href=\"^"+key+"\">^"+key+" "+keyMap.get(key)+"</a></li>\n";
 		}
 		output = output + "</ul>\n" + commonHTML(OtiNanai.ENDBODY);
