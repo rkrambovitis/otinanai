@@ -587,7 +587,7 @@ class OtiNanaiWeb implements Runnable {
 			+ "<ul><li><a href=\""+oldKeys + " --sa --merge\">Show All (slow) (--sa) "+totalCount+"</a></li>\n";
 
 		for (String key : keyMap.keySet()) {
-			output = output + "<li><a href=\"^"+key+"\">^"+key+" "+keyMap.get(key)+"</a></li>\n";
+			output = output + "<li><a href=\"^"+key+" --merge\">^"+key+" "+keyMap.get(key)+"</a></li>\n";
 		}
 		output = output + "</ul>\n" + commonHTML(OtiNanai.ENDBODY);
 		return output;
