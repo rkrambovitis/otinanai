@@ -57,8 +57,11 @@ class OtiNanai {
 
 			// Ticker
 			logger.config("[Init]: Setting up ticker");
-			OtiNanaiTicker ont = new OtiNanaiTicker(onl, logger);
-			new Thread(ont).start();
+                        if (TICKER_INTERVAL > 0) {
+                                OtiNanaiTicker ont = new OtiNanaiTicker(onl, logger);
+                                new Thread(ont).start();
+                        } else
+                                System.err.println("[Init]: Ticker Disabled");
 
 			// Cacher
 			logger.config("[Init]: Setting up cacher (life: " +cacheTime+ " items: "+cacheItems+")");
