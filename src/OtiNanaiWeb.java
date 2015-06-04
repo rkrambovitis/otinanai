@@ -325,7 +325,7 @@ class OtiNanaiWeb implements Runnable {
 		return marktext;
 	}
 
-	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit) {
+	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit, boolean autoRefresh) {
 		ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
 		LLString kwtList = onl.getKWTList();
 
@@ -391,7 +391,9 @@ class OtiNanaiWeb implements Runnable {
 				+ commonHTML(OtiNanai.ENDBODY);
 
 		} else if (type == OtiNanai.GRAPH_PREVIEW) {
-			output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_PREVIEW);
+			output = commonHTML(OtiNanai.FLOT) 
+                                + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "")
+                                + commonHTML(OtiNanai.FLOT_PREVIEW);
 
 			output = output+ commonHTML(OtiNanai.JS)
 				+ getMarkings(showEvents, startTime, endTime)
@@ -451,7 +453,9 @@ class OtiNanaiWeb implements Runnable {
 				output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_STACKED);
 			else
 			*/
-			output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_MERGED);
+			output = commonHTML(OtiNanai.FLOT) 
+                                + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "")
+                                + commonHTML(OtiNanai.FLOT_MERGED);
 
 			output = output+ commonHTML(OtiNanai.JS)
 				+ getMarkings(showEvents, startTime, endTime)
@@ -705,6 +709,7 @@ class OtiNanaiWeb implements Runnable {
                 float multip = 1f;
                 boolean disableAlarm = false;
                 boolean enableAlarm = false;
+                boolean autoRefresh = false;
 
 		for (String word : keyList) {
 			if (nextWordIsUnit) {
@@ -803,6 +808,11 @@ class OtiNanaiWeb implements Runnable {
 					logger.info("[Web]: Showing Events");
 					showEvents = false;
 					continue;
+                                case "--auto-refresh":
+                                case "--refresh":
+                                case "--ar":
+                                        autoRefresh = true;
+                                        continue;
 				case "--no-search":
 				case "--no-bar":
 				case "--ns":
@@ -1040,7 +1050,7 @@ class OtiNanaiWeb implements Runnable {
 			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
 			return kwTree(kws, keyList, words);
 		}
-		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit);
+		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit, autoRefresh);
 		onc.cache(input, op);
 		return op;
 	}
