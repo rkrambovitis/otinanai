@@ -598,16 +598,8 @@ class OtiNanaiWeb implements Runnable {
 		if (out == OtiNanai.HEADER) {
 			return new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
 					+ "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n");
-		} else if (out == OtiNanai.GOOGLE) {
-			return new String("<script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n");
 		} else if (out == OtiNanai.ENDHEAD) {
 			return new String("</head>\n<body>\n");
-		} else if (out == OtiNanai.GPSCRIPT) {
-			return new String("<script>\n\tdocument.body.addEventListener('click', function (event) {\n"
-					+ "\t\tif (event.target.nodeName !== 'A') {\n"
-					+ "\t\t\treturn false;\n\t\t}\n"
-					+ "\t\t(window.parent || window.opener).onReceive(event.target);\n\t}, false);\n"
-					+ "</script>\n");
 		} else if (out == OtiNanai.ENDBODY) {
 			return new String("</body></html>\n");
 		} else if (out == OtiNanai.REFRESH) {
