@@ -426,6 +426,7 @@ class OtiNanai {
 	public static final short GRAPH_PREVIEW=2;
 	public static final short GRAPH_MERGED=3;
 	public static final short GRAPH_GAUGE=4;
+	public static final short GRAPH_STACKED=5;
 
 	public static final short HEADER = 1;
 	public static final short ENDHEAD = 2;
