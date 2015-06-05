@@ -457,10 +457,12 @@ class OtiNanaiWeb implements Runnable {
                                 + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "")
                                 + commonHTML(OtiNanai.FLOT_MERGED);
 
+			int idx = (new Random()).nextInt(200);
 			output = output+ commonHTML(OtiNanai.JS)
 				+ getMarkings(showEvents, startTime, endTime)
 				+ "var maxMergeCount = "+maxMergeCount+";\n"
 				+ "var stackedGraph = "+(type == OtiNanai.GRAPH_STACKED)+";\n"
+                                + "var idx = "+idx+";\n"
 				+ "var datasets = {\n";
 
 			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
@@ -496,6 +498,7 @@ class OtiNanaiWeb implements Runnable {
 					+ "label: \""+kw+" "+onl.getUnits(kw)+"\",\n";
 					//+ "label: \""+kw+" = 000.000 k \",\n";
 
+				
 				output = output + "nn:  "+ graphData[11] +",\n";
 
 				output = output + "data: ["
@@ -510,7 +513,7 @@ class OtiNanaiWeb implements Runnable {
 			for (int j = 0 ; j < graphCount ; j++) {
 				body = body
 					+ "<div>\n"
-					+ "\t<div id=\"placeholder_"+j+"\" class=\"mergedGraph\"></div>\n"
+					+ "\t<div id=\"placeholder_"+(idx+j)+"\" class=\"mergedGraph\"></div>\n"
 					+ "</div>\n";
 			}
 		}

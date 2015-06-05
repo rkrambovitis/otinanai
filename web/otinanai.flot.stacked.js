@@ -58,15 +58,15 @@ $(function() {
 			var x = item.datapoint[0], y = item.datapoint[1];
 			var tot = pos.y;
 
-			$("#tooltip").html(addSuffix(tot))
+			$(".tooltip").html(addSuffix(tot))
 		.css({top: item.pageY+10, left: item.pageX+10})
 		.fadeIn(10);
 		} else {
-			$("#tooltip").hide();
+			$(".tooltip").hide();
 		}
 	});
 
-	$("<div id='tooltip'></div>").css({
+	$("<div class='tooltip'></div>").css({
 		position: "absolute",
 		display: "none",
 		border: "1px solid #fdd",

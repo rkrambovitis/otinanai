@@ -3,7 +3,8 @@ $(function() {
    $.each(datasets, function(key, val) {
       val.color = i;++i;
    });
-   $("<div id='tooltip'></div>").css({
+
+   $("<div class='tooltip'></div>").css({
       position: "absolute",
       display: "none",
       border: "1px solid #fdd",
@@ -14,7 +15,7 @@ $(function() {
 
    function drawGraphs() {
       var it=0;
-      var ph=0;
+      var ph=idx;
       var data = [];
       var maxy = null;
       $.each(datasets, function(key, val) {
@@ -30,7 +31,7 @@ $(function() {
          it++;
 
          if ( (it % maxMergeCount == 0) || it == Object.keys(datasets).length) {
-            $.plot($("#placeholder_"+ph), data, {
+            $.plot(window.$("#placeholder_"+ph), data, {
                xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: null, max: null },
                yaxis: { show: true, tickFormatter: addSuffix, min: null, max: maxy},
                grid: { hoverable: true, autoHighlight: false, clickable: true},
@@ -39,15 +40,14 @@ $(function() {
                series: { stack: stackedGraph, lines: {show: true, fill: stackedGraph}}
             //selection: { mode: "xy" }
             });
-            $("#placeholder_"+ph).bind("plothover", function (event, pos, item) {
+            window.$("#placeholder_"+ph).bind("plothover", function (event, pos, item) {
                if (item) {
                   var x = item.datapoint[0], y = item.datapoint[1];
-
-                  $("#tooltip").html(addSuffix(y))
-               .css({top: item.pageY+10, left: item.pageX+10})
-               .fadeIn(10);
+		  window.$(".tooltip").html(addSuffix(y))
+		       .css({top: item.pageY+10, left: item.pageX+10})
+		       .fadeIn(10);
                } else {
-                  $("#tooltip").hide();
+                  window.$(".tooltip").hide();
                }
             });
 
