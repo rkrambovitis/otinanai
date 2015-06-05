@@ -72,7 +72,6 @@ class OtiNanaiWeb implements Runnable {
 					case " otinanai.flot.common.js ":
 					case " otinanai.flot.merged.js ":
 					case " otinanai.flot.preview.js ":
-					case " otinanai.flot.stacked.js ":
 					case " jquery.flot.events.js ":
 					case " jquery.js ":
 					case " jquery.min.js ":
@@ -448,11 +447,6 @@ class OtiNanaiWeb implements Runnable {
                                         break;
 			}
 		} else {
-			/*
-			if (type == OtiNanai.GRAPH_STACKED)
-				output = commonHTML(OtiNanai.FLOT) + commonHTML(OtiNanai.FLOT_STACKED);
-			else
-			*/
 			output = commonHTML(OtiNanai.FLOT) 
                                 + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "")
                                 + commonHTML(OtiNanai.FLOT_MERGED);
@@ -634,9 +628,6 @@ class OtiNanaiWeb implements Runnable {
 		} else if (out == OtiNanai.FLOT_MERGED) {
 			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.merged.js\"></script>\n");
-		} else if (out == OtiNanai.FLOT_STACKED) {
-			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.min.js\"></script>\n"
-					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.stacked.js\"></script>\n");
 		} else if (out == OtiNanai.FLOT_PREVIEW) {
 			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.preview.js\"></script>\n");
 		} else if ( out == OtiNanai.JS) {
