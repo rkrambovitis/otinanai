@@ -119,5 +119,5 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	-rdunitlist <redisUnitList>    : Name of event list for redis. (default: OtiNanai_Event_List)
 
 ## Screenshots ##
-![Screenshot from 2015-06-09 10:07:09.png](https://bitbucket.org/repo/xyeeMB/images/2390084731-Screenshot%20from%202015-06-09%2010:07:09.png)
-![Screenshot from 2015-06-09 10:15:37.png](https://bitbucket.org/repo/xyeeMB/images/69167439-Screenshot%20from%202015-06-09%2010:15:37.png)
+![varnish_scrn.png](https://bitbucket.org/repo/xyeeMB/images/1761784708-varnish_scrn.png)
+![temperature_scrn.png](https://bitbucket.org/repo/xyeeMB/images/1495285141-temperature_scrn.png)
