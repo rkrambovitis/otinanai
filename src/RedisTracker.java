@@ -292,7 +292,11 @@ class RedisTracker implements KeyWordTracker {
                                 if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
                                         if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
                                                 logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount+" highCount: "+highAlarmCount+" lowCount: "+lowAlarmCount);
-                                                OtiNanaiNotifier onn = new OtiNanaiNotifier((highAlarmCount >= alarmConsecutiveSamples ? "High " : "Low " ) + "Alarm: *"+keyWord+"* value:"+String.format("%.2f", perSec)+" (mean: "+String.format("%.3f", mean) +") url: "+OtiNanai.WEBURL+"/"+keyWord);
+                                                OtiNanaiNotifier onn = new OtiNanaiNotifier((highAlarmCount >= alarmConsecutiveSamples ? "High" : "Low" )
+                                                                + " " + keyWord
+                                                                + " " + OtiNanai.WEBURL+"/"+keyWord
+                                                                + " " + String.format("%.2f", perSec)
+                                                                + " " + String.format("%.3f", mean));
                                                 onn.send();
                                                 alarm=ts;
                                                 jedis.set(alarmKey, Long.toString(ts));
