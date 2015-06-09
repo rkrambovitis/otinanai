@@ -90,13 +90,6 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	* `apache.vhosts --merge --limit 6`
 	* `^snmp --noalarm`
 
-### Demo ###
-+ Point your browser to https://otinanai-demo.phaistosnetworks.gr
-	* https://otinanai-demo.phaistosnetworks.gr/?q=%5Esnmp.laload+--merge+%402d
-	* https://otinanai-demo.phaistosnetworks.gr/?q=random+--gauge
-	* https://otinanai-demo.phaistosnetworks.gr/?q=%5Eredis+%2Bkeyspace+--stack
-	* Send your own data to /dev/udp/217.199.165.34/9876
-
 ## Command line arguments ##
 	-help 	: This output
 	-wp <webPort>         : Web Interface Port (default: 9876)
@@ -124,3 +117,7 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)
 	-rdevtlist <redisEventList>    : Name of event list for redis. (default: OtiNanai_Event_List)
 	-rdunitlist <redisUnitList>    : Name of event list for redis. (default: OtiNanai_Event_List)
+
+## Screenshots ##
+![Screenshot from 2015-06-09 10:07:09.png](https://bitbucket.org/repo/xyeeMB/images/2390084731-Screenshot%20from%202015-06-09%2010:07:09.png)
+![Screenshot from 2015-06-09 10:15:37.png](https://bitbucket.org/repo/xyeeMB/images/69167439-Screenshot%20from%202015-06-09%2010:15:37.png)
