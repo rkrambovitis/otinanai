@@ -305,11 +305,21 @@ class OtiNanaiWeb implements Runnable {
 		return skw;
 	}
 
-	private String getMarkings(boolean showEvents, long startTime, long endTime) {
+	private String getMarkings(boolean showEvents, long startTime, long endTime, ArrayList<KeyWordTracker> kws) {
 		String marktext = new String("var marktext = [\n");
 		if (showEvents) {
 			long now = System.currentTimeMillis();
-			NavigableMap<Long, String> eventMap = onl.getEvents().subMap(startTime, true, endTime, true);
+                        long kwa = 0l; 
+                        String kw;
+			TreeMap<Long, String> allEventMap = onl.getEvents();
+                        for (KeyWordTracker kwt : kws) {
+                                kw = kwt.getKeyWord();
+                                kwa = onl.getAlarm(kw);
+                                if (kwa != 0l) {
+                                        allEventMap.put(kwa, kw+" Alarm");
+                                }
+                        }
+			NavigableMap<Long, String> eventMap = allEventMap.subMap(startTime, true, endTime, true);
 			Long key = 0l;
 			String text = new String();
                         int sz=eventMap.size();
@@ -395,7 +405,7 @@ class OtiNanaiWeb implements Runnable {
                                 + commonHTML(OtiNanai.FLOT_PREVIEW);
 
 			output = output+ commonHTML(OtiNanai.JS)
-				+ getMarkings(showEvents, startTime, endTime)
+				+ getMarkings(showEvents, startTime, endTime, kws)
 				+ "var datasets = {\n";
 
 			for (KeyWordTracker kwt : kws) {
@@ -453,7 +463,7 @@ class OtiNanaiWeb implements Runnable {
 
 			int idx = (new Random()).nextInt(200);
 			output = output+ commonHTML(OtiNanai.JS)
-				+ getMarkings(showEvents, startTime, endTime)
+				+ getMarkings(showEvents, startTime, endTime, kws)
 				+ "var maxMergeCount = "+maxMergeCount+";\n"
 				+ "var stackedGraph = "+(type == OtiNanai.GRAPH_STACKED)+";\n"
                                 + "var idx = "+idx+";\n"

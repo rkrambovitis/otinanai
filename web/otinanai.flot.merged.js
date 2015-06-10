@@ -35,7 +35,7 @@ $(function() {
                xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: null, max: null },
                yaxis: { show: true, tickFormatter: addSuffix, min: null, max: maxy},
                grid: { hoverable: true, autoHighlight: false, clickable: true},
-               legend: {show: true, position: "nw" },
+               legend: { show: true, position: "nw", sorted: ((stackedGraph) ? "reverse" : "false" )},
 	       events: { data: marktext },
                series: { stack: stackedGraph, lines: {show: true, fill: stackedGraph}}
             //selection: { mode: "xy" }
