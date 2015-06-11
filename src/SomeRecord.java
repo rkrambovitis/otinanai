@@ -30,7 +30,7 @@ class SomeRecord {
 	}
 
 	private void process(String str, int min, int max) {
-		str = str.replaceAll("[-#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
+		str = str.replaceAll("[#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
 		str = str.toLowerCase();
 		storeMetric(str, min, max);
 		if (!IAmGauge && !IAmCounter && !IAmSum) {
