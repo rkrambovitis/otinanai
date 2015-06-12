@@ -21,7 +21,7 @@ body, html {
         margin-bottom: 20px;
 }
 .mergedGraph {
-        height: 240px;
+        height: 200px;
         width: 100%;
         border-bottom: 1px solid #ccc;
         padding-bottom: 15px;
@@ -30,7 +30,7 @@ body, html {
 .previewGraph {
         width: 100%;
         float: center;
-        height: 240px;
+        height: 200px;
         border-bottom: 1px solid #ccc;
         padding-bottom: 15px;
         margin-bottom: 10px;

@@ -53,10 +53,11 @@ class RedisTracker implements KeyWordTracker {
 		logger.finest("[RedisTracker]: new RedisTracker initialized for \"" +keyWord+"\"");
 	}
 
-	private void resetJedis() {
+	private Jedis resetJedis(Jedis j) {
                 logger.info("[RedisTracker]: Resetting jedis for \"" + keyWord+"\"");
-		jedis.disconnect();
-		jedis = new Jedis(redisHost);
+		j.disconnect();
+		j = new Jedis(redisHost);
+                return j;
 	}
 
 	public String getKeyWord() {
@@ -139,6 +140,7 @@ class RedisTracker implements KeyWordTracker {
 		float perSec = 0f;
 		float timeDiff = (float)(ts - lastTimeStamp);
 		lastTimeStamp = ts;
+                Jedis j2 = new Jedis(redisHost);
 
 		if (recordType == OtiNanai.GAUGE) {
 			logger.fine("[RedisTracker]: currentFloat = " +currentFloat);
@@ -169,20 +171,20 @@ class RedisTracker implements KeyWordTracker {
 
 		logger.fine("[RedisTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
 		String toPush = new String(ts+" "+String.format("%.3f", perSec));
-		//      jedis.lpush(step1Key, new String(ts+" "+String.format("%.2f", perSec)));
+		//      j2.lpush(step1Key, new String(ts+" "+String.format("%.2f", perSec)));
 
                 /*
 		try {
-			if (jedis.llen(step1Key) > 1) {
+			if (j2.llen(step1Key) > 1) {
 				//ugly deduplication
-				String dato1 = jedis.lindex(step1Key,0);
-				String dato2 = jedis.lindex(step1Key,1);
+				String dato1 = j2.lindex(step1Key,0);
+				String dato2 = j2.lindex(step1Key,1);
 				String dato0 = toPush.substring(toPush.indexOf(" ") +1);
 				dato1 = dato1.substring(dato1.indexOf(" ") +1);
 				dato2 = dato2.substring(dato2.indexOf(" ") +1);
 				if (dato0.equals(dato1)) {
 					if (dato1.equals(dato2)) {
-						jedis.lpop(step1Key);
+						j2.lpop(step1Key);
 					}
 				}
 			}
@@ -194,7 +196,7 @@ class RedisTracker implements KeyWordTracker {
 		}
                 */
 		logger.finest("[RedisTracker]: lpush "+step1Key+" "+toPush);
-		jedis.lpush(step1Key, toPush);
+		j2.lpush(step1Key, toPush);
 
 
 
@@ -208,13 +210,13 @@ class RedisTracker implements KeyWordTracker {
 		String lastDato = new String();
 		String lastDatoString = new String();
 
-		if (jedis.llen(step1Key) >= OtiNanai.STEP1_MAX_SAMPLES) {
+		if (j2.llen(step1Key) >= OtiNanai.STEP1_MAX_SAMPLES) {
 			lastMerge = 0;
 			lastts = 0l;
 			tsMerge = 0l;
 
 			for (int i=1; i<=OtiNanai.STEP1_SAMPLES_TO_MERGE ; i++) {
-				lastDatoString=jedis.rpop(step1Key);
+				lastDatoString=j2.rpop(step1Key);
 				lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
 				lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
 
@@ -228,7 +230,7 @@ class RedisTracker implements KeyWordTracker {
 			logger.fine("[RedisTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+ finalts);
 
 			toPush = new String(finalts+" "+String.format("%.3f", finalSum));
-			jedis.lpush(step2Key, toPush);
+			j2.lpush(step2Key, toPush);
 		}
 
 
@@ -236,13 +238,13 @@ class RedisTracker implements KeyWordTracker {
 		 * Aggregate old 5min samples and make 30min samples
 		 */
 
-		if (jedis.llen(step2Key) >= OtiNanai.STEP2_MAX_SAMPLES) {
+		if (j2.llen(step2Key) >= OtiNanai.STEP2_MAX_SAMPLES) {
 			lastMerge = 0;
 			lastts = 0l;
 			tsMerge = 0;
 
 			for (int i=1; i<=OtiNanai.STEP2_SAMPLES_TO_MERGE ; i++) {
-				lastDatoString = jedis.rpop(step2Key);
+				lastDatoString = j2.rpop(step2Key);
 				lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
 				lastDato = lastDatoString.substring(lastDatoString.indexOf(" ")+1);
 				lastMerge += Float.parseFloat(lastDato);
@@ -253,7 +255,7 @@ class RedisTracker implements KeyWordTracker {
 
 			logger.fine("[RedisTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+ finalts);
 			toPush = new String(finalts+" "+String.format("%.3f", finalSum));
-			jedis.lpush(step3Key, toPush);
+			j2.lpush(step3Key, toPush);
 		}
 
 
@@ -299,11 +301,12 @@ class RedisTracker implements KeyWordTracker {
                                                                 + " " + String.format("%.3f", mean));
                                                 onn.send();
                                                 alarm=ts;
-                                                jedis.set(alarmKey, Long.toString(ts));
+                                                j2.set(alarmKey, Long.toString(ts));
                                         }
                                 }
                         }
                 }
+                j2.disconnect();
 	}
 
 	public long getAlarm() {
@@ -339,7 +342,7 @@ class RedisTracker implements KeyWordTracker {
                                 logger.severe("[RedisTracker]: getMemory(): "+keyWord + ": " + e);
                                 System.err.println("[RedisTracker]: getMemory(): "+keyWord + ": "+e.getMessage());
                                 returner = new ArrayList<String>();
-                                resetJedis();
+                                jedis = resetJedis(jedis);
                         }
                 }
 		return returner;
@@ -376,7 +379,7 @@ class RedisTracker implements KeyWordTracker {
                         } catch (Exception e) {
                                 logger.severe("[RedisTracker]: alarmEnabled(): "+keyWord + ": "+e);
                                 System.err.println("[RedisTracker]: alarmEnabled(): "+keyWord + ": "+e);
-                                resetJedis();
+                                jedis = resetJedis(jedis);
                         }
                 }
         }
