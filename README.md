@@ -72,6 +72,7 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	* `--ar|--refresh` (Set page to auto refresh with time = tick time)
 	* `--m|--merge|--combine` (merge all graphs into one. Beware, looks like crap)
 	* `--stack` (stack graphs)
+	* `--ss|--show-spikes` (Do not crop graphs to 99 percentile)
 	* `--alarms|--alerts` (show only matching keywords in "alarm" state)
 	* `#maxMergeCount` (change how many graphs are merged per graph, sorted by 99%.)
 	* `--limit <number>` (Limit to first <number> graphs)
