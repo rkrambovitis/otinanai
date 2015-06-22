@@ -27,7 +27,7 @@ $(function() {
          $.plot($("#"+key), [val] , {
 		 xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: null, max: null },
 		 series: { lines: {show: true, fill: false}},
-		 yaxis: { show: true, tickFormatter: addSuffix, min: null, max: datasets[key]['nn']},
+		 yaxis: { show: true, tickFormatter: addSuffix, min: null, max: (showSpikes ? null : datasets[key]['nn'])},
 		 grid: { hoverable: true, autoHighlight: false, clickable: true },
 		 crosshair: { mode: "y" },
 		 events: { data: marktext },

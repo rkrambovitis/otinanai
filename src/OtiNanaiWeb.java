@@ -406,6 +406,7 @@ class OtiNanaiWeb implements Runnable {
 
 			output = output+ commonHTML(OtiNanai.JS)
 				+ getMarkings(showEvents, startTime, endTime, kws)
+                                + "var showSpikes = "+showSpikes+";\n"
 				+ "var datasets = {\n";
 
 			for (KeyWordTracker kwt : kws) {
@@ -421,7 +422,8 @@ class OtiNanaiWeb implements Runnable {
 				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
 					+ "label: \""+kw+"\",\n";
 
-				output = output + "nn:  "+ (showSpikes ? "null" : graphData[11]) +",\n";
+				//output = output + "nn:  "+ (showSpikes ? "null" : graphData[11]) +",\n";
+				output = output + "nn:  "+ graphData[11] +",\n";
 
 				output = output + "data: ["
 					+ graphData[3]
@@ -467,6 +469,7 @@ class OtiNanaiWeb implements Runnable {
 				+ "var maxMergeCount = "+maxMergeCount+";\n"
 				+ "var stackedGraph = "+(type == OtiNanai.GRAPH_STACKED)+";\n"
                                 + "var idx = "+idx+";\n"
+                                + "var showSpikes = "+showSpikes+";\n"
 				+ "var datasets = {\n";
 
 			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
@@ -503,7 +506,8 @@ class OtiNanaiWeb implements Runnable {
 					//+ "label: \""+kw+" = 000.000 k \",\n";
 
 				
-				output = output + "nn:  "+ (showSpikes ? "null" : graphData[11]) + ",\n";
+				//output = output + "nn:  "+ (showSpikes ? "null" : graphData[11]) + ",\n";
+				output = output + "nn:  "+ graphData[11] + ",\n";
 
 				output = output + "data: ["
 					+ graphData[3]

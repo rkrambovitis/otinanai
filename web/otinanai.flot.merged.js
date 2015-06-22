@@ -33,7 +33,7 @@ $(function() {
          if ( (it % maxMergeCount == 0) || it == Object.keys(datasets).length) {
             $.plot(window.$("#placeholder_"+ph), data, {
                xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: null, max: null },
-               yaxis: { show: true, tickFormatter: addSuffix, min: null, max: maxy},
+               yaxis: { show: true, tickFormatter: addSuffix, min: null, max: (showSpikes ? null : maxy)},
                grid: { hoverable: true, autoHighlight: false, clickable: true},
                legend: { show: true, position: "nw", sorted: ((stackedGraph) ? "reverse" : "false" )},
 	       events: { data: marktext },
