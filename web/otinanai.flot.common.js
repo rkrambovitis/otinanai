@@ -19,6 +19,8 @@ function addSuffix(number) {
                 result = result.toFixed(2);
         else if (Math.abs(result) < 10 )
                 result = result.toFixed(1);
+        else if (result.toString().length > 5)
+                result = result.toFixed(2);
 
         return result+suffix;
 };
