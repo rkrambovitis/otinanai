@@ -33,8 +33,12 @@ class RedisTracker implements KeyWordTracker {
 		step3Key = keyWord + "thirtyMin";
 
                 alarmDisabled = keyWord+"alarmDisabled";
-                if (jedis.exists(alarmDisabled)) {
-                        alarmEnabled = false;
+                try {
+                        if (jedis.exists(alarmDisabled)) {
+                                alarmEnabled = false;
+                        }
+                } catch (Exception e) {
+                        logger.severe("[RedisTracker]: Unable to retrieve alarm enabled stats\n" +e);
                 }
 
 		alarmKey = keyWord + "alarmTS";

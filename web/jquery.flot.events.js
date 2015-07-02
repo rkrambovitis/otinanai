@@ -135,7 +135,7 @@
             });
             
             _identicalStarts();
-            _overlaps();
+            //_overlaps();
         };
         
         var _withinHierarchy = function(level, levelRange){
