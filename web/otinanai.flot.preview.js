@@ -1,4 +1,6 @@
 $(function() {
+        var xmin = null;
+        var xmax = null;
    $.each(datasets, function(key) {
       $("#"+key).bind("plothover", function (event, pos, item) {
 	      if (item) {
@@ -10,6 +12,17 @@ $(function() {
 		      $("#popup").hide();
 	      }
       });
+      $("#"+key).bind("plotselected", function (event, ranges) {
+              xmin = ranges.xaxis.from;
+              xmax = ranges.xaxis.to;
+              drawGraphs();
+      });
+      $("#"+key).bind("plotunselected", function (event, ranges) {
+              xmin = null;
+              xmax = null;
+              drawGraphs();
+      });
+
    });
 
    $("<div id='popup'></div>").css({
@@ -25,14 +38,14 @@ $(function() {
    function drawGraphs() {
       $.each(datasets, function(key, val) {
          $.plot($("#"+key), [val] , {
-		 xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: null, max: null },
+		 xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max: xmax },
 		 series: { lines: {show: true, fill: false}},
 		 yaxis: { show: true, tickFormatter: addSuffix, min: null, max: (showSpikes ? null : datasets[key]['nn'])},
 		 grid: { hoverable: true, autoHighlight: false, clickable: true },
 		 crosshair: { mode: "y" },
 		 events: { data: marktext },
 		 legend: { show: true, position: "nw" },
-//            selection: { mode: "x" }
+                 selection: { mode: "x" }
          });
       });
    };

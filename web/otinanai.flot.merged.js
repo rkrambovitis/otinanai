@@ -1,5 +1,7 @@
 $(function() {
    var i = 0;
+   var xmin = null;
+   var xmax = null;
    $.each(datasets, function(key, val) {
       val.color = i;++i;
    });
@@ -32,13 +34,13 @@ $(function() {
 
          if ( (it % maxMergeCount == 0) || it == Object.keys(datasets).length) {
             $.plot(window.$("#placeholder_"+ph), data, {
-               xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: null, max: null },
+               xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max: xmax },
                yaxis: { show: true, tickFormatter: addSuffix, min: null, max: (showSpikes ? null : maxy)},
                grid: { hoverable: true, autoHighlight: false, clickable: true},
                legend: { show: true, position: "nw", sorted: ((stackedGraph) ? "reverse" : "false" )},
 	       events: { data: marktext },
-               series: { stack: stackedGraph, lines: {show: true, fill: stackedGraph}}
-            //selection: { mode: "xy" }
+               series: { stack: stackedGraph, lines: {show: true, fill: stackedGraph}},
+               selection: { mode: "x" }
             });
             window.$("#placeholder_"+ph).bind("plothover", function (event, pos, item) {
                if (item) {
@@ -49,6 +51,16 @@ $(function() {
                } else {
                   window.$(".tooltip").hide();
                }
+            });
+            window.$("#placeholder_"+ph).bind("plotselected", function (event, ranges) {
+                    xmin = ranges.xaxis.from;
+                    xmax = ranges.xaxis.to;
+                    drawGraphs();
+            });
+            window.$("#placeholder_"+ph).bind("plotunselected", function (event, ranges) {
+                    xmin = null;
+                    xmax = null;
+                    drawGraphs();
             });
 
             data = [];
