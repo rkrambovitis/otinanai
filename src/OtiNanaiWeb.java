@@ -194,6 +194,7 @@ class OtiNanaiWeb implements Runnable {
                 float multip = onl.getMultiplier(kwt.getKeyWord());
 		for (String dato : data) {
 			logger.finest("[Web]: Dato is : "+dato);
+                        dato = dato.replaceAll(",", ".");
 			String[] twowords = dato.split("\\s");
 			val=Float.parseFloat(twowords[1]);
                         if (multip != 1f)
