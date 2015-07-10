@@ -69,7 +69,7 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	* `--gauge|--dial` (draw as gauges instead of line graphs)
 	* `--sa|--show` (show all matching graphs, i.e. override the max-per-page setting)
 	* `--nc|--no-cache` (ignore cache)
-	* `--ar|--refresh` (Set page to auto refresh with time = tick time)
+	* `--nr|--no-refresh|--nar|--no-auto-refresh` (Disable auto refresh)
 	* `--m|--merge|--combine` (merge all graphs into one. Beware, looks like crap)
 	* `--stack` (stack graphs)
 	* `--ss|--show-spikes` (Do not crop graphs to 99 percentile)

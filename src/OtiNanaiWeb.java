@@ -710,7 +710,7 @@ class OtiNanaiWeb implements Runnable {
                 float multip = 1f;
                 boolean disableAlarm = false;
                 boolean enableAlarm = false;
-                boolean autoRefresh = false;
+                boolean autoRefresh = true;
                 boolean showSpikes = false;
 
 		for (String word : keyList) {
@@ -810,6 +810,12 @@ class OtiNanaiWeb implements Runnable {
 					logger.info("[Web]: Showing Events");
 					showEvents = false;
 					continue;
+                                case "--no-auto-refresh":
+                                case "--no-refresh":
+                                case "--nar":
+                                case "--nr":
+                                        autoRefresh = false;
+                                        continue;
                                 case "--auto-refresh":
                                 case "--refresh":
                                 case "--ar":
