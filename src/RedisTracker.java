@@ -8,6 +8,8 @@ class RedisTracker implements KeyWordTracker {
 
 	public RedisTracker(String key, int as, float atl, float ath, int acs, String rh, Jedis j, Logger l) {
 		mean = 0f;
+		variance = 0d;
+		stdev = 0d;
 		alarmSamples = as;
                 alarmEnabled = true;
 		lowAlarmThreshold = atl;
@@ -276,25 +278,30 @@ class RedisTracker implements KeyWordTracker {
                                 return;
                         }
 
+			mean += (perSec-mean)/alarmSamples;
+			variance += ((perSec-mean)*(perSec-mean))/alarmSamples;
+			stdev = Math.sqrt(variance);
+
                         if ( sampleCount < alarmSamples ) {
                                 sampleCount++;
-                                mean += (perSec-mean)/alarmSamples;
                                 if (perSec == 0f) {
                                         zeroesCount ++;
                                         zeroPct = 100.0f * ((float)zeroesCount / (float)sampleCount);
                                 }
                         } else {
-                                if ((Math.abs(perSec) < (Math.abs(mean) / lowAlarmThreshold)) && (perSec != 0f || zeroPct < 2.0f)) {
+				if (perSec <= (mean - 3*stdev )) {
+                                //if ((Math.abs(perSec) < (Math.abs(mean) / lowAlarmThreshold)) && (perSec != 0f || zeroPct < 2.0f)) {
                                         lowAlarmCount++;
                                         highAlarmCount = 0;
-                                } else if (Math.abs(perSec) > (Math.abs(mean) * highAlarmThreshold)) {
+				} else if (perSec >= (mean + 3*stdev)) {
+                                //} else if (Math.abs(perSec) > (Math.abs(mean) * highAlarmThreshold)) {
                                         highAlarmCount++;
                                         lowAlarmCount = 0;
                                 } else {
-                                        mean += (perSec-mean)/alarmSamples;
                                         highAlarmCount = 0;
                                         lowAlarmCount = 0;
                                 }
+
                                 if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
                                         if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
                                                 logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount+" highCount: "+highAlarmCount+" lowCount: "+lowAlarmCount);
@@ -392,6 +399,8 @@ class RedisTracker implements KeyWordTracker {
 	private String keyWord;
 	private long currentCount;
 	private float mean;
+	private double variance;
+	private double stdev;
 	private int sampleCount;
 	private int currentDataCount;
 	private float currentFloat;
