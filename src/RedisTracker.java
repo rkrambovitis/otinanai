@@ -289,11 +289,11 @@ class RedisTracker implements KeyWordTracker {
                                         zeroPct = 100.0f * ((float)zeroesCount / (float)sampleCount);
                                 }
                         } else {
-				if (perSec <= (mean - 3*stdev )) {
+				if (perSec < (mean - 3*stdev )) {
                                 //if ((Math.abs(perSec) < (Math.abs(mean) / lowAlarmThreshold)) && (perSec != 0f || zeroPct < 2.0f)) {
                                         lowAlarmCount++;
                                         highAlarmCount = 0;
-				} else if (perSec >= (mean + 3*stdev)) {
+				} else if (perSec > (mean + 3*stdev)) {
                                 //} else if (Math.abs(perSec) > (Math.abs(mean) * highAlarmThreshold)) {
                                         highAlarmCount++;
                                         lowAlarmCount = 0;
