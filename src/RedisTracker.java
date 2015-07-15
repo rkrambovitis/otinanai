@@ -177,30 +177,6 @@ class RedisTracker implements KeyWordTracker {
 
 		logger.fine("[RedisTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
 		String toPush = new String(ts+" "+String.format("%.3f", perSec));
-		//      j2.lpush(step1Key, new String(ts+" "+String.format("%.2f", perSec)));
-
-                /*
-		try {
-			if (j2.llen(step1Key) > 1) {
-				//ugly deduplication
-				String dato1 = j2.lindex(step1Key,0);
-				String dato2 = j2.lindex(step1Key,1);
-				String dato0 = toPush.substring(toPush.indexOf(" ") +1);
-				dato1 = dato1.substring(dato1.indexOf(" ") +1);
-				dato2 = dato2.substring(dato2.indexOf(" ") +1);
-				if (dato0.equals(dato1)) {
-					if (dato1.equals(dato2)) {
-						j2.lpop(step1Key);
-					}
-				}
-			}
-		} catch (Exception e) {
-			logger.severe("[RedisTracker]: tick(): "+e);
-			logger.severe("toPush: "+toPush);
-			System.err.println("[RedisTracker]: tick(): "+e.getMessage());
-			resetJedis();
-		}
-                */
 		logger.finest("[RedisTracker]: lpush "+step1Key+" "+toPush);
 		j2.lpush(step1Key, toPush);
 
@@ -345,17 +321,12 @@ class RedisTracker implements KeyWordTracker {
                         try {
 				
 				long startTimeAgo = (System.currentTimeMillis() - startTime);
-//				logger.fine(System.currentTimeMillis()+" "+startTime+" "+startTimeAgo+" "+OtiNanai.STEP1_MILLISECONDS+" "+(startTimeAgo <= OtiNanai.STEP1_MILLISECONDS));
-//				logger.fine(OtiNanai.STEP2_MILLISECONDS+" "+(startTimeAgo <= OtiNanai.STEP2_MILLISECONDS));
                                 if (startTimeAgo <= OtiNanai.STEP1_MILLISECONDS || jedis.llen(step2Key) < 2 ) {
 					returner.addAll(jedis.lrange(step1Key,0,-1));
-//					logger.fine("step1");
 				} else if (startTimeAgo <= OtiNanai.STEP2_MILLISECONDS || jedis.llen(step3Key) < 2 ) {
 					returner.addAll(jedis.lrange(step2Key,0,-1));
-//					logger.fine("step2");
 				} else {
 					returner.addAll(jedis.lrange(step3Key,0, -1));
-//					logger.fine("step3");
 				}
 				return returner;
                         } catch (Exception e) {
