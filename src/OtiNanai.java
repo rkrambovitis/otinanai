@@ -147,9 +147,9 @@ class OtiNanai {
 		int cacheItems = 50; 
 		int alarmConsecutiveSamples = 3;
 		int step1Hours = 28;
-		boolean step1HoursOverride = false;
-		int step2Hours = 240;
-		boolean step2HoursOverride = false;
+		boolean step1HoursOverride = true;
+		int step2Hours = 340;
+		boolean step2HoursOverride = true;
 		String bucketName = new String("OtiNanai");
 		String logFile = new String("/var/log/otinanai.log");
 		String logLevel = new String("INFO");
@@ -289,6 +289,7 @@ class OtiNanai {
 						System.out.println("-s1samples is Deprecated. Please use -s1hours instead");
 						System.out.println("step1Samples = " + args[i]);
 						STEP1_MAX_SAMPLES = Integer.parseInt(args[i]);
+						step1HoursOverride = false;
 						break;
 					case "-s1hours":
 						i++;
@@ -306,6 +307,7 @@ class OtiNanai {
 						System.out.println("-s2samples is Deprecated. Please use -s2hours instead");
 						System.out.println("step2Samples = " + args[i]);
 						STEP2_MAX_SAMPLES = Integer.parseInt(args[i]);
+						step2HoursOverride = false;
 						break;
 					case "-s2hours":
 						i++;
@@ -358,7 +360,7 @@ class OtiNanai {
 								+"-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60)\n"
 								+"-s1hours <step1Hours>      	    : Time for aggregation. Overrides old s1samples setting.(default: 28)\n"
 								+"-s1agg <step1SamplesToAggregate>  : Samples to aggregate when sample count exceeded (default: 10)\n"
-								+"-s2hours <step2Hours>      	    : Time for further aggregation. Overrides old s2samples setting.(default: 240)\n"
+								+"-s2hours <step2Hours>      	    : Time for further aggregation. Overrides old s2samples setting.(default: 340)\n"
 								+"-s2agg <step2SamplesToAggregate>  : Samples to further aggregate when count exceeded (default: 6)\n"
 								+"-lf <logFile>         : \n"
 								+"-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)\n"
@@ -387,13 +389,13 @@ class OtiNanai {
 		ALARMLIFE = alarmLife;
 
 		if (step1HoursOverride) {
-			STEP1_MAX_SAMPLES = (int)((step1Hours * 3600) / TICKER_INTERVAL);
+			STEP1_MAX_SAMPLES = (int)((step1Hours * 3600000) / TICKER_INTERVAL);
 		}
 		if (step2HoursOverride) {
-			STEP2_MAX_SAMPLES = (int)((step2Hours * 3600) / TICKER_INTERVAL);
+			STEP2_MAX_SAMPLES = (int)((step2Hours * 3600000) / TICKER_INTERVAL);
 		}
-		STEP1_MILLISECONDS = 1000l * STEP1_MAX_SAMPLES * TICKER_INTERVAL;
-		STEP2_MILLISECONDS = 1000l * STEP2_MAX_SAMPLES * TICKER_INTERVAL;
+		STEP1_MILLISECONDS = STEP1_MAX_SAMPLES * TICKER_INTERVAL;
+		STEP2_MILLISECONDS = STEP2_MAX_SAMPLES * TICKER_INTERVAL;
 
 		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, logFile, logLevel, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList, redisMultipList);
 	}

@@ -110,7 +110,7 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60)
 	-s1hours <step1Hours>             : Time for aggregation. Overrides old s1samples setting.(default: 28)
 	-s1agg <step1SamplesToAggregate>  : Samples to aggregate when sample count exceeded (default: 10)
-	-s2hours <step2Hours>             : Time for further aggregation. Overrides old s2samples setting.(default: 240)
+	-s2hours <step2Hours>             : Time for further aggregation. Overrides old s2samples setting.(default: 340)
 	-s2agg <step2SamplesToAggregate>  : Samples to further aggregate when count exceeded (default: 6)
 	-lf <logFile>         : 
 	-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)
