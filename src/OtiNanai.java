@@ -146,6 +146,10 @@ class OtiNanai {
                 float parsedFloat = 0f;
 		int cacheItems = 50; 
 		int alarmConsecutiveSamples = 3;
+		int step1Hours = 28;
+		boolean step1HoursOverride = false;
+		int step2Hours = 240;
+		boolean step2HoursOverride = false;
 		String bucketName = new String("OtiNanai");
 		String logFile = new String("/var/log/otinanai.log");
 		String logLevel = new String("INFO");
@@ -282,8 +286,15 @@ class OtiNanai {
 						break;
 					case "-s1samples":
 						i++;
+						System.out.println("-s1samples is Deprecated. Please use -s1hours instead");
 						System.out.println("step1Samples = " + args[i]);
 						STEP1_MAX_SAMPLES = Integer.parseInt(args[i]);
+						break;
+					case "-s1hours":
+						i++;
+						System.out.println("step1hours = " + args[i]);
+						step1Hours = Integer.parseInt(args[i]);
+						step1HoursOverride = true;
 						break;
 					case "-s1agg":
 						i++;
@@ -292,8 +303,15 @@ class OtiNanai {
 						break;
 					case "-s2samples":
 						i++;
+						System.out.println("-s2samples is Deprecated. Please use -s2hours instead");
 						System.out.println("step2Samples = " + args[i]);
 						STEP2_MAX_SAMPLES = Integer.parseInt(args[i]);
+						break;
+					case "-s2hours":
+						i++;
+						System.out.println("step2hours = " + args[i]);
+						step2Hours = Integer.parseInt(args[i]);
+						step2HoursOverride = true;
 						break;
 					case "-s2agg":
 						i++;
@@ -338,10 +356,10 @@ class OtiNanai {
 								+"-notify <notifyScript>            : Script to use for alarms (default: /tmp/otinanai_notifier)\n"
 								+"-gpp <graphsPerPage>  : Max graphs per page (default: 30)\n"
 								+"-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60)\n"
-								+"-s1samples <step1Samples>         : Samples to keep before aggregating oldest (default: 1440)\n"
+								+"-s1hours <step1Hours>      	    : Time for aggregation. Overrides old s1samples setting.(default: 28)\n"
 								+"-s1agg <step1SamplesToAggregate>  : Samples to aggregate when sample count exceeded (default: 10)\n"
-								+"-s2samples <step2Samples>         : Aggregated samples to keep before further aggregating oldest (default: 2880)\n"
-								+"-s2agg <step2SamplesToAggregate>  : Aggregates samples to further aggregate when count exceeded (default: 6)\n"
+								+"-s2hours <step2Hours>      	    : Time for further aggregation. Overrides old s2samples setting.(default: 240)\n"
+								+"-s2agg <step2SamplesToAggregate>  : Samples to further aggregate when count exceeded (default: 6)\n"
 								+"-lf <logFile>         : \n"
 								+"-ll <logLevel>        : finest, fine, info, config, warning, severe (default: config)\n"
 								+"-rh <redisEndPoint>   : Redis endpoint (default: localhost)\n"
@@ -367,6 +385,15 @@ class OtiNanai {
 		WEBURL = webUrl;
 		NOTIFYSCRIPT = notifyScript;
 		ALARMLIFE = alarmLife;
+
+		if (step1HoursOverride) {
+			STEP1_MAX_SAMPLES = (int)((step1Hours * 3600) / TICKER_INTERVAL);
+		}
+		if (step2HoursOverride) {
+			STEP2_MAX_SAMPLES = (int)((step2Hours * 3600) / TICKER_INTERVAL);
+		}
+		STEP1_MILLISECONDS = 1000l * STEP1_MAX_SAMPLES * TICKER_INTERVAL;
+		STEP2_MILLISECONDS = 1000l * STEP2_MAX_SAMPLES * TICKER_INTERVAL;
 
 		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, logFile, logLevel, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList, redisMultipList);
 	}
@@ -403,8 +430,10 @@ class OtiNanai {
 	//public static final int STEP1_MAX_SAMPLES = 20;
 	public static int STEP1_MAX_SAMPLES = 1440;
 	public static int STEP1_SAMPLES_TO_MERGE = 10;
+	public static long STEP1_MILLISECONDS = 100800000l;
 	public static int STEP2_MAX_SAMPLES = 2880;
 	public static int STEP2_SAMPLES_TO_MERGE = 6;
+	public static long STEP2_MILLISECONDS = 864000000l;
 	public static int TICKER_INTERVAL = 60000;
 	public static long PREVIEWTIME = 21600000l;
 	public static short MAXPERPAGE=30;

@@ -343,20 +343,24 @@ class RedisTracker implements KeyWordTracker {
 		ArrayList<String> returner = new ArrayList<String>();
                 for (int i=0;i<jedisRetries;i++) {
                         try {
-
+				
+				long startTimeAgo = (System.currentTimeMillis() - startTime);
+				/*
 				String ldp=jedis.lindex(step1Key, jedis.llen(step1Key)-1);
 				Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
 				logger.finest(lastts+" "+startTime+" "+(lastts<startTime));
-                                if ((lastts < startTime) || jedis.llen(step2Key) < 2 ) {
+				*/
+				logger.finest(startTime +" "+startTimeAgo+" "+OtiNanai.STEP1_MILLISECONDS+" "+(startTimeAgo <= OtiNanai.STEP1_MILLISECONDS));
+				System.err.println(System.currentTimeMillis()+" "+startTime+" "+startTimeAgo+" "+OtiNanai.STEP1_MILLISECONDS+" "+(startTimeAgo <= OtiNanai.STEP1_MILLISECONDS));
+                                if (startTimeAgo <= OtiNanai.STEP1_MILLISECONDS || jedis.llen(step2Key) < 2 ) {
 					returner.addAll(jedis.lrange(step1Key,0,-1));
+					System.err.println("step1");
+				} else if (startTimeAgo <= OtiNanai.STEP2_MILLISECONDS || jedis.llen(step3Key) < 2 ) {
+					returner.addAll(jedis.lrange(step2Key,0,-1));
+					System.err.println("step2");
 				} else {
-					ldp=jedis.lindex(step2Key, jedis.llen(step2Key)-1);
-					lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
-					if (lastts < startTime || jedis.llen(step3Key) < 2) {
-						returner.addAll(jedis.lrange(step2Key,0,-1));
-					} else {
-						returner.addAll(jedis.lrange(step3Key,0, -1));
-					}
+					returner.addAll(jedis.lrange(step3Key,0, -1));
+					System.err.println("step3");
 				}
 				return returner;
                         } catch (Exception e) {
