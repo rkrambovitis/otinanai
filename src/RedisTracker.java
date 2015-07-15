@@ -222,7 +222,7 @@ class RedisTracker implements KeyWordTracker {
 			tsMerge = 0l;
 
 			for (int i=1; i<=OtiNanai.STEP1_SAMPLES_TO_MERGE ; i++) {
-				lastDatoString=j2.rpop(step1Key);
+				lastDatoString=j2.rpop(step1Key).replaceAll(",",".");
 				lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
 				lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
 
@@ -250,7 +250,7 @@ class RedisTracker implements KeyWordTracker {
 			tsMerge = 0;
 
 			for (int i=1; i<=OtiNanai.STEP2_SAMPLES_TO_MERGE ; i++) {
-				lastDatoString = j2.rpop(step2Key);
+				lastDatoString = j2.rpop(step2Key).replaceAll(",",".");
 				lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
 				lastDato = lastDatoString.substring(lastDatoString.indexOf(" ")+1);
 				lastMerge += Float.parseFloat(lastDato);
