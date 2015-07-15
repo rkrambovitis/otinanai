@@ -207,63 +207,76 @@ class RedisTracker implements KeyWordTracker {
 
 
 		/*
-		 * Aggregate old 30sec samples and make 5min samples
+		 * Aggregation
 		 */
-
-		float lastMerge;
-		long lastts;
-		long tsMerge;
+		float lastMerge = 0f;
+		long tsMerge = 0l;
+		long lastts = 0l;
 		String lastDato = new String();
 		String lastDatoString = new String();
+		List<String> newestData;
 
-		if (j2.llen(step1Key) >= OtiNanai.STEP1_MAX_SAMPLES) {
-			lastMerge = 0;
-			lastts = 0l;
-			tsMerge = 0l;
-
-			for (int i=1; i<=OtiNanai.STEP1_SAMPLES_TO_MERGE ; i++) {
-				lastDatoString=j2.rpop(step1Key).replaceAll(",",".");
-				lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
-				lastDato=lastDatoString.substring(lastDatoString.indexOf(" ")+1);
-
-				logger.fine("[RedisTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
+		/*
+		 * Aggregate last X samples and expire the 1 latest sample when limit exceeded
+		 * This will allow us to choose to show the aggregated data stream only
+		 * when we exceed the limit of the shortest.
+		 * Otherwise, graphs have too many data points, and the change from non aggregated
+		 * to aggregated makes it look like crap.
+		 */
+		if ((j2.llen(step1Key) % OtiNanai.STEP1_SAMPLES_TO_MERGE) == 0) {
+			newestData = j2.lrange(step1Key, 0, OtiNanai.STEP1_SAMPLES_TO_MERGE-1);
+			for (String dato : newestData) {
+				lastts = Long.parseLong(dato.substring(0,dato.indexOf(" ")));
+				lastDato = dato.substring(dato.indexOf(" ")+1).replaceAll(",",".");
+				logger.finest("[RedisTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
 				lastMerge += Float.parseFloat(lastDato);
 				tsMerge += lastts;
 			}
+
 			float finalSum = lastMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
 			long finalts = tsMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
 
-			logger.fine("[RedisTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+ finalts);
+			logger.fine("[RedisTracker]: "+keyWord+": First Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+ finalts);
 
 			toPush = new String(finalts+" "+String.format("%.3f", finalSum));
 			j2.lpush(step2Key, toPush);
-		}
 
-
-		/*
-		 * Aggregate old 5min samples and make 30min samples
-		 */
-
-		if (j2.llen(step2Key) >= OtiNanai.STEP2_MAX_SAMPLES) {
-			lastMerge = 0;
-			lastts = 0l;
-			tsMerge = 0;
-
-			for (int i=1; i<=OtiNanai.STEP2_SAMPLES_TO_MERGE ; i++) {
-				lastDatoString = j2.rpop(step2Key).replaceAll(",",".");
-				lastts = Long.parseLong(lastDatoString.substring(0,lastDatoString.indexOf(" ")));
-				lastDato = lastDatoString.substring(lastDatoString.indexOf(" ")+1);
-				lastMerge += Float.parseFloat(lastDato);
-				tsMerge += lastts;
+			if (j2.llen(step1Key) >= OtiNanai.STEP1_MAX_SAMPLES) {
+				j2.rpop(step1Key);
 			}
-			float finalSum = lastMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
-			long finalts = tsMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
 
-			logger.fine("[RedisTracker]: "+keyWord+": Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+ finalts);
-			toPush = new String(finalts+" "+String.format("%.3f", finalSum));
-			j2.lpush(step3Key, toPush);
+			/*
+			 * Same as above, but for step2, i.e. second aggregation,
+			 * or further aggregation of already aggregated values,
+			 * so aggregating aggregation aggro aggreviate aggrevous
+			 * oh aggravation, how aggravating you are.
+			 */
+
+			if ((j2.llen(step2Key) % OtiNanai.STEP2_SAMPLES_TO_MERGE) == 0) {
+				lastMerge = 0;
+				tsMerge = 0;
+				newestData = j2.lrange(step2Key, 0, OtiNanai.STEP2_SAMPLES_TO_MERGE-1);
+				for (String dato : newestData) {
+					lastts = Long.parseLong(dato.substring(0,dato.indexOf(" ")));
+					lastDato = dato.substring(dato.indexOf(" ")+1).replaceAll(",",".");
+					logger.finest("[RedisTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
+					lastMerge += Float.parseFloat(lastDato);
+					tsMerge += lastts;
+				}
+
+				finalSum = lastMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
+				finalts = tsMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
+
+				logger.fine("[RedisTracker]: "+keyWord+": Second Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+ finalts);
+
+				toPush = new String(finalts+" "+String.format("%.3f", finalSum));
+				j2.lpush(step3Key, toPush);
+
+				if (j2.llen(step2Key) >= OtiNanai.STEP2_MAX_SAMPLES) {
+					j2.rpop(step2Key);
+				}
+			}
 		}
-
 
 
 		/*
@@ -330,25 +343,22 @@ class RedisTracker implements KeyWordTracker {
 		ArrayList<String> returner = new ArrayList<String>();
                 for (int i=0;i<jedisRetries;i++) {
                         try {
-                                returner.addAll(jedis.lrange(step1Key,0,-1));
 
-                                String ldp = returner.get(returner.size()-1);
-                                Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
-
-                                if (lastts < startTime)
-                                        return returner;
-
-                                returner.addAll(jedis.lrange(step2Key,0,-1));
-                                ldp = returner.get(returner.size()-1);
-                                lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
-
-                                if (lastts < startTime)
-                                        return returner;
-
-                                returner.addAll(jedis.lrange(step3Key,0,-1));
-
-                                break;
-
+				String ldp=jedis.lindex(step1Key, jedis.llen(step1Key)-1);
+				Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
+				logger.finest(lastts+" "+startTime+" "+(lastts<startTime));
+                                if ((lastts < startTime) || jedis.llen(step2Key) < 2 ) {
+					returner.addAll(jedis.lrange(step1Key,0,-1));
+				} else {
+					ldp=jedis.lindex(step2Key, jedis.llen(step2Key)-1);
+					lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
+					if (lastts < startTime || jedis.llen(step3Key) < 2) {
+						returner.addAll(jedis.lrange(step2Key,0,-1));
+					} else {
+						returner.addAll(jedis.lrange(step3Key,0, -1));
+					}
+				}
+				return returner;
                         } catch (Exception e) {
                                 logger.severe("[RedisTracker]: getMemory(): "+keyWord + ": " + e);
                                 System.err.println("[RedisTracker]: getMemory(): "+keyWord + ": "+e.getMessage());
