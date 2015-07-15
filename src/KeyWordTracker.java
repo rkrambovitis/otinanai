@@ -22,6 +22,8 @@ interface KeyWordTracker {
 
         public void tick() ;
 
+	public void flushAll() ;
+
         public long getAlarm() ;
 
         public void alarmEnabled(boolean onOrOff) ;

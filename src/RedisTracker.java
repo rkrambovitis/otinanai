@@ -123,6 +123,80 @@ class RedisTracker implements KeyWordTracker {
 		flush(System.currentTimeMillis());
 	}
 
+	public void flushAll() {
+                Jedis j2 = new Jedis(redisHost);
+		/*
+		 * Aggregation
+		 */
+		long before=System.currentTimeMillis();
+		logger.info("[RedisTracker]: Flushing "+keyWord);
+		float lastMerge = 0f;
+		long tsMerge = 0l;
+		long lastts = 0l;
+		String lastDato = new String();
+		String lastDatoString = new String();
+		String toPush = new String();
+		List<String> newestData;
+
+		SortingParams mySort = new SortingParams();
+		mySort.alpha();
+		mySort.desc();
+
+		ArrayList<String> allEntries = new ArrayList<String>();
+		allEntries.addAll(jedis.lrange(step1Key,0,-1));
+		Collections.reverse(allEntries);
+		String dato = new String();
+		logger.info("[RedisTracker]: Step 1 ");
+		int theLimit = (int)(jedis.llen(step1Key) / OtiNanai.STEP1_SAMPLES_TO_MERGE);
+		for (int i=0; i < theLimit ; i++) {
+			tsMerge = 0l;
+			lastMerge = 0f;
+			for (int j=0; j<OtiNanai.STEP1_SAMPLES_TO_MERGE; j++) {
+				dato = allEntries.get(0);
+				lastts = Long.parseLong(dato.substring(0,dato.indexOf(" ")));
+				lastDato = dato.substring(dato.indexOf(" ")+1).replaceAll(",",".");
+				lastMerge += Float.parseFloat(lastDato);
+				tsMerge += lastts;
+				allEntries.remove(0);
+			}
+
+			float finalSum = lastMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
+			long finalts = tsMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
+
+			toPush = new String(finalts+" "+String.format("%.3f", finalSum));
+			j2.lpush(step2Key, toPush);
+		}
+		j2.sort(step2Key, mySort, step2Key);
+
+		allEntries = new ArrayList<String>();
+		allEntries.addAll(jedis.lrange(step2Key,0,-1));
+		Collections.reverse(allEntries);
+		logger.info("[RedisTracker]: Step 2 ");
+		theLimit = (int)(jedis.llen(step2Key) / OtiNanai.STEP2_SAMPLES_TO_MERGE);
+
+		for (int i=0; i < theLimit ; i++) {
+			tsMerge = 0l;
+			lastMerge = 0f;
+			for (int j=0; j<OtiNanai.STEP2_SAMPLES_TO_MERGE; j++) {
+				dato = allEntries.get(0);
+				lastts = Long.parseLong(dato.substring(0,dato.indexOf(" ")));
+				lastDato = dato.substring(dato.indexOf(" ")+1).replaceAll(",",".");
+				lastMerge += Float.parseFloat(lastDato);
+				tsMerge += lastts;
+				allEntries.remove(0);
+			}
+
+			float finalSum = lastMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
+			long finalts = tsMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
+
+			toPush = new String(finalts+" "+String.format("%.3f", finalSum));
+			j2.lpush(step3Key, toPush);
+		}
+		j2.sort(step3Key, mySort, step3Key);
+                j2.disconnect();
+		logger.info("Took "+(System.currentTimeMillis()-before)+ "ms");
+	}
+
 	private void flush(long ts) {
 		if (recordType == OtiNanai.UNSET)
 			return;

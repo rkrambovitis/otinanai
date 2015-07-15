@@ -220,7 +220,7 @@ class OtiNanaiListener implements Runnable {
 		tempKW.addAll(trackerMap.keySet());
 		for (String kw : tempKW) {
 			try {
-				trackerMap.get(kw).tick();
+				trackerMap.get(kw).flushAll();
 			} catch (Exception e) {
 				logger.severe("[Listener]: Unable to tick "+kw+" :\n"+e);
 			}

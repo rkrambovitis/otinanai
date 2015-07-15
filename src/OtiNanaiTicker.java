@@ -13,15 +13,12 @@ class OtiNanaiTicker implements Runnable {
 	}
 
 	public void run() {
-		while (true) {
-			try {
-				Thread.sleep(OtiNanai.TICKER_INTERVAL);
-				logger.info("[Ticker]: TICK ?");
-				onl.tick();
-				logger.info("[Ticker]: TOCK !");
-			} catch (InterruptedException ie) {
-				logger.severe("[Ticker]: "+ie.getStackTrace());
-			}
+		try {
+		Thread.sleep(30000);
+		onl.tick();
+		Thread.sleep(36000000);
+		} catch (Exception e) {
+			System.err.println("ticker failed");
 		}
 	}
 
