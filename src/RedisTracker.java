@@ -350,8 +350,7 @@ class RedisTracker implements KeyWordTracker {
 				Long lastts = Long.parseLong(ldp.substring(0,ldp.indexOf(" ")));
 				logger.finest(lastts+" "+startTime+" "+(lastts<startTime));
 				*/
-				logger.finest(startTime +" "+startTimeAgo+" "+OtiNanai.STEP1_MILLISECONDS+" "+(startTimeAgo <= OtiNanai.STEP1_MILLISECONDS));
-				System.err.println(System.currentTimeMillis()+" "+startTime+" "+startTimeAgo+" "+OtiNanai.STEP1_MILLISECONDS+" "+(startTimeAgo <= OtiNanai.STEP1_MILLISECONDS));
+				logger.finest(System.currentTimeMillis()+" "+startTime+" "+startTimeAgo+" "+OtiNanai.STEP1_MILLISECONDS+" "+(startTimeAgo <= OtiNanai.STEP1_MILLISECONDS));
                                 if (startTimeAgo <= OtiNanai.STEP1_MILLISECONDS || jedis.llen(step2Key) < 2 ) {
 					returner.addAll(jedis.lrange(step1Key,0,-1));
 					System.err.println("step1");
