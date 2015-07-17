@@ -259,9 +259,9 @@ class OtiNanaiWeb implements Runnable {
 			allData.add(0f);
 		}
 		String[] toReturn = new String[12];
-		toReturn[0]=String.format("%.2f", min);
-		toReturn[1]=String.format("%.2f", max);
-		toReturn[2]=String.format("%.2f", mean);
+		toReturn[0]=String.format("%.2f", min).replaceAll(",", ".");
+		toReturn[1]=String.format("%.2f", max).replaceAll(",", ".");
+		toReturn[2]=String.format("%.2f", mean).replaceAll(",", ".");
 		toReturn[3]=output;
 		toReturn[4]=allData.get(nfth).toString();
 		toReturn[5]=Float.toString(last);
