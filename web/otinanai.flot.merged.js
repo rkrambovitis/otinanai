@@ -46,7 +46,7 @@ $(function() {
                if (item) {
                   var x = item.datapoint[0], y = item.datapoint[1];
 		  window.$(".tooltip").html(addSuffix(y))
-		       .css({top: item.pageY+10, left: item.pageX+10})
+		       .css({top: item.pageY+10, left: item.pageX-40})
 		       .fadeIn(10);
                } else {
                   window.$(".tooltip").hide();
