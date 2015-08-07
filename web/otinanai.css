@@ -153,12 +153,12 @@ html[xmlns] .clearfix {
                 text-decoration:underline;
         }
         li {
-                padding: 5px 10px;
+                padding: 5px 5px;
                 border: 1px solid #ccc;
                 display: list-item;
-                margin: 10px;
+                margin: 5px;
                 background-color: #eee;
-                color: #969696;
+                color: #252525;
                 border-radius: 5px;
         }
         ul {
@@ -166,3 +166,27 @@ html[xmlns] .clearfix {
                 display: inline-block;
         }
 
+	.helpTrigger {
+		width: 10px;
+		height: 10px;
+		position: relative;
+		left: 20px;
+		color: 4169E1;
+		position: relative;
+	}
+	.helpTrigger > div {
+		display: none;
+		position: absolute;
+		right: 30px;
+		top: 50px;
+		width: 600px;
+
+	}
+	.helpContent {
+		background: rgba(255,255,255,0.3);
+		border: 1px solid rgba(50, 50, 50, 0.3);
+		border-radius: 5px;
+		padding: 5px;
+		text-align: left;
+		font-size: 0.8em;
+	}

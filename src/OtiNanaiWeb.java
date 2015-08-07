@@ -69,6 +69,7 @@ class OtiNanaiWeb implements Runnable {
 					case " favicon.ico ":
 					case " red-pointer.png ":
 					case " otinanai.css ":
+					case " otinanai.js ":
 					case " otinanai.flot.common.js ":
 					case " otinanai.flot.merged.js ":
 					case " otinanai.flot.preview.js ":
@@ -612,6 +613,9 @@ class OtiNanaiWeb implements Runnable {
 	private String commonHTML(short out) {
 		if (out == OtiNanai.HEADER) {
 			return new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.min.js\"></script>\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.js\"></script>\n"
+					+ "<link rel=\"stylesheet\" href=\"//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css\"/>\n"
 					+ "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n");
 		} else if (out == OtiNanai.ENDHEAD) {
 			return new String("</head>\n<body>\n");
@@ -623,8 +627,7 @@ class OtiNanaiWeb implements Runnable {
 			return new String("<script src=\"raphael.min.js\"></script>\n"
 					+ "<script src=\"justgage.min.js\"></script>\n");
 		} else if (out == OtiNanai.FLOT) {
-			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.min.js\"></script>\n"
-					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.min.js\"></script>\n"
+			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.min.js\"></script>\n"
@@ -657,6 +660,31 @@ class OtiNanaiWeb implements Runnable {
 			+ "<input type=\"text\" name=\"q\" id=\"q\" placeholder=\"search\" autofocus value=\""
 			+ input
 			+ "\" />\n"
+			+ "<div class=\"helpTrigger fa fa-info-circle fa-2x\">\n"
+			+ " <div>\n"
+			+ "  <ul class=\"helpContent\">\n"
+			+ "   <lh>Examples</lh>\n"
+			+ "   <li>thor.hammer odin.spear +output --merge</li>\n"
+			+ "   <li>mysql +myserver -rubbish</li>\n"
+			+ "   <li>dataroom +temperature @24</li>\n"
+			+ "   <li>interesting.data @5d-30d</li>\n"
+			+ "   <li>dataroom +temperature --gauge</li>\n"
+			+ "   <li>server1 server2 server3 +usage --stack</li>\n"
+			+ "   <li>^du +data$</li>\n"
+			+ "   <li>something --show-spikes</li>\n"
+			+ "   <li>many methods --show-all</li>\n"
+			+ "   <li>many methods --show-all --merge --limit 30</li>\n"
+			+ "   <li>show.me.five.per.graph --merge #5</li>\n"
+			+ "   <li>something.interesting --no-refresh</li>\n"
+			+ "   <li>something.to.embed --no-bar</li>\n"
+			+ "   <li>bandwidth --multiplier 8</li>\n"
+			+ "   <li>bandwidth --units bps</li>\n"
+			+ "   <li>crap --delete</li>\n"
+			+ "   <li>dont.care --noalarm</li>\n"
+			+ "   <li>do.care --enable-alarm</li>\n"
+			+ "  </ul>\n"
+			+ " </div>\n"
+			+ "</div>\n"
 			+ "</form>\n"
 			+ "<!-- END search bar -->\n\n"
 			+ "<script>onload = function () { document.getElementById('q').selectionStart = document.getElementById('q').value.length;}</script>\n";
