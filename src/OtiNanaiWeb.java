@@ -666,6 +666,7 @@ class OtiNanaiWeb implements Runnable {
 			+ "   <lh>Examples</lh>\n"
 			+ "   <li>thor.hammer odin.spear +output --merge</li>\n"
 			+ "   <li>mysql +myserver -rubbish</li>\n"
+                        + "   <li>order matters +servername -netstuff otherserver.netstuff -something</li>"
 			+ "   <li>dataroom +temperature @24</li>\n"
 			+ "   <li>interesting.data @5d-30d</li>\n"
 			+ "   <li>dataroom +temperature --gauge</li>\n"

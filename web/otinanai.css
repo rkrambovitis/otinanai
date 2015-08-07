@@ -145,7 +145,7 @@ html[xmlns] .clearfix {
                 font-weight: bold;
         }
         a {
-                color: #969696;
+                color: #0B3861;
                 display: block;
                 text-decoration:none;
         }
@@ -153,7 +153,7 @@ html[xmlns] .clearfix {
                 text-decoration:underline;
         }
         li {
-                padding: 5px 5px;
+                padding: 5px 8px;
                 border: 1px solid #ccc;
                 display: list-item;
                 margin: 5px;
@@ -171,19 +171,20 @@ html[xmlns] .clearfix {
 		height: 10px;
 		position: relative;
 		left: 20px;
-		color: 4169E1;
+		color: #4169E1;
 		position: relative;
+                z-index: 99999;
 	}
 	.helpTrigger > div {
 		display: none;
 		position: absolute;
 		right: 30px;
 		top: 50px;
-		width: 600px;
+		width: 900px;
 
 	}
 	.helpContent {
-		background: rgba(255,255,255,0.3);
+		background: rgba(255,255,255,0.8);
 		border: 1px solid rgba(50, 50, 50, 0.3);
 		border-radius: 5px;
 		padding: 5px;
