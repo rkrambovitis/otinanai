@@ -218,9 +218,12 @@ class OtiNanaiListener implements Runnable {
 		deleteLock=true;
 		LLString tempKW = new LLString();
 		tempKW.addAll(trackerMap.keySet());
+		int i=0;
+		int cap = trackerMap.size();
 		for (String kw : tempKW) {
 			try {
-				trackerMap.get(kw).tick();
+				logger.info("[Listener]: Ticking "+ ++i +" / "+cap);
+				trackerMap.get(kw).flushAll();
 			} catch (Exception e) {
 				logger.severe("[Listener]: Unable to tick "+kw+" :\n"+e);
 			}
@@ -243,8 +246,6 @@ class OtiNanaiListener implements Runnable {
 	}
 
 	public void setUnits(String kw, String units) {
-		if (unitMap.containsKey(kw))
-			jedis.srem(rUnitList, kw+" "+unitMap.get(kw));
 		unitMap.put(kw, units);
                 jedis.sadd(rUnitList, kw+" "+units);
 	}
@@ -257,16 +258,8 @@ class OtiNanaiListener implements Runnable {
 	}
 
 	public void setMultiplier(String kw, float multip) {
-		if (multipMap.containsKey(kw))
-			jedis.srem(rMultipList, kw+" "+multipMap.get(kw));
 		multipMap.put(kw, multip);
                 jedis.sadd(rMultipList, kw+" "+multip);
-	}
-
-	public float getMultiplier(String kw) {
-		if (multipMap.containsKey(kw)) 
-			return multipMap.get(kw);
-		return 1f;
 	}
         
         public void alarmEnabled(String kw, boolean onOrOff) {
@@ -278,6 +271,14 @@ class OtiNanaiListener implements Runnable {
 		if (kwtList.contains(kw))
 			return getKWT(kw).alarmEnabled();
 		return false;
+	}
+
+
+
+	public float getMultiplier(String kw) {
+		if (multipMap.containsKey(kw)) 
+			return multipMap.get(kw);
+		return 1f;
 	}
 
 	private HashMap<String,KeyWordTracker> trackerMap;

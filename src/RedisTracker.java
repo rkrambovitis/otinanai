@@ -33,6 +33,7 @@ class RedisTracker implements KeyWordTracker {
 		step1Key = keyWord + "thirtySec";
 		step2Key = keyWord + "fiveMin";
 		step3Key = keyWord + "thirtyMin";
+		tmpKey = keyWord + "tempKey";
 
                 alarmDisabled = keyWord+"alarmDisabled";
                 try {
@@ -123,6 +124,63 @@ class RedisTracker implements KeyWordTracker {
 		flush(System.currentTimeMillis());
 	}
 
+	public void flushAll() {
+                Jedis j2 = new Jedis(redisHost);
+		/*
+		 * Aggregation
+		 */
+		long before=System.currentTimeMillis();
+		logger.info("[RedisTracker]: Flushing "+keyWord);
+		float lastMerge = 0f;
+		long tsMerge = 0l;
+		long lastts = 0l;
+		String dato;
+		String lastDato = new String();
+		String lastDatoString = new String();
+		String toPush = new String();
+		List<String> newestData;
+
+		SortingParams mySort = new SortingParams();
+		mySort.alpha();
+		mySort.desc();
+
+		ArrayList<String> allEntries = new ArrayList<String>();
+		allEntries.addAll(jedis.lrange(step2Key,0,-1));
+		Collections.reverse(allEntries);
+		long totalValues = jedis.llen(step2Key);
+		long jul16 = 1436994000000l;
+		int samples = 0;
+		for (long i=0l; i < totalValues - 1; i+=1) {
+			dato = allEntries.get(0);
+			lastts = Long.parseLong(dato.substring(0,dato.indexOf(" ")));
+			if (lastts < jul16) {
+				j2.lpush(tmpKey, dato);
+				allEntries.remove(0);
+				continue;
+			}
+			lastDato = dato.substring(dato.indexOf(" ")+1).replaceAll(",",".");
+			lastMerge += Float.parseFloat(lastDato);
+			tsMerge += lastts;
+			samples++;
+			allEntries.remove(0);
+
+			if (samples == OtiNanai.STEP1_SAMPLES_TO_MERGE) {
+				float finalSum = lastMerge/samples;
+				long finalts = tsMerge/samples;
+
+				toPush = new String(finalts+" "+String.format("%.3f", finalSum));
+				j2.lpush(tmpKey, toPush);
+				samples = 0;
+				tsMerge = 0l;
+				lastMerge = 0f;
+			}
+		}
+		j2.sort(tmpKey, mySort, tmpKey);
+		j2.rename(tmpKey, step2Key);
+                j2.disconnect();
+		logger.info("Took "+(System.currentTimeMillis()-before)+ "ms");
+	}
+
 	private void flush(long ts) {
 		if (recordType == OtiNanai.UNSET)
 			return;
@@ -207,7 +265,6 @@ class RedisTracker implements KeyWordTracker {
 				logger.finest("[RedisTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
 				lastMerge += Float.parseFloat(lastDato);
 				tsMerge += lastts;
-				j2.rpop(step1Key);
 			}
 
 			float finalSum = lastMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
@@ -217,6 +274,10 @@ class RedisTracker implements KeyWordTracker {
 
 			toPush = new String(finalts+" "+String.format("%.3f", finalSum));
 			j2.lpush(step2Key, toPush);
+
+			if (j2.llen(step1Key) >= OtiNanai.STEP1_MAX_SAMPLES) {
+				j2.rpop(step1Key);
+			}
 
 			/*
 			 * Same as above, but for step2, i.e. second aggregation,
@@ -235,7 +296,6 @@ class RedisTracker implements KeyWordTracker {
 					logger.finest("[RedisTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
 					lastMerge += Float.parseFloat(lastDato);
 					tsMerge += lastts;
-					j2.rpop(step2Key);
 				}
 
 				finalSum = lastMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
@@ -246,6 +306,9 @@ class RedisTracker implements KeyWordTracker {
 				toPush = new String(finalts+" "+String.format("%.3f", finalSum));
 				j2.lpush(step3Key, toPush);
 
+				if (j2.llen(step2Key) >= OtiNanai.STEP2_MAX_SAMPLES) {
+					j2.rpop(step2Key);
+				}
 			}
 		}
 
@@ -401,5 +464,6 @@ class RedisTracker implements KeyWordTracker {
 	private String step2Key;
 	private String step3Key;
 	private String alarmKey;
+	private String tmpKey;
         private String alarmDisabled;
 }
