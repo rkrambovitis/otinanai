@@ -207,7 +207,8 @@ class RedisTracker implements KeyWordTracker {
 				logger.finest("[RedisTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
 				lastMerge += Float.parseFloat(lastDato);
 				tsMerge += lastts;
-				j2.rpop(step1Key);
+				if (j2.llen(step1Key) >= OtiNanai.STEP1_MAX_SAMPLES)
+					j2.rpop(step1Key);
 			}
 
 			float finalSum = lastMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
@@ -235,7 +236,8 @@ class RedisTracker implements KeyWordTracker {
 					logger.finest("[RedisTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
 					lastMerge += Float.parseFloat(lastDato);
 					tsMerge += lastts;
-					j2.rpop(step2Key);
+					if (j2.llen(step2Key) >= OtiNanai.STEP2_MAX_SAMPLES)
+						j2.rpop(step2Key);
 				}
 
 				finalSum = lastMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
