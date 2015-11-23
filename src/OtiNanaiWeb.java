@@ -59,7 +59,7 @@ class OtiNanaiWeb implements Runnable {
 					logger.warning("[Web]: "+npe);
 					//continue;
 				}
-				logger.warning("[Web]: about to switch");
+				/*logger.fine("[Web]: about to switch");*/
 				boolean alarms=false;
 				boolean graph=false;
 				boolean mergeKeyWords=false;
