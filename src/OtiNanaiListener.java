@@ -101,7 +101,8 @@ class OtiNanaiListener implements Runnable {
 			}
 			String sentence = new String(receivePacket.getData());
 			InetAddress IPAddress = receivePacket.getAddress();
-			logger.finest("[Listener]: Listener received message from "+IPAddress);
+                        //System.out.println("[Listener]: "+sentence);
+			logger.finest("[Listener]: "+ sentence +" from "+IPAddress);
 			threadPool.submit(new OtiNanaiParser(this, sentence.replaceAll("\u0000.*", "").replaceAll("[\r\n]", ""), IPAddress, logger));
 			//parseData(IPAddress, sentence.replaceAll("\u0000.*", "").replaceAll("[\r\n]", ""));
 		}

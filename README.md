@@ -119,6 +119,7 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	-rdsvq <redisSavedQueriesList>    : Name of saved queries list for redis. (default: saved_queries_list)
 	-rdevtlist <redisEventList>    : Name of event list for redis. (default: OtiNanai_Event_List)
 	-rdunitlist <redisUnitList>    : Name of event list for redis. (default: OtiNanai_Event_List)
+        -udpRecvBufferSize <bytes>     : (default: 1048576)
 
 ## Screenshots ##
 ![varnish_scrn.png](https://bitbucket.org/repo/xyeeMB/images/1761784708-varnish_scrn.png)
