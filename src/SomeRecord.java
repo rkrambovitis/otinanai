@@ -302,6 +302,13 @@ class SomeRecord {
 	/**
 	 * Access Method
 	 */
+	public boolean isFreq() {
+		return (!IAmGauge && !IAmCounter && !IAmSum && !IAmEvent);
+	}
+
+	/**
+	 * Access Method
+	 */
 	public Float getGauge() {
 		if (IAmGauge)
 			return theGauge;

@@ -27,7 +27,8 @@ class OtiNanaiListener implements Runnable {
 		rSavedQueries = redisSavedQueries;
 		kwtList = new LLString();
 		redisHost = rh;
-		trackerMap = new HashMap<String, KeyWordTracker>();
+		trackerMap = new ConcurrentHashMap<String, KeyWordTracker>();
+		threadPool = Executors.newCachedThreadPool();
 
                 jedis = new Jedis(redisHost);
                 jedis2 = new Jedis(redisHost);
@@ -101,74 +102,17 @@ class OtiNanaiListener implements Runnable {
 			String sentence = new String(receivePacket.getData());
 			InetAddress IPAddress = receivePacket.getAddress();
 			logger.finest("[Listener]: Listener received message from "+IPAddress);
-			parseData(IPAddress, sentence.replaceAll("\u0000.*", "").replaceAll("[\r\n]", ""));
+			threadPool.submit(new OtiNanaiParser(this, sentence.replaceAll("\u0000.*", "").replaceAll("[\r\n]", ""), IPAddress, logger));
+			//parseData(IPAddress, sentence.replaceAll("\u0000.*", "").replaceAll("[\r\n]", ""));
 		}
 	}
 
-	/**
-	 * parses the dato into a SomeRecord object and associates it with keywords.
-	 * For each keyword there is a list with unique dato id (nanoTime).
-	 * Each id and SomeRecord pair are added to a hashmap.
-	 * @param	hip	Host IP (who sent us the dato)
-	 * @param	theDato	The dato.
-	 */
-	private void parseData(InetAddress hip, String theDato) {
-		logger.finest("[Listener]: + Attempting to parse: \""+theDato+"\" from "+hip);
-
-		SomeRecord newRecord = new SomeRecord(hip, theDato);
-		short recType = OtiNanai.FREQ;
-		if (newRecord.isGauge()) {
-			recType = OtiNanai.GAUGE;
-		} else if (newRecord.isCounter()) {
-			recType = OtiNanai.COUNTER;
-		} else if (newRecord.isSum()) {
-			recType = OtiNanai.SUM;
-		} else if (newRecord.isEvent()) {
+	public void addEvent(SomeRecord newRecord) {
+		if (newRecord.isEvent()) {
                         eventMap.put(newRecord.getTimeStamp(), newRecord.getEvent());
                         jedis.sadd(rEventList, new String(newRecord.getTimeStamp()+" "+newRecord.getEvent()));
 			logger.info("[Listener]: New event-> "+newRecord.getEvent());
-			System.err.println("New Event: -> "+newRecord.getEvent());
-                        return;
                 }
-
-		ArrayList<String> theKeys = newRecord.getKeyWords();
-
-		for (String kw : theKeys) {
-			if (recType == OtiNanai.FREQ) {
-				try { 
-					Float.parseFloat(kw);
-					continue;
-				} catch (NumberFormatException e) {}
-
-				if (kw.equals("")) {
-					continue;
-				}
-
-			} 
-
-			KeyWordTracker kwt = getKWT(kw);
-			if (kwt == null) {
-				logger.info("[Listener]: New Tracker created: kw: "+kw+" host: "+newRecord.getHostName());
-                                kwt = new RedisTracker(kw, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, redisHost, jedis2, logger);
-				kwt.setType(recType);
-			}
-
-			if (newRecord.isGauge()) {
-				kwt.putGauge(newRecord.getGauge());
-			} else if (newRecord.isSum()) {
-				kwt.putSum(newRecord.getSum());
-			} else if (newRecord.isCounter()) {
-				kwt.putCounter(newRecord.getCounter());
-			} else {
-				kwt.putFreq();
-			}
-
-			trackerMap.put(kw, kwt);
-			if (!kwtList.contains(kw)) {
-				kwtList.add(kw);
-                                jedis.sadd(rKeyList, kw);
-			}
-		}
 	}
 
 	public LLString getKWTList() {
@@ -177,6 +121,17 @@ class OtiNanaiListener implements Runnable {
 
 	public KeyWordTracker getKWT(String key) {
 		return trackerMap.get(key);
+	}
+
+	public KeyWordTracker addKWT(String key) {
+		if (!kwtList.contains(key)) {
+			KeyWordTracker kwt = new RedisTracker(key, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, redisHost, jedis2, logger);
+			trackerMap.put(key, kwt);
+			kwtList.add(key);
+			jedis.sadd(rKeyList, key);
+			return kwt;
+		}
+		return getKWT(key);
 	}
 
 	public void deleteKWT(String key) {
@@ -280,7 +235,8 @@ class OtiNanaiListener implements Runnable {
 		return false;
 	}
 
-	private HashMap<String,KeyWordTracker> trackerMap;
+	private ExecutorService threadPool;
+	private ConcurrentHashMap<String,KeyWordTracker> trackerMap;
 	private int port;
 	private int alarmSamples;
 	private float lowAlarmThreshold;
