@@ -33,7 +33,7 @@ class SomeRecord {
 
 	private void process(String str, int min, int max) {
 		try {
-			theEvent = URLEncoder.encode(str.replaceAll("eventmarker ", ""), "UTF-8");
+			theEvent = URLEncoder.encode(str.replaceAll("eventmarker ", "").replaceAll(",",",&#8203;"), "UTF-8");
 		} catch (Exception e) {
 			theEvent = str.replaceAll("eventmarker ", "").replaceAll("[#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
 		}
