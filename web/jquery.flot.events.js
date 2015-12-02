@@ -178,7 +178,7 @@
         var _showTooltip = function(x, y, event){
             var tooltip = $('<div id="tooltip" class=""></div>').appendTo('body').fadeIn(200);
             
-            $('<div id="title">' + event.title + '</div>').appendTo(tooltip);
+            $('<div id="title">' + decodeURIComponent(event.title) + '</div>').appendTo(tooltip);
 	    if (event.eventType != null)
 		    $('<div id="type">Type: ' + event.eventType + '</div>').appendTo(tooltip);
 	    if (event.description != null)

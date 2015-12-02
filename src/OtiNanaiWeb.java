@@ -686,6 +686,7 @@ class OtiNanaiWeb implements Runnable {
 			+ "  </ul>\n"
 			+ " </div>\n"
 			+ "</div>\n"
+			+ "<a class=\"github fa fa-github fa-2x\" href=\"https://github.com/rkrambovitis/otinanai\"></a>"
 			+ "</form>\n"
 			+ "<!-- END search bar -->\n\n"
 			+ "<script>onload = function () { document.getElementById('q').selectionStart = document.getElementById('q').value.length;}</script>\n";

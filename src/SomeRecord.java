@@ -4,6 +4,8 @@ import java.net.InetAddress;
 import java.util.*;
 import java.lang.*;
 import java.text.SimpleDateFormat;
+import java.net.URLEncoder;
+
 
 /**
  * Data Storage Class
@@ -30,6 +32,11 @@ class SomeRecord {
 	}
 
 	private void process(String str, int min, int max) {
+		try {
+			theEvent = URLEncoder.encode(str.replaceAll("eventmarker ", ""), "UTF-8");
+		} catch (Exception e) {
+			theEvent = str.replaceAll("eventmarker ", "").replaceAll("[#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
+		}
 		str = str.replaceAll("[#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
 		str = str.toLowerCase();
 		storeMetric(str, min, max);
@@ -90,7 +97,6 @@ class SomeRecord {
 				str=str.replaceAll(tokens[1]+" ", "");
 				timeStamp = (1000l*w2);
 			}
-                        theEvent = str.replaceAll("eventmarker ", "");
                         IAmEvent = true;
                 } 
 	}

@@ -101,93 +101,102 @@ html[xmlns] .clearfix {
         }
           */
 
-        form {
-                margin: 0;
-                padding: 10px 0;
-                text-align: center;
-                background: #eee;
-                border: 2px solid #999;
-        }
-        form input {
-                font-size: 25px;
-                width: 80%;
-                padding: 3px;
-        }
-        .section {
-                height: 100%;
-                border: none;
-        }
-        .section div {
-                padding: 2px;
-                background: #fefefe;
-                height: 100%;
-                padding-left: 0;
-        }
+form {
+	margin: 0;
+	padding: 10px 0;
+	text-align: center;
+	background: #eee;
+	border: 2px solid #999;
+}
+form input {
+	font-size: 25px;
+	width: 80%;
+	padding: 3px;
+}
+.section {
+	height: 100%;
+	border: none;
+}
+.section div {
+	padding: 2px;
+	background: #fefefe;
+	height: 100%;
+	padding-left: 0;
+}
 
-        #output_values {
-                display: inline-block;
-                padding: 3px 6px;
-                margin: 0 3px;
-                background: #9B9B9B;
-                color: #fff;
-        }
+#output_values {
+	display: inline-block;
+	padding: 3px 6px;
+	margin: 0 3px;
+	background: #9B9B9B;
+	color: #fff;
+}
 
-        #tooltip {
-                position: absolute;
-                display: none;
-                width: 200px;
-                border: 1px solid #fdd;
-                padding: 2px;
-                background-color: #fee;
-                opacity: 0.80;
-                font-size: smaller;
-                cursor:move;
-                font-weight: bold;
-        }
-        a {
-                color: #0B3861;
-                display: block;
-                text-decoration:none;
-        }
-        a:hover {
-                text-decoration:underline;
-        }
-        li {
-                padding: 5px 8px;
-                border: 1px solid #ccc;
-                display: list-item;
-                margin: 5px;
-                background-color: #eee;
-                color: #252525;
-                border-radius: 5px;
-        }
-        ul {
-                list-style-type: none;
-                display: inline-block;
-        }
+#tooltip {
+	position: absolute;
+	display: none;
+	width: 200px;
+	border: 1px solid #fdd;
+	padding: 2px;
+	background-color: #fee;
+	opacity: 0.80;
+	font-size: smaller;
+	cursor:move;
+	font-weight: bold;
+}
+a {
+	color: #0B3861;
+	display: block;
+	text-decoration:none;
+}
+a:hover {
+	text-decoration:underline;
+}
+li {
+	padding: 5px 8px;
+	border: 1px solid #ccc;
+	display: list-item;
+	margin: 5px;
+	background-color: #eee;
+	color: #252525;
+	border-radius: 5px;
+}
+ul {
+	list-style-type: none;
+	display: inline-block;
+}
 
-	.helpTrigger {
-		width: 10px;
-		height: 10px;
-		position: relative;
-		left: 20px;
-		color: #4169E1;
-		position: relative;
-                z-index: 99999;
-	}
-	.helpTrigger > div {
-		display: none;
-		position: absolute;
-		right: 30px;
-		top: 50px;
-		width: 900px;
+.helpTrigger {
+	width: 10px;
+	height: 10px;
+	position: relative;
+	left: 20px;
+	color: #4169E1;
+	position: relative;
+	z-index: 99999;
+}
+.helpTrigger > div {
+	display: none;
+	position: absolute;
+	right: 30px;
+	top: 50px;
+	width: 900px;
 
-	}
-	.helpContent {
-		background: rgba(255,255,255,0.8);
-		border: 1px solid rgba(50, 50, 50, 0.3);
-		border-radius: 5px;
-		padding: 5px;
-		text-align: left;
-		font-size: 0.8em;
-	}
+}
+.helpContent {
+	background: rgba(255,255,255,0.8);
+	border: 1px solid rgba(50, 50, 50, 0.3);
+	border-radius: 5px;
+	padding: 5px;
+	text-align: left;
+	font-size: 0.8em;
+}
+.github {
+	width: 10px;
+	height: 10px;
+	position: relative;
+	left: 50px;
+	color: #4169E1;
+	position: relative;
+	z-index: 99999;
+}
