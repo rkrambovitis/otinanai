@@ -6,7 +6,7 @@ $(function() {
 	      if (item) {
 		      var x = item.datapoint[0], y = item.datapoint[1];
 		      $("#popup").html(addSuffix(y))
-			      .css({top: item.pageY+10, left: item.page-40})
+			      .css({top: item.pageY+10, left: item.pageX-40})
 			      .fadeIn(10);
 	      } else {
 		      $("#popup").hide();
