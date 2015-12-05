@@ -186,7 +186,7 @@
             
             tooltip.css({
                 top: y - tooltip.height() - 5,
-                left: x
+                left: x - tooltip.width()
             });
         };
         
