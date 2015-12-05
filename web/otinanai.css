@@ -166,6 +166,12 @@ ul {
 	display: inline-block;
 }
 
+#star {
+	color: #4169E1;
+	left: 10px;
+	position: relative;
+}
+
 .helpTrigger {
 	width: 10px;
 	height: 10px;
@@ -195,8 +201,7 @@ ul {
 	width: 10px;
 	height: 10px;
 	position: relative;
-	left: 50px;
+	left: 40px;
 	color: #4169E1;
 	position: relative;
-	z-index: 99999;
 }

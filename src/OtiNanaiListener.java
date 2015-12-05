@@ -21,6 +21,7 @@ class OtiNanaiListener implements Runnable {
                 rEventList = redisEventList;
                 rUnitList = redisUnitList;
                 rMultipList = redisMultipList;
+		rStarList = new String("List_Of_Starred_Inputs");
                 eventMap = new TreeMap<Long, String>();
 		unitMap = new HashMap<String, String>();
 		multipMap = new HashMap<String, Float>();
@@ -236,6 +237,20 @@ class OtiNanaiListener implements Runnable {
 		return false;
 	}
 
+	public boolean toggleStar(String input) {
+		if (jedis.sismember(rStarList, input)) {
+			jedis.srem(rStarList, input);
+			return false;
+		} else {
+			jedis.sadd(rStarList, input);
+			return true;
+		}
+	}
+
+	public boolean isStarred(String input) {
+		return jedis.sismember(rStarList, input);
+	}
+
 	private ExecutorService threadPool;
 	private ConcurrentHashMap<String,KeyWordTracker> trackerMap;
 	private int port;
@@ -250,6 +265,7 @@ class OtiNanaiListener implements Runnable {
 	private String rUnitList;
 	private String rMultipList;
 	private String rSavedQueries;
+	private String rStarList;
 	private LLString kwtList;
 	private Jedis jedis;
         private Jedis jedis2;

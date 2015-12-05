@@ -129,7 +129,11 @@ class OtiNanaiWeb implements Runnable {
 						if (query.contains("--nc") || query.contains("--no-cache") || query.contains("--gauge") || query.contains("--dash"))
 							cache = false;
 
-						String text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query) + showKeyWords(query, cache);
+						String text;
+						if (query.contains("--toggleStar"))
+							text = String.valueOf(onl.toggleStar(query.replaceAll(" --toggleStar","")));
+						else
+							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query) + showKeyWords(query, cache);
 
 						logger.fine("[Web]: got text, sending to client");
 						sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket, gzip);
@@ -660,6 +664,8 @@ class OtiNanaiWeb implements Runnable {
 			+ "<input type=\"text\" name=\"q\" id=\"q\" placeholder=\"search\" autofocus value=\""
 			+ input
 			+ "\" />\n"
+			+ "<span id=\"star\" class=\"fa "+ (onl.isStarred(input) ? "fa-star" : "fa-star-o") + " fa-2x\" "
+			+ "onClick=\"toggleStar('"+input+"')\" ></span>"
 			+ "<div class=\"helpTrigger fa fa-info-circle fa-2x\">\n"
 			+ " <div>\n"
 			+ "  <ul class=\"helpContent\">\n"
