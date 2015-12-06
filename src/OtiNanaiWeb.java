@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.logging.*;
 import java.text.SimpleDateFormat;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.zip.Deflater;
 
 class OtiNanaiWeb implements Runnable {
@@ -559,7 +560,11 @@ class OtiNanaiWeb implements Runnable {
 	private String starList() {
 		String output = commonHTML(OtiNanai.ENDHEAD) + "<ul>\n";
 		for (String star : onl.getStarList()) {
-			output = output + "<li><a href=\""+star+"\">"+star+"</a></li>\n";
+                        try {
+                                output = output + "<li><a href=\""+URLEncoder.encode(star, "UTF-8")+"\">"+star+"</a></li>\n";
+                        } catch (UnsupportedEncodingException uee) {
+                                output = output + "<li><a href=\""+star+"\">"+star+"</a></li>\n";
+                        }
 		}
 		output = output + "</ul>\n" + commonHTML(OtiNanai.ENDBODY);
 		return output;
