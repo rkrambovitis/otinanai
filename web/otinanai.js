@@ -19,7 +19,8 @@ $(function() {
 
 function toggleStar(input) {
 	var xhttp = new XMLHttpRequest();
-	xhttp.open("GET", "?q="+input+" --toggleStar", true);
+        var urlToStar = encodeURIComponent(input+" --toggleStar");
+	xhttp.open("GET", urlToStar, true);
 	xhttp.onreadystatechange = function() {
 		if (xhttp.readyState == 4 && xhttp.status == 200) {
 			if (xhttp.responseText == "t") {
