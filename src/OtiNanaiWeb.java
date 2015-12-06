@@ -559,7 +559,11 @@ class OtiNanaiWeb implements Runnable {
 
 	private String starList() {
 		String output = commonHTML(OtiNanai.ENDHEAD) + "<ul>\n";
-		for (String star : onl.getStarList()) {
+		LLString starList = (LLString)onl.getStarList().clone();
+		int size = onl.getStarList().size();
+		String star;
+		for (int i=0; i < size ; i++) {
+			star = starList.removeLast();
                         try {
                                 output = output + "<li><a href=\""+URLEncoder.encode(star, "UTF-8")+"\">"+star+"</a></li>\n";
                         } catch (UnsupportedEncodingException uee) {
