@@ -132,8 +132,10 @@ class OtiNanaiWeb implements Runnable {
 						String text;
 						if (query.contains("--toggleStar"))
 							text = String.valueOf(onl.toggleStar(query.replaceAll(" --toggleStar","")));
+						else if (query.contains("--starred"))
+							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query) + starList();
 						else
-							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query) + showKeyWords(query, cache);
+							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query) + showKeyWords(query.toLowerCase(), cache);
 
 						logger.fine("[Web]: got text, sending to client");
 						sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket, gzip);
@@ -552,6 +554,15 @@ class OtiNanaiWeb implements Runnable {
 			case OtiNanai.SUM: return new String("sum"); 
 		}
 		return new String("unset");
+	}
+
+	private String starList() {
+		String output = commonHTML(OtiNanai.ENDHEAD) + "<ul>\n";
+		for (String star : onl.getStarList()) {
+			output = output + "<li><a href=\""+star+"\">"+star+"</a></li>\n";
+		}
+		output = output + "</ul>\n" + commonHTML(OtiNanai.ENDBODY);
+		return output;
 	}
 
 	private String kwTree(ArrayList<String> kws, String[] existingKeyWords, ArrayList<String> words) {

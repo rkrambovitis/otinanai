@@ -21,7 +21,6 @@ class OtiNanaiListener implements Runnable {
                 rEventList = redisEventList;
                 rUnitList = redisUnitList;
                 rMultipList = redisMultipList;
-		rStarList = new String("List_Of_Starred_Inputs");
                 eventMap = new TreeMap<Long, String>();
 		unitMap = new HashMap<String, String>();
 		multipMap = new HashMap<String, Float>();
@@ -77,6 +76,14 @@ class OtiNanaiListener implements Runnable {
                                 } catch (NumberFormatException nfe) {
                                         System.err.println("Broken multiplier: "+s);
                                 }
+                        }
+                }
+		rStarList = new String("List_Of_Starred_Inputs");
+		System.out.println("Loading starred graphs from starlist: "+rStarList);
+		starList = new LLString();
+                if (jedis.exists(rStarList)) {
+                        for (String s : jedis.smembers(rStarList)) {
+				starList.add(s);
                         }
                 }
 		dataSocket = ds;
@@ -238,17 +245,23 @@ class OtiNanaiListener implements Runnable {
 	}
 
 	public boolean toggleStar(String input) {
-		if (jedis.sismember(rStarList, input)) {
+		if (starList.contains(input)) {
+			starList.remove(input);
 			jedis.srem(rStarList, input);
 			return false;
 		} else {
+			starList.add(input);
 			jedis.sadd(rStarList, input);
 			return true;
 		}
 	}
 
 	public boolean isStarred(String input) {
-		return jedis.sismember(rStarList, input);
+		return starList.contains(input);
+	}
+
+	public LLString getStarList() {
+		return starList;
 	}
 
 	private ExecutorService threadPool;
@@ -266,6 +279,7 @@ class OtiNanaiListener implements Runnable {
 	private String rMultipList;
 	private String rSavedQueries;
 	private String rStarList;
+	private LLString starList;
 	private LLString kwtList;
 	private Jedis jedis;
         private Jedis jedis2;
