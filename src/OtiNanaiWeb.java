@@ -67,6 +67,7 @@ class OtiNanaiWeb implements Runnable {
 				Path path;
 				byte[] data;
 				switch (query) {
+					case " test.html ":
 					case " favicon.ico ":
 					case " red-pointer.png ":
 					case " otinanai.css ":
@@ -74,6 +75,7 @@ class OtiNanaiWeb implements Runnable {
 					case " otinanai.flot.common.js ":
 					case " otinanai.flot.merged.js ":
 					case " otinanai.flot.preview.js ":
+					case " otinanai.flot.dashboard.js ":
 					case " jquery.flot.events.js ":
 					case " jquery.js ":
 					case " jquery.min.js ":
@@ -106,6 +108,8 @@ class OtiNanaiWeb implements Runnable {
 							sendToClient(data, "image/png", true, connectionSocket, gzip);
 						} else if (noSpaces.endsWith(".css")) {
 							sendToClient(data, "text/css", true, connectionSocket, gzip);
+						} else if (noSpaces.endsWith(".html")) {
+							sendToClient(data, "text/html", true, connectionSocket, gzip);
 						} else if (noSpaces.endsWith(".js")) {
 							sendToClient(data, "application/x-javascript", true, connectionSocket, gzip);
 						}
@@ -644,7 +648,7 @@ class OtiNanaiWeb implements Runnable {
 		} else if (out == OtiNanai.ENDHEAD) {
 			return new String("</head>\n<body>\n");
 		} else if (out == OtiNanai.ENDBODY) {
-			return new String("</body></html>\n");
+			return new String("</body>\n</html>\n");
 		} else if (out == OtiNanai.REFRESH) {
 			return new String("<meta http-equiv=\"refresh\" content="+OtiNanai.TICKER_INTERVAL/1000+">\n");
 		} else if (out == OtiNanai.GAGE) {
@@ -685,7 +689,7 @@ class OtiNanaiWeb implements Runnable {
 			+ input
 			+ "\" />\n"
 			+ "<span id=\"star\" class=\"fa "+ (onl.isStarred(input) ? "fa-star" : "fa-star-o") + " fa-2x\" "
-			+ "onClick=\"toggleStar('"+input+"')\" ></span>"
+			+ "onClick=\"toggleStar('"+input+"')\" ></span>\n"
 			+ "<div class=\"helpTrigger fa fa-info-circle fa-2x\">\n"
 			+ " <div>\n"
 			+ "  <ul class=\"helpContent\">\n"
@@ -712,7 +716,7 @@ class OtiNanaiWeb implements Runnable {
 			+ "  </ul>\n"
 			+ " </div>\n"
 			+ "</div>\n"
-			+ "<a class=\"github fa fa-github fa-2x\" href=\"https://github.com/rkrambovitis/otinanai\"></a>"
+			+ "<a class=\"github fa fa-github fa-2x\" href=\"https://github.com/rkrambovitis/otinanai\"></a>\n"
 			+ "</form>\n"
 			+ "<!-- END search bar -->\n\n"
 			+ "<script>onload = function () { document.getElementById('q').selectionStart = document.getElementById('q').value.length;}</script>\n";
