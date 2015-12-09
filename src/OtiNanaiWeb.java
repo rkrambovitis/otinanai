@@ -219,7 +219,7 @@ class OtiNanaiWeb implements Runnable {
 			if (timeStamp > endTime)
 				continue;
 			if (type != OtiNanai.GAGE)
-				output = "\n[" +timeStamp + "," + val + "]," + output;
+				output = "\t\t\t[" +timeStamp + "," + val + "],\n" + output;
 			samples++;
 			if (!lastSet) {
 				last = val;
@@ -412,10 +412,11 @@ class OtiNanaiWeb implements Runnable {
 				+ commonHTML(OtiNanai.ENDHEAD)
 				+ commonHTML(OtiNanai.ENDBODY);
 
+/*
 		} else if (type == OtiNanai.GRAPH_PREVIEW) {
 			output = commonHTML(OtiNanai.FLOT) 
-                                + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "")
-                                + commonHTML(OtiNanai.FLOT_PREVIEW);
+                                + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "");
+                                //+ commonHTML(OtiNanai.FLOT_PREVIEW);
 
 			output = output+ commonHTML(OtiNanai.JS)
 				+ getMarkings(showEvents, startTime, endTime, kws)
@@ -471,15 +472,19 @@ class OtiNanaiWeb implements Runnable {
                                 if (drawnGraphs >= graphLimit)
                                         break;
 			}
+*/
 		} else {
 			output = commonHTML(OtiNanai.FLOT) 
-                                + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "")
-                                + commonHTML(OtiNanai.FLOT_MERGED);
+                                + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "");
+                                //+ commonHTML(OtiNanai.FLOT_MERGED);
+
+			if (type == OtiNanai.GRAPH_PREVIEW)
+				maxMergeCount = 1;
 
 			int idx = (new Random()).nextInt(200);
 			output = output+ commonHTML(OtiNanai.JS)
 				+ getMarkings(showEvents, startTime, endTime, kws)
-				+ "var maxMergeCount = "+maxMergeCount+";\n"
+				//+ "var maxMergeCount = "+maxMergeCount+";\n"
 				+ "var stackedGraph = "+(type == OtiNanai.GRAPH_STACKED)+";\n"
                                 + "var idx = "+idx+";\n"
                                 + "var showSpikes = "+showSpikes+";\n"
@@ -509,26 +514,44 @@ class OtiNanaiWeb implements Runnable {
                                 graphLimit = sortedMap.size();
                         int graphCount = (int)Math.ceil(graphLimit / (float)maxMergeCount);
                         int totalKeys = sortedMap.size();
+			output = output + "graph"+idx +": {\n";
                         for (int j=0 ; j < totalKeys ; j++) {
                                 Map.Entry<String, String[]> foo = sortedMap.pollLastEntry();
 				String kw = foo.getKey();
                                 graphData = foo.getValue();
 
-				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
-					+ "label: \""+kw+" "+onl.getUnits(kw)+"\",\n";
+				output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
+					+ "\t\tlabel: \""+kw+" "+onl.getUnits(kw)+"\",\n";
 					//+ "label: \""+kw+" = 000.000 k \",\n";
 
 				
 				//output = output + "nn:  "+ (showSpikes ? "null" : graphData[11]) + ",\n";
-				output = output + "nn:  "+ graphData[11] + ",\n";
+				output = output 
+					+ "\t\tnn: "+ graphData[11] + ",\n"
+                                        + "\t\tmin: "+ graphData[0]+",\n"
+                                        + "\t\tmax: "+graphData[1]+",\n"
+                                        + "\t\tmean: "+graphData[2]+",\n"
+                                        + "\t\tfifth: "+graphData[7]+",\n"
+                                        + "\t\ttwentyfifth: "+graphData[8]+",\n"
+                                        + "\t\tfiftieth: "+graphData[9]+",\n"
+                                        + "\t\tseventyfifth: "+graphData[10]+",\n"
+                                        + "\t\tninetyfifth: "+graphData[4]+",\n";
 
-				output = output + "data: ["
+
+				output = output + "\t\tdata: [\n"
 					+ graphData[3]
-					+ "]},\n\n";
+					+ "\t\t]\n\t},\n\n";
 
                                 drawnGraphs++;
-                                if (drawnGraphs >= graphLimit)
+                                if (drawnGraphs >= graphLimit) {
+					output = output + "},";
                                         break;
+				}
+				if (drawnGraphs % maxMergeCount == 0) {
+					output = output 
+						+ "},\n"
+						+ "graph"+ (idx + (int)drawnGraphs/maxMergeCount) +": {\n";
+				}
 			}
 
 			for (int j = 0 ; j < graphCount ; j++) {
@@ -662,6 +685,7 @@ class OtiNanaiWeb implements Runnable {
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.events.js\"></script>\n"
 					//+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.resize.min.js\"></script>\n"
 					//+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.gridster.min.js\"></script>\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.dashboard.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.common.js\"></script>\n");
 		} else if (out == OtiNanai.FLOT_MERGED) {
 			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.min.js\"></script>\n"

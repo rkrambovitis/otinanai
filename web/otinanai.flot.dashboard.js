@@ -17,14 +17,17 @@ $(function() {
 		var ymax = 0;
 		var ysum = 0;
 		var y = null;
-		var stackedGraph = false;
-		var showspikes = false;
+		var stackedDefault = stackedGraph;
+		var stacked = stackedDefault;
+		var spikesDefault = showSpikes;
+		var spikes = spikesDefault;
 
+		var text="<div>Hello World</div>";
 	
-		$.each(marsbar, function(wrapper, graph) {
+		$.each(datasets, function(wrapper, graph) {
 			$.each(graph, function(key, val) {
 				if (key == "showSpikes") {
-					showSpikes = val;
+					spikes = val;
 				} else if (key == "stackedGraph") {
 					stacked = val;
 				} else {
@@ -35,9 +38,9 @@ $(function() {
 				}
 			});
 
-			if (!showSpikes && stackedGraph) 
+			if (!spikes && stacked) 
 				y = ysum;
-			else if (!showSpikes && !stackedGraph)
+			else if (!spikes && !stacked)
 				y = ymax;
 			
 			$.plot(window.$("#placeholder_"+ph), data, {
@@ -45,7 +48,7 @@ $(function() {
 				yaxis: { show: true, tickFormatter: addSuffix, min: null, max: y},
 				grid: { hoverable: true, autoHighlight: false, clickable: true},
 				legend: { show: true, position: "nw", sorted: "reverse" },
-				series: { stack: stackedGraph, lines: {show: true, fill: stackedGraph}},
+				series: { stack: stacked, lines: {show: true, fill: stacked}},
 				events: { data: marktext },
 				selection: { mode: "x" }
 			});
@@ -75,8 +78,8 @@ $(function() {
 			data = [];
 			ymax = 0;
 			ysum = 0;
-			stacked = false;
-			showSpikes = false;
+			stacked = stackedDefault;
+			spikes = spikesDefault;
 		});
 	};
 	drawGraphs();
