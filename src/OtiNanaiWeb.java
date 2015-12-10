@@ -74,9 +74,6 @@ class OtiNanaiWeb implements Runnable {
 					case " otinanai.js ":
 					case " otinanai.flot.js ":
 					case " otinanai.flot.common.js ":
-					case " otinanai.flot.merged.js ":
-					case " otinanai.flot.preview.js ":
-					case " otinanai.flot.dashboard.js ":
 					case " jquery.flot.events.js ":
 					case " jquery.js ":
 					case " jquery.min.js ":
@@ -412,72 +409,9 @@ class OtiNanaiWeb implements Runnable {
 			output = output 
 				+ commonHTML(OtiNanai.ENDHEAD)
 				+ commonHTML(OtiNanai.ENDBODY);
-
-/*
-		} else if (type == OtiNanai.GRAPH_PREVIEW) {
-			output = commonHTML(OtiNanai.FLOT) 
-                                + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "");
-                                //+ commonHTML(OtiNanai.FLOT_PREVIEW);
-
-			output = output+ commonHTML(OtiNanai.JS)
-				+ getMarkings(showEvents, startTime, endTime, kws)
-                                + "var showSpikes = "+showSpikes+";\n"
-				+ "var datasets = {\n";
-
-			for (KeyWordTracker kwt : kws) {
-				graphData = toGraph(kwt, type, startTime, endTime, maxMergeCount);
-				String kw = kwt.getKeyWord();
-				if (graphData[6].equals("0") || graphData[6].equals("1")) {
-					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
-					nodata = nodata + "No data in timerange for "+kw+"<br>";
-					continue;
-				}
-
-
-				output = output + "\"" + kw.replaceAll("\\.","_") + "\": {\n"
-					+ "label: \""+kw+"\",\n";
-
-				//output = output + "nn:  "+ (showSpikes ? "null" : graphData[11]) +",\n";
-				output = output + "nn:  "+ graphData[11] +",\n";
-
-				output = output + "data: ["
-					+ graphData[3]
-					+ "]},\n\n";
-
-				body = body 
-					+ "<div class=\"wrapper clearfix\">\n"
-					+ "\t<li><a href = \""+kw+"\">"+kw+"</a> " 
-					+ onl.getUnits(kw)
-					+ " ("+parseType(kwt.getType())+") "
-					+ "<script>"
-					+ "document.write("
-					+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
-					+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
-					+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
-					+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
-					+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
-					+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
-					+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
-					+ "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
-					+ "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
-					+ "+\"</span><span id=output_values> samples:\" + " + graphData[6]
-					+ "+\"</span><span> alarm:\" + " + onl.alarmEnabled(kw)
-					+ "+\"</span>\""
-					+ ");"
-					+ "</script>"
-					+ "</li>\n"
-					+ "\t<div id=\"" + kw.replaceAll("\\.","_") + "\" class=\"previewGraph\"></div>\n"
-					+ "</div>\n";
-
-                                drawnGraphs++;
-                                if (drawnGraphs >= graphLimit)
-                                        break;
-			}
-*/
 		} else {
 			output = commonHTML(OtiNanai.FLOT) 
                                 + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "");
-                                //+ commonHTML(OtiNanai.FLOT_MERGED);
 
 			if (type == OtiNanai.GRAPH_PREVIEW)
 				maxMergeCount = 1;
@@ -485,7 +419,6 @@ class OtiNanaiWeb implements Runnable {
 			int idx = (new Random()).nextInt(200);
 			output = output+ commonHTML(OtiNanai.JS)
 				+ getMarkings(showEvents, startTime, endTime, kws)
-				//+ "var maxMergeCount = "+maxMergeCount+";\n"
 				+ "var stackedGraph = "+(type == OtiNanai.GRAPH_STACKED)+";\n"
                                 + "var idx = "+idx+";\n"
                                 + "var showSpikes = "+showSpikes+";\n"
@@ -497,7 +430,6 @@ class OtiNanaiWeb implements Runnable {
 				String kw = kwt.getKeyWord();
 				if (graphData[6].equals("0") || graphData[6].equals("1")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
-					//nodata = nodata + "No data in timerange for "+kw+"<br>";
 					nodata = nodata + "\t<li>No data in timerange for "+kw+"</li>\n";
 					continue;
 				}
@@ -711,14 +643,7 @@ class OtiNanaiWeb implements Runnable {
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.events.js\"></script>\n"
-					//+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.resize.min.js\"></script>\n"
-					//+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.gridster.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.js\"></script>\n");
-		} else if (out == OtiNanai.FLOT_MERGED) {
-			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.min.js\"></script>\n"
-					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.merged.js\"></script>\n");
-		} else if (out == OtiNanai.FLOT_PREVIEW) {
-			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.preview.js\"></script>\n");
 		} else if ( out == OtiNanai.JS) {
 			return new String("<script type=\"text/javascript\">\n");
 		} else if (out == OtiNanai.ENDJS) {

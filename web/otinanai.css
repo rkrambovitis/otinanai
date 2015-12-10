@@ -1,28 +1,9 @@
-/*
-.log {
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 15px;
-        margin-bottom: 10px;
-}
-*/
 body, html {
         font-family:verdana,helvetica,arial,sans-serif;
         font-size: 14px;
         background: #fefefe;
 }
-/*
-#mygraph,
-#wrapper {
-        width: 85%;
-        margin: 0 auto;
-}
-.mygraph {
-        height: 50%;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 20px;
-        margin-bottom: 20px;
-}
-*/
+
 .mergedGraph {
         height: 200px;
         width: 100%;
@@ -30,16 +11,6 @@ body, html {
         padding-bottom: 15px;
         margin-bottom: 10px;
 }
-/*
-.previewGraph {
-        width: 100%;
-        float: center;
-        height: 200px;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 15px;
-        margin-bottom: 10px;
-}
-*/
 
 .gage {
         width: 23%;
@@ -50,64 +21,7 @@ body, html {
         padding: 2px;
         margin: 2px;
 }
-/*
-.checkList {
-        width: 100%;
-        float: left;
-}
-.date {
-        color: green;
-        display: inline-block;
-        padding-right: 20px;
-        margin-right: 20px;
-        border-right: 1px dotted #bbb;
-}
-.server {
-        color: orange;
-        display: inline-block;
-        padding-right: 20px;
-        margin-right: 20px;
-        border-right: 1px dotted #bbb;
-}
-.data {
-        color: black;
-}
-*/
-/*
-.clearfix:after {
-        content: ".";
-        display: block;
-        clear: both;
-        visibility: hidden;
-        line-height: 0;
-        height: 0;
-}
 
-.clearfix {
-        width: 100%;
-        display: inline-block;
-}
-
-.wrapper:last-child {
-        padding-bottom: 10px;
-}
-
-html[xmlns] .clearfix {
-        display: block;
-}
-
-* html .clearfix {
-        *    height: 1%;
-        *    }
-        *
-        *
-        body, html {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        }
-
-*/
 form {
 	margin: 0;
 	padding: 10px 0;
@@ -168,10 +82,6 @@ li {
 	background-color: #eee;
 	color: #252525;
 	margin: 3px;
-/*
-	margin: 2px;
-	border-radius: 5px;
-*/
 }
 ul {
 	list-style-type: none;
