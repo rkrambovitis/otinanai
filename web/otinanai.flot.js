@@ -25,6 +25,18 @@ function addSuffix(number) {
         return result+suffix;
 };
 
+function toggleDashboard(input, board) {
+	var xhttp = new XMLHttpRequest();
+        var urlToStar = encodeURIComponent(input+" --toggleDashboard "+board);
+	xhttp.open("GET", urlToStar, true);
+	xhttp.onreadystatechange = function() {
+		if (xhttp.readyState == 4 && xhttp.status == 200) {
+			console.log(xhttp.responseText);
+		}
+	}
+	xhttp.send();
+}
+
 $(function() {
 	var xmin = null;
 	var xmax = null;
@@ -48,9 +60,8 @@ $(function() {
 		var stacked = stackedDefault;
 		var spikesDefault = showSpikes;
 		var spikes = spikesDefault;
+		var storeLink = "";
 
-		var text="<div>Hello World</div>";
-	
 		$.each(datasets, function(wrapper, graph) {
 			$.each(graph, function(key, val) {
 				if (key == "showSpikes") {
@@ -62,6 +73,8 @@ $(function() {
 					if (val['nn'] > ymax)
 						ymax = val['nn'];
 					ysum += val['nn'];
+					//storeLink += key.replace("\"", "") +" ";
+					storeLink += key +" ";
 				}
 			});
 
@@ -80,26 +93,28 @@ $(function() {
 				selection: { mode: "x" }
 			});
 
-				window.$("#placeholder_"+ph).bind("plothover", function (event, pos, item) {
-					if (item) {
-						var x = item.datapoint[0], y = item.datapoint[1];
-						window.$(".tooltip").html(addSuffix(y))
-							.css({top: item.pageY+10, left: item.pageX-40})
-							.fadeIn(10);
-					} else {
-						window.$(".tooltip").hide();
-					}
-				});
-				window.$("#placeholder_"+ph).bind("plotselected", function (event, ranges) {
-						  xmin = ranges.xaxis.from;
-						  xmax = ranges.xaxis.to;
-						  drawGraphs();
-				});
-				window.$("#placeholder_"+ph).bind("plotunselected", function (event, ranges) {
-						  xmin = null;
-						  xmax = null;
-						  drawGraphs();
-				});
+			window.$("#placeholder_"+ph).bind("plothover", function (event, pos, item) {
+				if (item) {
+					var x = item.datapoint[0], y = item.datapoint[1];
+					window.$(".tooltip").html(addSuffix(y))
+						.css({top: item.pageY+10, left: item.pageX-40})
+						.fadeIn(10);
+				} else {
+					window.$(".tooltip").hide();
+				}
+			});
+			window.$("#placeholder_"+ph).bind("plotselected", function (event, ranges) {
+					  xmin = ranges.xaxis.from;
+					  xmax = ranges.xaxis.to;
+					  drawGraphs();
+			});
+			window.$("#placeholder_"+ph).bind("plotunselected", function (event, ranges) {
+					  xmin = null;
+					  xmax = null;
+					  drawGraphs();
+			});
+
+			$("<span class='starGraph fa fa-star-o fa-2x' onclick=\"toggleDashboard('"+storeLink+"', 'test')\"></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
 			data = [];
@@ -107,6 +122,7 @@ $(function() {
 			ysum = 0;
 			stacked = stackedDefault;
 			spikes = spikesDefault;
+			storeLink = "";
 		});
 	};
 	drawGraphs();

@@ -23,7 +23,7 @@ function toggleStar(input) {
 	xhttp.open("GET", urlToStar, true);
 	xhttp.onreadystatechange = function() {
 		if (xhttp.readyState == 4 && xhttp.status == 200) {
-			if (xhttp.responseText == "t") {
+			if (xhttp.responseText == "true") {
 				document.getElementById("star").className = "fa fa-star fa-2x";
 			} else {
 				document.getElementById("star").className = "fa fa-star-o fa-2x";

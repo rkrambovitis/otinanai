@@ -108,6 +108,12 @@ ul {
 	cursor: pointer;
 }
 
+.starGraph {
+	color: #4169E1;
+	float: right;
+	margin: -31px 7px;
+}
+
 .helpTrigger {
 	width: 10px;
 	height: 10px;

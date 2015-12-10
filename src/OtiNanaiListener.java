@@ -264,6 +264,10 @@ class OtiNanaiListener implements Runnable {
 		return starList;
 	}
 
+	public boolean toggleDashboard(String kws, String dashboardName) {
+		return true;
+	}
+
 	private ExecutorService threadPool;
 	private ConcurrentHashMap<String,KeyWordTracker> trackerMap;
 	private int port;

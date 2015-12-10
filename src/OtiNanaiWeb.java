@@ -129,12 +129,14 @@ class OtiNanaiWeb implements Runnable {
 							query = "*";
 
 						boolean cache = true;
-						if (query.contains("--nc") || query.contains("--no-cache") || query.contains("--gauge") || query.contains("--dash"))
+						if (query.contains("--nc") || query.contains("--no-cache") || query.contains("--gauge"))
 							cache = false;
 
 						String text;
 						if (query.contains("--toggleStar"))
 							text = String.valueOf(onl.toggleStar(query.replaceAll(" --toggleStar","")));
+						else if (query.contains("--toggleDashboard"))
+							text = showKeyWords(query.toLowerCase(), false);
 						else if (query.contains("--starred"))
 							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query) + starList();
 						else
@@ -164,8 +166,9 @@ class OtiNanaiWeb implements Runnable {
 				Deflater compressor = new Deflater(Deflater.BEST_SPEED);
 				compressor.setInput(dato);
 				compressor.finish();
-				byte[] littleDato = new byte[dato.length];
+				byte[] littleDato = new byte[dato.length + 30];
 				int contentLength = compressor.deflate(littleDato);
+				compressor.end();
 				dos.writeBytes("Content-Length: " + contentLength + "\r\n\r\n");
 				dos.write(littleDato, 0, contentLength);
 			} else {
@@ -514,14 +517,6 @@ class OtiNanaiWeb implements Runnable {
 						+ "</li>\n";
 				}
 			}
-/*
-			for (int j = 0 ; j < graphCount ; j++) {
-				body = body
-					+ "<div>\n"
-					+ "\t<div id=\"placeholder_"+(idx+j)+"\" class=\"mergedGraph\"></div>\n"
-					+ "</div>\n";
-			}
-*/
 		}
 
 		if (type != OtiNanai.GRAPH_GAUGE) {
@@ -714,6 +709,14 @@ class OtiNanaiWeb implements Runnable {
 			return op;
 		} else
 			logger.info("[Web]: Not cached: \"" + input + "\"");
+
+		if (input.contains("--toggledashboard")) {
+			int dashNameStart = input.indexOf("--toggledashboard");
+			input = input.replaceFirst("--toggledashboard ", "");
+			String dashboardName = input.substring(dashNameStart);
+			String keywords = input.replaceAll(dashboardName, "");
+			return String.valueOf(onl.toggleDashboard(keywords, dashboardName));
+		}
 
 		String [] keyList = input.split("[ ,]|%20");
 		logger.fine("[Web]: Searching for keywords");
