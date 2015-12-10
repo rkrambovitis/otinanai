@@ -1,14 +1,16 @@
+/*
 .log {
         border-bottom: 1px solid #ccc;
         padding-bottom: 15px;
         margin-bottom: 10px;
 }
+*/
 body, html {
         font-family:verdana,helvetica,arial,sans-serif;
-        font-size: 13px;
+        font-size: 14px;
         background: #fefefe;
 }
-
+/*
 #mygraph,
 #wrapper {
         width: 85%;
@@ -20,6 +22,7 @@ body, html {
         padding-bottom: 20px;
         margin-bottom: 20px;
 }
+*/
 .mergedGraph {
         height: 200px;
         width: 100%;
@@ -27,6 +30,7 @@ body, html {
         padding-bottom: 15px;
         margin-bottom: 10px;
 }
+/*
 .previewGraph {
         width: 100%;
         float: center;
@@ -35,6 +39,7 @@ body, html {
         padding-bottom: 15px;
         margin-bottom: 10px;
 }
+*/
 
 .gage {
         width: 23%;
@@ -45,6 +50,7 @@ body, html {
         padding: 2px;
         margin: 2px;
 }
+/*
 .checkList {
         width: 100%;
         float: left;
@@ -66,7 +72,8 @@ body, html {
 .data {
         color: black;
 }
-
+*/
+/*
 .clearfix:after {
         content: ".";
         display: block;
@@ -93,14 +100,14 @@ html[xmlns] .clearfix {
         *    height: 1%;
         *    }
         *
-        */*
+        *
         body, html {
         height: 100%;
         margin: 0;
         padding: 0;
         }
-          */
 
+*/
 form {
 	margin: 0;
 	padding: 10px 0;
@@ -145,31 +152,50 @@ form input {
 	font-weight: bold;
 }
 a {
-	color: #0B3861;
+	color: #0B38C3;
 	display: block;
 	text-decoration:none;
+	float: left;
+	padding: 3px 8px;
 }
 a:hover {
 	text-decoration:underline;
 }
 li {
-	padding: 5px 8px;
+	padding: 3px 3px;
 	border: 1px solid #ccc;
 	display: list-item;
-	margin: 5px;
 	background-color: #eee;
 	color: #252525;
+	margin: 3px;
+/*
+	margin: 2px;
 	border-radius: 5px;
+*/
 }
 ul {
 	list-style-type: none;
 	display: inline-block;
+	width: 95%;
+}
+.graphListing {
+	list-style-type: none;
+}
+.nodata {
+	margin: 2px;
+	width: 30%;
+}
+.nodata li {
+	padding: 3px 3px;
+	background-color: #eee;
+	color: #252525;
 }
 
 #star {
 	color: #4169E1;
 	left: 10px;
 	position: relative;
+	cursor: pointer;
 }
 
 .helpTrigger {
@@ -200,8 +226,11 @@ ul {
 .github {
 	width: 10px;
 	height: 10px;
-	position: relative;
 	left: 40px;
 	color: #4169E1;
 	position: relative;
+}
+a.github {
+	float: none;
+	text-decoration: none;
 }
