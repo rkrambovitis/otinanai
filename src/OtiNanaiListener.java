@@ -120,7 +120,7 @@ class OtiNanaiListener implements Runnable {
 		if (newRecord.isEvent()) {
                         eventMap.put(newRecord.getTimeStamp(), newRecord.getEvent());
                         jedis.sadd(rEventList, new String(newRecord.getTimeStamp()+" "+newRecord.getEvent()));
-			logger.info("[Listener]: New event-> "+newRecord.getEvent());
+			logger.fine("[Listener]: New event-> "+newRecord.getEvent());
                 }
 	}
 
@@ -262,6 +262,17 @@ class OtiNanaiListener implements Runnable {
 
 	public LLString getStarList() {
 		return starList;
+	}
+
+	public LLString getDashboard(String dashboardName) {
+		LLString dashboard = new LLString();
+		String rDashboardKey = dashboardName+"_Dashboard";
+		logger.info("[Listener]: Fetching smembers for "+rDashboardKey);
+		for (String kws : jedis.smembers(rDashboardKey)) {
+			logger.info("[Listener]: + adding "+kws);
+			dashboard.add(kws);
+		}
+		return dashboard;
 	}
 
 	public boolean toggleDashboard(String kws, String dashboardName) {

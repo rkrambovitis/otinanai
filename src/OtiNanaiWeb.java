@@ -184,7 +184,7 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-	private String[] toGraph(KeyWordTracker kwt, short type, long startTime, long endTime, int maxMergeCount) {
+	private String[] toGraph(KeyWordTracker kwt, short type, long startTime, long endTime) {
 		logger.finest("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
 		String output = new String("");
 		SomeRecord sr;
@@ -348,7 +348,7 @@ class OtiNanaiWeb implements Runnable {
 		return marktext;
 	}
 
-	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit, boolean autoRefresh, boolean showSpikes, boolean showDetails) {
+	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit, boolean autoRefresh, boolean showSpikes, boolean showDetails, String dashboardName) {
 		ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
 		LLString kwtList = onl.getKWTList();
 
@@ -382,7 +382,7 @@ class OtiNanaiWeb implements Runnable {
 				if (kw.length() > OtiNanai.MAX_KW_LENGTH) 
 					skw = trimKW(kw);
 				kw = kw.replaceAll("\\.","_");
-				graphData = toGraph(kwt, type, startTime, endTime, maxMergeCount);
+				graphData = toGraph(kwt, type, startTime, endTime);
 				if (graphData[6].equals("0")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points. - 0");
 					nodata = nodata + "\t<li>No data in timerange for "+kw+"</li>\n";
@@ -412,6 +412,79 @@ class OtiNanaiWeb implements Runnable {
 			output = output 
 				+ commonHTML(OtiNanai.ENDHEAD)
 				+ commonHTML(OtiNanai.ENDBODY);
+
+		} else if (type == OtiNanai.GRAPH_DASHBOARD) {
+			output = commonHTML(OtiNanai.FLOT)
+                                + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "");
+
+			int idx = (new Random()).nextInt(200);
+			output = output+ commonHTML(OtiNanai.JS)
+				+ getMarkings(showEvents, startTime, endTime, kws)
+                                + "var idx = "+idx+";\n"
+                                + "var showSpikes = "+showSpikes+";\n"
+				+ "var stackedGraph = false;\n"
+				+ "var datasets = {\n";
+
+			body = body +"\t<ul class=\"graphListing\">\n";
+
+			int j=0;
+			LLString dashKWs = onl.getDashboard(dashboardName);
+			for (String kwlist : dashKWs) {
+				logger.info("[Web]: Processing dashboard list : "+kwlist);
+				String [] dashkws = kwlist.split("[ ,]|%20");
+				output = output + "graph"+ (idx+j) +": {\n";
+				for (String kw : dashkws) {
+					logger.info("[Web]: Processing dashboard keyword : "+kw);
+					graphData = toGraph(onl.getKWT(kw), type, startTime, endTime);
+					if (graphData[6].equals("0") || graphData[6].equals("1")) {
+						logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
+						nodata = nodata + "\t<li>No data in timerange for "+kw+"</li>\n";
+						continue;
+					} else {
+						output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
+							+ "\t\tlabel: \""+kw+" "+onl.getUnits(kw)+"\",\n"
+							+ "\t\tnn: "+ graphData[11] + ",\n"
+							+ "\t\tdata: [\n"
+							+ graphData[3]
+							+ "\t\t]\n\t},\n\n";
+
+						if (showDetails) {
+							body = body
+								+ "<li>\n"
+								+ "<a href = \""+kw+"\">"+kw+"</a> "
+								+ onl.getUnits(kw)
+								//+ " ("+parseType(kwt.getType())+") "
+								+ "<script>"
+								+ "document.write("
+								+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
+								+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
+								+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
+								//+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
+								//+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
+								//+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
+								//+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
+								+ "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
+								+ "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
+								//+ "+\"</span><span id=output_values> samples:\" + " + graphData[6]
+								//+ "+\"</span><span> alarm:\" + " + onl.alarmEnabled(kw)
+								+ "+\"</span>\""
+								+ ");"
+								+ "</script>\n"
+								+ "</li>\n";
+						}
+					}
+				}
+				output = output + "},\n";
+
+				body = body
+					+ "</li>\n"
+					+ "<div>\n"
+					+ "\t<div id=\"placeholder_"+(idx+j) +"\" class=\"mergedGraph\"></div>\n"
+					+ "</div>\n"
+					+ "</li>\n";
+
+				j++;
+			}
 		} else {
 			output = commonHTML(OtiNanai.FLOT) 
                                 + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "");
@@ -429,7 +502,7 @@ class OtiNanaiWeb implements Runnable {
 
 			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
 			for (KeyWordTracker kwt : kws) {
-				graphData = toGraph(kwt, type, startTime, endTime, maxMergeCount);
+				graphData = toGraph(kwt, type, startTime, endTime);
 				String kw = kwt.getKeyWord();
 				if (graphData[6].equals("0") || graphData[6].equals("1")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
@@ -713,9 +786,9 @@ class OtiNanaiWeb implements Runnable {
 		if (input.contains("--toggledashboard")) {
 			int dashNameStart = input.indexOf("--toggledashboard");
 			input = input.replaceFirst("--toggledashboard ", "");
-			String dashboardName = input.substring(dashNameStart);
-			String keywords = input.replaceAll(" "+dashboardName, "");
-			return String.valueOf(onl.toggleDashboard(keywords, dashboardName));
+			String dashbName = input.substring(dashNameStart);
+			String keywords = input.replaceAll(" "+dashbName, "");
+			return String.valueOf(onl.toggleDashboard(keywords, dashbName));
 		}
 
 		String [] keyList = input.split("[ ,]|%20");
@@ -754,8 +827,17 @@ class OtiNanaiWeb implements Runnable {
                 boolean autoRefresh = true;
                 boolean showSpikes = false;
 		boolean showDetails = true;
+		String dashboardName = new String();
+		boolean nextWordIsDashboard = false;
+		boolean showDashboard = false;
 
 		for (String word : keyList) {
+			if (nextWordIsDashboard) {
+				dashboardName = word;
+				nextWordIsDashboard = false;
+				showDashboard = true;
+				continue;
+			}
 			if (nextWordIsUnit) {
 				units=word;
 				nextWordIsUnit = false;
@@ -828,6 +910,9 @@ class OtiNanaiWeb implements Runnable {
                                 case "--limit":
                                         nextWordIsLimit=true;
                                         continue;
+				case "--dashboard":
+					nextWordIsDashboard=true;
+					continue;
 				case "--force":
 					force = true;
 					continue;
@@ -1104,11 +1189,14 @@ class OtiNanaiWeb implements Runnable {
                                 + commonHTML(OtiNanai.ENDBODY);
 			return delOP;
 		}
-		if (!showAll && kws.size() > OtiNanai.MAXPERPAGE) {
+
+		if (showDashboard)
+			graphType = OtiNanai.GRAPH_DASHBOARD;
+		else if (!showAll && kws.size() > OtiNanai.MAXPERPAGE) {
 			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
 			return kwTree(kws, keyList, words);
 		}
-		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit, autoRefresh, showSpikes, showDetails);
+		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit, autoRefresh, showSpikes, showDetails, dashboardName);
 		onc.cache(input, op);
 		return op;
 	}
