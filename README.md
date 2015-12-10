@@ -70,16 +70,18 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	* `--sa|--show` (show all matching graphs, i.e. override the max-per-page setting)
 	* `--nc|--no-cache` (ignore cache)
 	* `--nr|--no-refresh|--nar|--no-auto-refresh` (Disable auto refresh)
-	* `--m|--merge|--combine` (merge all graphs into one. Beware, looks like crap)
+	* `--m|--merge|--combine` (merge graphs)
 	* `--stack` (stack graphs)
+	* `--starred` (show list of starred queries)
 	* `--ss|--show-spikes` (Do not crop graphs to 99 percentile)
 	* `--alarms|--alerts` (show only matching keywords in "alarm" state)
 	* `#maxMergeCount` (change how many graphs are merged per graph, sorted by 99%.)
 	* `--limit <number>` (Limit to first <number> graphs)
 	* `--nb|--no-bar|--ns|--no-search` (Do not show the search bar - for embedding)
+	* `--no-details|--nd` (Don't display keyword details, i.e. min, max, percentiles etc)
 	* `--units <somethings>` (Set the matching keywords units to <somethings>)
 	* `--multiplier number` (Set the matching keywords multiplier to <number> (for converting bytes etc))
-	* `--noalarm|--na` (disable alarm for matching 
+	* `--noalarm|--na` (disable alarm for matching keywords)
 	* `--enable-alarm|--enalarm|--ea` (enable alarm for matching keywords) (alarms are ON by default)
 
 + Examples:
@@ -121,6 +123,3 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	-rdunitlist <redisUnitList>    : Name of event list for redis. (default: OtiNanai_Event_List)
         -udpRecvBufferSize <bytes>     : (default: 1048576)
 
-## Screenshots ##
-![varnish_scrn.png](https://bitbucket.org/repo/xyeeMB/images/1761784708-varnish_scrn.png)
-![temperature_scrn.png](https://bitbucket.org/repo/xyeeMB/images/1495285141-temperature_scrn.png)

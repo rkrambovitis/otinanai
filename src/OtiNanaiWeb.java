@@ -345,7 +345,7 @@ class OtiNanaiWeb implements Runnable {
 		return marktext;
 	}
 
-	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit, boolean autoRefresh, boolean showSpikes) {
+	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit, boolean autoRefresh, boolean showSpikes, boolean showDetails) {
 		ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
 		LLString kwtList = onl.getKWTList();
 
@@ -459,28 +459,30 @@ class OtiNanaiWeb implements Runnable {
 
 				output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
 					+ "\t\tlabel: \""+kw+" "+onl.getUnits(kw)+"\",\n";
-				body = body
-					+ "<li>\n"
-					+ "<a href = \""+kw+"\">"+kw+"</a> "
-                                        + onl.getUnits(kw)
-					//+ " ("+parseType(kwt.getType())+") "
-                                        + "<script>"
-                                        + "document.write("
-					+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
-                                        + "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
-                                        + "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
-                                        //+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
-                                        //+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
-                                        //+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
-                                        //+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
-                                        + "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
-                                        + "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
-                                        //+ "+\"</span><span id=output_values> samples:\" + " + graphData[6]
-                                        //+ "+\"</span><span> alarm:\" + " + onl.alarmEnabled(kw)
-                                        + "+\"</span>\""
-                                        + ");"
-                                        + "</script>\n"
-					+ "</li>\n";
+				if (showDetails) {
+					body = body
+						+ "<li>\n"
+						+ "<a href = \""+kw+"\">"+kw+"</a> "
+						+ onl.getUnits(kw)
+						//+ " ("+parseType(kwt.getType())+") "
+						+ "<script>"
+						+ "document.write("
+						+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
+						+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
+						+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
+						//+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
+						//+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
+						//+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
+						//+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
+						+ "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
+						+ "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
+						//+ "+\"</span><span id=output_values> samples:\" + " + graphData[6]
+						//+ "+\"</span><span> alarm:\" + " + onl.alarmEnabled(kw)
+						+ "+\"</span>\""
+						+ ");"
+						+ "</script>\n"
+						+ "</li>\n";
+				}
 
 				
 				output = output 
@@ -748,6 +750,7 @@ class OtiNanaiWeb implements Runnable {
                 boolean enableAlarm = false;
                 boolean autoRefresh = true;
                 boolean showSpikes = false;
+		boolean showDetails = true;
 
 		for (String word : keyList) {
 			if (nextWordIsUnit) {
@@ -787,6 +790,10 @@ class OtiNanaiWeb implements Runnable {
 				case "--sa":
 				case "--show":
 					showAll = true;
+					continue;
+				case "--nd":
+				case "--no-details":
+					showDetails = false;
 					continue;
 				case "--delete":
 					wipe = true;
@@ -1098,7 +1105,7 @@ class OtiNanaiWeb implements Runnable {
 			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
 			return kwTree(kws, keyList, words);
 		}
-		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit, autoRefresh, showSpikes);
+		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit, autoRefresh, showSpikes, showDetails);
 		onc.cache(input, op);
 		return op;
 	}
