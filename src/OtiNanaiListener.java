@@ -33,18 +33,18 @@ class OtiNanaiListener implements Runnable {
                 jedis = new Jedis(redisHost);
                 jedis2 = new Jedis(redisHost);
                 kwtList = new LLString();
-		System.out.println("Loading keys from redis keylist: "+rKeyList);
+		logger.info("[Listener]: Loading keys from redis keylist: "+rKeyList);
                 if (jedis.exists(rKeyList)) {
                         for (String s : jedis.smembers(rKeyList)) {
                                 kwtList.add(s);
                         }
                 }
-		System.out.println("Loading existing keywords");
+		logger.info("[Listener]: Loading existing keywords");
                 for (String kw : kwtList) { 
-                        logger.info("[Listener]: Creating new Tracker: "+kw);
+                        logger.fine("[Listener]: Creating new Tracker: "+kw);
                         trackerMap.put(kw, new RedisTracker(kw, as, atl, ath, acs, redisHost, jedis2, logger));
                 }
-		System.out.println("Loading events from eventlist: "+rEventList);
+		logger.info("[Listener]: Loading events from eventlist: "+rEventList);
                 if (jedis.exists(rEventList)) {
                         Long tts = 0l;
                         String tev = new String();
@@ -54,7 +54,7 @@ class OtiNanaiListener implements Runnable {
                                 eventMap.put(tts, tev);
                         }
                 }
-		System.out.println("Loading units from unitlist: "+rUnitList);
+		logger.info("[Listener]: Loading units from unitlist: "+rUnitList);
                 if (jedis.exists(rUnitList)) {
                         String kw = new String();
                         String unit = new String();
@@ -64,7 +64,7 @@ class OtiNanaiListener implements Runnable {
                                 unitMap.put(kw, unit);
                         }
                 }
-		System.out.println("Loading multipliers from multiplierlist: "+rMultipList);
+		logger.info("[Listener]: Loading multipliers from multiplierlist: "+rMultipList);
                 if (jedis.exists(rMultipList)) {
                         String kw = new String();
                         float multip = 1f;
@@ -79,13 +79,34 @@ class OtiNanaiListener implements Runnable {
                         }
                 }
 		rStarList = new String("List_Of_Starred_Inputs");
-		System.out.println("Loading starred graphs from starlist: "+rStarList);
+		logger.info("[Listener]: Loading starred graphs from starlist: "+rStarList);
 		starList = new LLString();
                 if (jedis.exists(rStarList)) {
                         for (String s : jedis.smembers(rStarList)) {
 				starList.add(s);
                         }
                 }
+
+		rDashList = new String("List_Of_Dashboards");
+		logger.info("[Listener]: Loading dashboard from: "+rDashList);
+		dashList = new LLString();
+		dashMap = new HashMap<String, LLString>();
+		LLString dashData;
+                if (jedis.exists(rDashList)) {
+                        for (String s : jedis.smembers(rDashList)) {
+				String dashName = s.replaceAll("_Dashboard", "");
+				logger.info("[Listener]: Loading dashboard "+dashName+" from "+s);
+				dashData = new LLString();
+				dashList.add(dashName);
+				for (String t : jedis.smembers(s)) {
+					logger.info("[Listener]: + "+t);
+					dashData.add(t);
+				}
+				dashMap.put(dashName, dashData);
+                        }
+                } else {
+			logger.info("[Listener]: No dashboard list found");
+		}
 		dataSocket = ds;
 		logger.finest("[Listener]: New OtiNanaiListener Initialized");
 		System.out.println("Listener Initialized");
@@ -265,23 +286,33 @@ class OtiNanaiListener implements Runnable {
 	}
 
 	public LLString getDashboard(String dashboardName) {
-		LLString dashboard = new LLString();
-		String rDashboardKey = dashboardName+"_Dashboard";
-		logger.info("[Listener]: Fetching smembers for "+rDashboardKey);
-		for (String kws : jedis.smembers(rDashboardKey)) {
-			logger.info("[Listener]: + adding "+kws);
-			dashboard.add(kws);
+		if (dashMap.containsKey(dashboardName)) {
+			return dashMap.get(dashboardName);
+		} else {
+			return new LLString();
 		}
-		return dashboard;
 	}
 
 	public boolean toggleDashboard(String kws, String dashboardName) {
 		String rDashboardKey = dashboardName+"_Dashboard";
-		if (jedis.sismember(rDashboardKey, kws)) {
+
+		if (!dashList.contains(dashboardName)) {
+			dashMap.put(dashboardName, new LLString());
+			dashList.add(dashboardName);
+			jedis.sadd(rDashList, rDashboardKey);
+		}
+
+		if (dashMap.get(dashboardName).contains(kws)) {
 			jedis.srem(rDashboardKey, kws);
+			dashMap.get(dashboardName).remove(kws);
+			if (dashMap.get(dashboardName).isEmpty()) {
+				dashList.remove(dashboardName);
+				jedis.srem(rDashList, rDashboardKey);
+			}
 			return false;
 		} else {
 			jedis.sadd(rDashboardKey, kws);
+			dashMap.get(dashboardName).add(kws);
 			return true;
 		}
 	}
@@ -301,6 +332,7 @@ class OtiNanaiListener implements Runnable {
 	private String rMultipList;
 	private String rSavedQueries;
 	private String rStarList;
+	private String rDashList;
 	private LLString starList;
 	private LLString kwtList;
 	private Jedis jedis;
@@ -309,5 +341,7 @@ class OtiNanaiListener implements Runnable {
         private TreeMap<Long, String> eventMap;
 	private HashMap<String, String> unitMap;
 	private HashMap<String, Float> multipMap;
+	private HashMap<String, LLString> dashMap;
+	private LLString dashList;
 	private boolean deleteLock;
 }
