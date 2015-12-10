@@ -25,8 +25,10 @@ function addSuffix(number) {
         return result+suffix;
 };
 
-function toggleDashboard(input, board, element) {
+function toggleDashboard(input, element) {
 	var xhttp = new XMLHttpRequest();
+	var board = getDashboard();
+	console.log("Got Dashboard :"+board);
         var urlToStar = encodeURIComponent(input+"--toggleDashboard "+board);
 	xhttp.open("GET", urlToStar, true);
 	xhttp.onreadystatechange = function() {
@@ -42,8 +44,6 @@ function toggleDashboard(input, board, element) {
 $(function() {
 	var xmin = null;
 	var xmax = null;
-	var dashName=getDashboard();
-	console.log("Got dashname: "+dashName);
 
 	$("<div class='tooltip'></div>").css({
 		position: "absolute",
@@ -119,7 +119,7 @@ $(function() {
 			if (stacked)
 				storeLink +="--stacked ";
 
-			$("<span class='starGraph fa fa-star-o fa-2x' onclick=\"toggleDashboard('"+storeLink+"', '"+dashName+"', this)\"></span>").appendTo("#placeholder_"+ph);
+			$("<span class='starGraph fa fa-star-o fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
 			data = [];

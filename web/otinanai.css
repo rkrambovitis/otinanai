@@ -150,3 +150,7 @@ a.github {
 	float: none;
 	text-decoration: none;
 }
+ul.dashSelector {
+	width: 230px;
+	display: none;
+}

@@ -293,6 +293,10 @@ class OtiNanaiListener implements Runnable {
 		}
 	}
 
+	public LLString getDashBoardList() {
+		return dashList;
+	}
+
 	public boolean toggleDashboard(String kws, String dashboardName) {
 		String rDashboardKey = dashboardName+"_Dashboard";
 

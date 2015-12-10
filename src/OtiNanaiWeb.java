@@ -768,9 +768,22 @@ class OtiNanaiWeb implements Runnable {
 			+ "</div>\n"
 			+ "<a class=\"github fa fa-github fa-2x\" href=\"https://github.com/rkrambovitis/otinanai\"></a>\n"
 			+ "</form>\n"
+			+ getDashboardNav()
 			+ "<!-- END search bar -->\n\n"
 			+ "<script>onload = function () { document.getElementById('q').selectionStart = document.getElementById('q').value.length;}</script>\n";
 		return searchBar;
+	}
+
+	private String getDashboardNav() {
+		LLString list = onl.getDashBoardList();
+		String op = "<ul class=\"dashSelector\">\n";
+		for ( String s : list ) {
+			op = op + "\t<li onclick=\"setDashboard('"+s+"')\">"+s+"</li>\n";
+		}
+		op = op
+			+ "\t<li><input type=\"text\" id=\"NewDashboard\"/> <span onclick=\"setDashboard(document.getElementById('NewDashboard').value)\">add</span></li>\n"
+			+ "</ul>\n";
+		return op;
 	}
 
 	private String webTitle(String search) {
