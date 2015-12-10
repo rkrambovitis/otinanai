@@ -42,6 +42,8 @@ function toggleDashboard(input, board, element) {
 $(function() {
 	var xmin = null;
 	var xmax = null;
+	var dashName=getDashboard();
+	console.log("Got dashname: "+dashName);
 
 	$("<div class='tooltip'></div>").css({
 		position: "absolute",
@@ -117,7 +119,7 @@ $(function() {
 			if (stacked)
 				storeLink +="--stacked ";
 
-			$("<span class='starGraph fa fa-star-o fa-2x' onclick=\"toggleDashboard('"+storeLink+"', 'test', this)\"></span>").appendTo("#placeholder_"+ph);
+			$("<span class='starGraph fa fa-star-o fa-2x' onclick=\"toggleDashboard('"+storeLink+"', '"+dashName+"', this)\"></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
 			data = [];
