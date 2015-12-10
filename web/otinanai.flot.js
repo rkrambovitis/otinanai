@@ -114,6 +114,8 @@ $(function() {
 					  xmax = null;
 					  drawGraphs();
 			});
+			if (stacked)
+				storeLink +="--stacked ";
 
 			$("<span class='starGraph fa fa-star-o fa-2x' onclick=\"toggleDashboard('"+storeLink+"', 'test', this)\"></span>").appendTo("#placeholder_"+ph);
 

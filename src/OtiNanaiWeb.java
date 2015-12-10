@@ -435,6 +435,10 @@ class OtiNanaiWeb implements Runnable {
 				output = output + "graph"+ (idx+j) +": {\n";
 				for (String kw : dashkws) {
 					logger.info("[Web]: Processing dashboard keyword : "+kw);
+					if (kw.equals("--stacked")) {
+						output = output + "\tstackedGraph: true,\n";
+						continue;
+					}
 					graphData = toGraph(onl.getKWT(kw), type, startTime, endTime);
 					if (graphData[6].equals("0") || graphData[6].equals("1")) {
 						logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
