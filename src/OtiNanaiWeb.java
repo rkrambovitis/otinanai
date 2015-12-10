@@ -714,7 +714,7 @@ class OtiNanaiWeb implements Runnable {
 			int dashNameStart = input.indexOf("--toggledashboard");
 			input = input.replaceFirst("--toggledashboard ", "");
 			String dashboardName = input.substring(dashNameStart);
-			String keywords = input.replaceAll(dashboardName, "");
+			String keywords = input.replaceAll(" "+dashboardName, "");
 			return String.valueOf(onl.toggleDashboard(keywords, dashboardName));
 		}
 

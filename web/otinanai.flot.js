@@ -25,13 +25,15 @@ function addSuffix(number) {
         return result+suffix;
 };
 
-function toggleDashboard(input, board) {
+function toggleDashboard(input, board, element) {
 	var xhttp = new XMLHttpRequest();
-        var urlToStar = encodeURIComponent(input+" --toggleDashboard "+board);
+        var urlToStar = encodeURIComponent(input+"--toggleDashboard "+board);
 	xhttp.open("GET", urlToStar, true);
 	xhttp.onreadystatechange = function() {
-		if (xhttp.readyState == 4 && xhttp.status == 200) {
-			console.log(xhttp.responseText);
+		if (xhttp.responseText == "true") {
+			element.className = "starGraph fa fa-star fa-2x";
+		} else {
+			element.className = "starGraph fa fa-star-o fa-2x";
 		}
 	}
 	xhttp.send();
@@ -73,7 +75,6 @@ $(function() {
 					if (val['nn'] > ymax)
 						ymax = val['nn'];
 					ysum += val['nn'];
-					//storeLink += key.replace("\"", "") +" ";
 					storeLink += key +" ";
 				}
 			});
@@ -114,7 +115,7 @@ $(function() {
 					  drawGraphs();
 			});
 
-			$("<span class='starGraph fa fa-star-o fa-2x' onclick=\"toggleDashboard('"+storeLink+"', 'test')\"></span>").appendTo("#placeholder_"+ph);
+			$("<span class='starGraph fa fa-star-o fa-2x' onclick=\"toggleDashboard('"+storeLink+"', 'test', this)\"></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
 			data = [];

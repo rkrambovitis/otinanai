@@ -265,7 +265,14 @@ class OtiNanaiListener implements Runnable {
 	}
 
 	public boolean toggleDashboard(String kws, String dashboardName) {
-		return true;
+		String rDashboardKey = dashboardName+"_Dashboard";
+		if (jedis.sismember(rDashboardKey, kws)) {
+			jedis.srem(rDashboardKey, kws);
+			return false;
+		} else {
+			jedis.sadd(rDashboardKey, kws);
+			return true;
+		}
 	}
 
 	private ExecutorService threadPool;
