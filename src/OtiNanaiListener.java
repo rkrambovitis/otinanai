@@ -298,7 +298,11 @@ class OtiNanaiListener implements Runnable {
 	}
 
 	public boolean dashContainsKey(String dashboardName, String key) {
-		return (dashMap.get(dashboardName).contains(key));
+                try {
+                        return (dashMap.get(dashboardName).contains(key));
+                } catch (Exception e) {
+                        return false;
+                }
 	}
 
 	public boolean toggleDashboard(String kws, String dashboardName) {
