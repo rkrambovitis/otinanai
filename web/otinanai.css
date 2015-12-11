@@ -69,7 +69,6 @@ a {
 	color: #0B38C3;
 	display: block;
 	text-decoration:none;
-	float: left;
 	padding: 3px 8px;
 }
 a:hover {
@@ -86,10 +85,15 @@ li {
 ul {
 	list-style-type: none;
 	display: inline-block;
-	width: 95%;
 }
 .graphListing {
 	list-style-type: none;
+}
+.graphListing a {
+        float: left;
+}
+ul.graphListing {
+	width: 95%;
 }
 .nodata {
 	margin: 2px;
