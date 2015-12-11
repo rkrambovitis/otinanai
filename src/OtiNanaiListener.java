@@ -297,7 +297,10 @@ class OtiNanaiListener implements Runnable {
 		return dashList;
 	}
 
-	public boolean dashContainsKey(String dashboardName, String key) {
+	public boolean dashContainsKey(String dashboardName, String key, boolean stacked) {
+                if (stacked)
+                        key = key + " --stacked ";
+                logger.info("[Listener]: Checking "+dashboardName+" for \""+key+"\"");
                 try {
                         return (dashMap.get(dashboardName).contains(key));
                 } catch (Exception e) {

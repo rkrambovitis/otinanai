@@ -5,7 +5,15 @@ body, html {
 }
 
 .mergedGraph {
-        height: 300px;
+        height: 250px;
+        width: 100%;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 15px;
+        margin-bottom: 10px;
+}
+
+.dashGraph {
+        height: 180px;
         width: 100%;
         border-bottom: 1px solid #ccc;
         padding-bottom: 15px;
@@ -23,9 +31,11 @@ body, html {
 }
 
 form {
-	margin: 0;
+	/*margin: 0;*/
+        width: 99%;
+        margin: auto;
 	padding: 10px 0;
-	text-align: center;
+	/*text-align: center;*/
 	background: #eee;
 	border: 2px solid #999;
 }
@@ -33,6 +43,7 @@ form input {
 	font-size: 25px;
 	width: 80%;
 	padding: 3px;
+        margin: 3px;
 }
 .section {
 	height: 100%;
@@ -104,18 +115,20 @@ ul.graphListing {
 	background-color: #eee;
 	color: #252525;
 }
-
+/*
 #star {
 	color: #4169E1;
 	left: 10px;
 	position: relative;
 	cursor: pointer;
 }
+*/
 
 .starGraph {
 	color: #4169E1;
 	float: right;
-	margin: -31px 7px;
+	margin: 20px 30px;
+	cursor: pointer;
 }
 
 .helpTrigger {
@@ -175,13 +188,19 @@ a.goToDashboard {
 	z-index: 99999;
 	cursor: pointer;
 }
+
+#dashSelector ul{
+        padding: 10px;
+        background-color: #999;
+}
 #dashSelector li{
 	color: #4169E1;
 	font-size: 1.2rem;
+        margin:2px;
 }
 #currentDashboard {
 	color: #4169E1;
 	font-size: 1.3rem;
-	padding: 5px;
+	padding: 25px;
 	cursor: pointer;
 }

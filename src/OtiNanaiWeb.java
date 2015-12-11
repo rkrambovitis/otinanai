@@ -446,7 +446,7 @@ class OtiNanaiWeb implements Runnable {
 			int j=0;
 			LLString dashKWs = onl.getDashboard(currentDashboard);
 			for (String kwlist : dashKWs) {
-				logger.info("[Web]: Processing dashboard list : "+kwlist);
+				logger.info("[Web]: Processing dashboard list : \""+kwlist+"\"");
 				String [] dashkws = kwlist.split("[ ,]|%20");
 				output = output + "graph"+ (idx+j) +": {\n";
 				for (String kw : dashkws) {
@@ -474,17 +474,18 @@ class OtiNanaiWeb implements Runnable {
 							body = body
 								+ "<li>\n"
 								+ "<a href = \""+kw+"\">"+kw+"</a> "
-								+ onl.getUnits(kw)
+								//+ onl.getUnits(kw)
 								//+ " ("+parseType(kwt.getType())+") "
+                                                                + "<div style=\"text-align: right\">\n"
 								+ "<script>"
 								+ "document.write("
 								+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
 								+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
 								+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
-								//+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
-								//+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
-								//+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
-								//+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
+								+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
+								+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
+								+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
+								+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
 								+ "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
 								+ "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
 								//+ "+\"</span><span id=output_values> samples:\" + " + graphData[6]
@@ -492,6 +493,7 @@ class OtiNanaiWeb implements Runnable {
 								+ "+\"</span>\""
 								+ ");"
 								+ "</script>\n"
+                                                                + "</div>\n"
 								+ "</li>\n";
 						}
 					}
@@ -501,7 +503,7 @@ class OtiNanaiWeb implements Runnable {
 				body = body
 					+ "</li>\n"
 					+ "<div>\n"
-					+ "\t<div id=\"placeholder_"+(idx+j) +"\" class=\"mergedGraph\"></div>\n"
+					+ "\t<div id=\"placeholder_"+(idx+j) +"\" class=\"dashGraph\"></div>\n"
 					+ "</div>\n"
 					+ "</li>\n";
 
@@ -550,7 +552,7 @@ class OtiNanaiWeb implements Runnable {
 			output = output + "graph"+idx +": {\n";
 			body = body +"\t<ul class=\"graphListing\">\n";
 
-
+                        int mergedGraphs = 0;
 			String keysInGraph = new String();
                         for (int j=0 ; j < totalKeys ; j++) {
                                 Map.Entry<String, String[]> foo = sortedMap.pollLastEntry();
@@ -562,24 +564,26 @@ class OtiNanaiWeb implements Runnable {
 				keysInGraph += kw;
 
 				output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
-                                        + "\t\tpreStarred: "+onl.dashContainsKey(currentDashboard, keysInGraph)+",\n"
 					+ "\t\tkeyword: \""+kw+"\",\n"
 					+ "\t\tlabel: \""+kw+" "+onl.getUnits(kw)+"\",\n";
+
+
 				if (showDetails) {
 					body = body
 						+ "<li>\n"
 						+ "<a href = \""+kw+"\">"+kw+"</a> "
-						+ onl.getUnits(kw)
+						//+ onl.getUnits(kw)
 						//+ " ("+parseType(kwt.getType())+") "
+                                                + "<div style=\"text-align: right\">\n"
 						+ "<script>"
 						+ "document.write("
 						+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
 						+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
 						+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
-						//+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
-						//+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
-						//+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
-						//+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
+						+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
+						+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
+						+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
+						+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
 						+ "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
 						+ "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
 						//+ "+\"</span><span id=output_values> samples:\" + " + graphData[6]
@@ -587,39 +591,38 @@ class OtiNanaiWeb implements Runnable {
 						+ "+\"</span>\""
 						+ ");"
 						+ "</script>\n"
+                                                + "</div>\n"
 						+ "</li>\n";
 				}
 
 				
-				output = output 
+				output = output
 					+ "\t\tnn: "+ graphData[11] + ",\n";
-					
 
 				output = output + "\t\tdata: [\n"
 					+ graphData[3]
 					+ "\t\t]\n\t},\n\n";
 
                                 drawnGraphs++;
-                                if (drawnGraphs >= graphLimit) {
-					output = output 
-						+ "},\n";
-					body = body
-						+ "<div>\n"
-						+ "\t<div id=\"placeholder_"+(idx-1+(int)drawnGraphs/maxMergeCount)+"\" class=\"mergedGraph\"></div>\n"
-						+ "</div></ul>\n";
-                                        break;
-				}
-				if (drawnGraphs % maxMergeCount == 0) {
-					output = output 
-						+ "},\n"
-						+ "graph"+ (idx + (int)drawnGraphs/maxMergeCount) +": {\n";
+				if (drawnGraphs % maxMergeCount == 0 || drawnGraphs >= graphLimit) {
 					body = body
 						+ "</li>\n"
 						+ "<div>\n"
-						+ "\t<div id=\"placeholder_"+(idx-1+(int)drawnGraphs/maxMergeCount)+"\" class=\"mergedGraph\"></div>\n"
+						+ "\t<div id=\"placeholder_"+(idx+mergedGraphs)+"\" class=\"mergedGraph\"></div>\n"
 						+ "</div>\n"
 						+ "</li>\n";
+
+                                        if (onl.dashContainsKey(currentDashboard, keysInGraph, (type == OtiNanai.GRAPH_STACKED)))
+                                                output += "\tpreStarred: true,\n";
 					keysInGraph = new String();
+
+                                        mergedGraphs++;
+					output = output 
+						+ "},\n";
+                                        if (drawnGraphs < graphLimit)
+						output += "graph"+ (idx + mergedGraphs) +": {\n";
+                                        else
+                                                break;
 				}
 			}
 		}
@@ -767,10 +770,10 @@ class OtiNanaiWeb implements Runnable {
 			+ "<input type=\"text\" name=\"q\" id=\"q\" placeholder=\"search\" autofocus value=\""
 			+ input
 			+ "\" />\n"
+			+ "<a href=\"--dashboard --nd\" class=\"goToDashboard fa fa-dashboard fa-2x\"></a>"
 			+ "<span id=\"currentDashboard\" onclick=\"showDashSelector()\">\n"
 			+ "dashboard: "+currentDashboard
 			+ "</span>\n"
-			+ "<a href=\"--dashboard\" class=\"goToDashboard fa fa-dashboard fa-2x\"></a>"
 			//+ "<span id=\"star\" class=\"fa "+ (onl.isStarred(input) ? "fa-star" : "fa-star-o") + " fa-2x\" "
 			//+ "onClick=\"toggleStar('"+input+"')\" ></span>\n"
 /*

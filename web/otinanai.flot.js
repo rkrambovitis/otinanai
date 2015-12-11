@@ -73,7 +73,7 @@ $(function() {
 				} else if (key == "stackedGraph") {
 					stacked = val;
 				} else if (key == "preStarred") {
-					starred = val;
+					starred = true;
 				} else {
 					data.push(val);
 					if (val['nn'] > ymax)
@@ -120,7 +120,6 @@ $(function() {
 			});
 			if (stacked)
 				storeLink +="--stacked ";
-
 			$("<span class='starGraph fa "+ (starred ? "fa-star" : "fa-star-o") + " fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
