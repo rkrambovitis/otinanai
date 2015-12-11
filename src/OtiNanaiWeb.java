@@ -463,6 +463,7 @@ class OtiNanaiWeb implements Runnable {
 						continue;
 					} else {
 						output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
+                                                        + "\t\tkeyword: \""+kw+"\",\n"
 							+ "\t\tlabel: \""+kw+" "+onl.getUnits(kw)+"\",\n"
 							+ "\t\tnn: "+ graphData[11] + ",\n"
 							+ "\t\tdata: [\n"
@@ -561,6 +562,8 @@ class OtiNanaiWeb implements Runnable {
 				keysInGraph += kw;
 
 				output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
+                                        + "\t\tpreStarred: "+onl.dashContainsKey(currentDashboard, keysInGraph)+",\n"
+					+ "\t\tkeyword: \""+kw+"\",\n"
 					+ "\t\tlabel: \""+kw+" "+onl.getUnits(kw)+"\",\n";
 				if (showDetails) {
 					body = body
@@ -599,7 +602,6 @@ class OtiNanaiWeb implements Runnable {
                                 drawnGraphs++;
                                 if (drawnGraphs >= graphLimit) {
 					output = output 
-						+ "starred: "+onl.dashContainsKey(currentDashboard, keysInGraph)+","
 						+ "},\n";
 					body = body
 						+ "<div>\n"
@@ -609,7 +611,6 @@ class OtiNanaiWeb implements Runnable {
 				}
 				if (drawnGraphs % maxMergeCount == 0) {
 					output = output 
-						+ "starred: "+onl.dashContainsKey(currentDashboard, keysInGraph)+","
 						+ "},\n"
 						+ "graph"+ (idx + (int)drawnGraphs/maxMergeCount) +": {\n";
 					body = body
@@ -743,6 +744,7 @@ class OtiNanaiWeb implements Runnable {
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.min.js\"></script>\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.events.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.flot.js\"></script>\n");
 		} else if ( out == OtiNanai.JS) {

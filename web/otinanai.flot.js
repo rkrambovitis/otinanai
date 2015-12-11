@@ -27,10 +27,6 @@ function addSuffix(number) {
 
 function toggleDashboard(input, element) {
 	var xhttp = new XMLHttpRequest();
-/*
-	var board = getDashboard();
-	console.log("Got Dashboard :"+board);
-*/
         var urlToStar = encodeURIComponent(input+"--toggleDashboard");
 	xhttp.open("GET", urlToStar, true);
 	xhttp.onreadystatechange = function() {
@@ -83,7 +79,7 @@ $(function() {
 					if (val['nn'] > ymax)
 						ymax = val['nn'];
 					ysum += val['nn'];
-					storeLink += key +" ";
+					storeLink += val['keyword'] +" ";
 				}
 			});
 
@@ -97,8 +93,8 @@ $(function() {
 				yaxis: { show: true, tickFormatter: addSuffix, min: null, max: y},
 				grid: { hoverable: true, autoHighlight: false, clickable: true},
 				legend: { show: true, position: "nw", sorted: "reverse" },
-				series: { stack: stacked, lines: {show: true, fill: stacked}},
 				events: { data: marktext },
+				series: { stack: stacked, lines: {show: true, fill: stacked}},
 				selection: { mode: "x" }
 			});
 
@@ -125,8 +121,6 @@ $(function() {
 			if (stacked)
 				storeLink +="--stacked ";
 
-			console.log("Starred: "+starred);
-			console.log("PreStarred: "+starredDefault);
 			$("<span class='starGraph fa "+ (starred ? "fa-star" : "fa-star-o") + " fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
