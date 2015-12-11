@@ -5,7 +5,7 @@ body, html {
 }
 
 .mergedGraph {
-        height: 200px;
+        height: 300px;
         width: 100%;
         border-bottom: 1px solid #ccc;
         padding-bottom: 15px;
@@ -150,7 +150,34 @@ a.github {
 	float: none;
 	text-decoration: none;
 }
-ul.dashSelector {
-	width: 230px;
+.goToDashboard {
+	width: 10px;
+	height: 10px;
+	left: 10px;
+	color: #4169E1;
+	position: relative;
+}
+a.goToDashboard {
+	float: none;
+	text-decoration: none;
+}
+#dashSelector {
+	width: 250px;
 	display: none;
+	float: right;
+	position: absolute;
+	right: 105px;
+	top: 55px;
+	z-index: 99999;
+	cursor: pointer;
+}
+#dashSelector li{
+	color: #4169E1;
+	font-size: 1.2rem;
+}
+#currentDashboard {
+	color: #4169E1;
+	font-size: 1.3rem;
+	padding: 5px;
+	cursor: pointer;
 }

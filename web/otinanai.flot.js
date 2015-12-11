@@ -27,9 +27,11 @@ function addSuffix(number) {
 
 function toggleDashboard(input, element) {
 	var xhttp = new XMLHttpRequest();
+/*
 	var board = getDashboard();
 	console.log("Got Dashboard :"+board);
-        var urlToStar = encodeURIComponent(input+"--toggleDashboard "+board);
+*/
+        var urlToStar = encodeURIComponent(input+"--toggleDashboard");
 	xhttp.open("GET", urlToStar, true);
 	xhttp.onreadystatechange = function() {
 		if (xhttp.responseText == "true") {
@@ -64,6 +66,8 @@ $(function() {
 		var stacked = stackedDefault;
 		var spikesDefault = showSpikes;
 		var spikes = spikesDefault;
+		var starredDefault = preStarred;
+		var starred = starredDefault;
 		var storeLink = "";
 
 		$.each(datasets, function(wrapper, graph) {
@@ -72,6 +76,8 @@ $(function() {
 					spikes = val;
 				} else if (key == "stackedGraph") {
 					stacked = val;
+				} else if (key == "preStarred") {
+					starred = val;
 				} else {
 					data.push(val);
 					if (val['nn'] > ymax)
@@ -119,7 +125,9 @@ $(function() {
 			if (stacked)
 				storeLink +="--stacked ";
 
-			$("<span class='starGraph fa fa-star-o fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
+			console.log("Starred: "+starred);
+			console.log("PreStarred: "+starredDefault);
+			$("<span class='starGraph fa "+ (starred ? "fa-star" : "fa-star-o") + " fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
 			data = [];
@@ -127,6 +135,7 @@ $(function() {
 			ysum = 0;
 			stacked = stackedDefault;
 			spikes = spikesDefault;
+			starred = starredDefault;
 			storeLink = "";
 		});
 	};

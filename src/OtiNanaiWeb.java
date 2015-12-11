@@ -36,6 +36,7 @@ class OtiNanaiWeb implements Runnable {
 			String requestMessageLine;
 			String query = new String("*");
 			boolean gzip = false;
+			String currentDashboard = "default";
 			while (true) {
 				Socket connectionSocket = listenSocket.accept();
 				ArrayList<String> results = new ArrayList<String>();
@@ -50,8 +51,17 @@ class OtiNanaiWeb implements Runnable {
 							if (requestMessageLine.toLowerCase().contains("gzip"))
 								gzip = true;
 							logger.info("[Web]: gzip? " + gzip + " ("+ requestMessageLine.replaceAll("Accept-Encoding: ", "") +" )");
-						}
-						else {
+						} else if (requestMessageLine.startsWith("Cookie: ")) {
+							logger.info("[Web]: Processing "+requestMessageLine);
+							requestMessageLine = requestMessageLine.replaceAll("Cookie: ", "");
+							String[] cookies = requestMessageLine.split(";");
+							for (String cookie : cookies ) {
+								String[] c = cookie.split("=");
+								logger.info("[Web]: cookie: "+c[0]+" = "+c[1]);
+								if (c[0].equals("dashboard"))
+									currentDashboard = c[1];
+							}
+						} else {
 							logger.fine("[Web]: Ignoring: " + requestMessageLine);
 						}
 						requestMessageLine = inFromClient.readLine();
@@ -129,18 +139,18 @@ class OtiNanaiWeb implements Runnable {
 							query = "*";
 
 						boolean cache = true;
-						if (query.contains("--nc") || query.contains("--no-cache") || query.contains("--gauge"))
+						if (query.contains("--nc") || query.contains("--no-cache") || query.contains("--gauge") || query.contains("--dashboard"))
 							cache = false;
 
 						String text;
 						if (query.contains("--toggleStar"))
 							text = String.valueOf(onl.toggleStar(query.replaceAll(" --toggleStar","")));
 						else if (query.contains("--toggleDashboard"))
-							text = showKeyWords(query.toLowerCase(), false);
+							text = showKeyWords(query.toLowerCase(), currentDashboard, false);
 						else if (query.contains("--starred"))
-							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query) + starList();
+							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + starList();
 						else
-							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query) + showKeyWords(query.toLowerCase(), cache);
+							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + showKeyWords(query.toLowerCase(), currentDashboard, cache);
 
 						logger.fine("[Web]: got text, sending to client");
 						sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket, gzip);
@@ -185,7 +195,13 @@ class OtiNanaiWeb implements Runnable {
 	}
 
 	private String[] toGraph(KeyWordTracker kwt, short type, long startTime, long endTime) {
-		logger.finest("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
+		String[] toReturn = new String[12];
+		if (kwt == null) {
+			logger.fine("[Web]: null kwt");
+			toReturn[6] = new String("0");
+			return toReturn;
+		}
+		logger.fine("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
 		String output = new String("");
 		SomeRecord sr;
 		ArrayList<String> data = new ArrayList<String>();
@@ -271,7 +287,6 @@ class OtiNanaiWeb implements Runnable {
 		} else {
 			allData.add(0f);
 		}
-		String[] toReturn = new String[12];
 		toReturn[0]=String.format("%.2f", min).replaceAll(",", ".");
 		toReturn[1]=String.format("%.2f", max).replaceAll(",", ".");
 		toReturn[2]=String.format("%.2f", mean).replaceAll(",", ".");
@@ -348,7 +363,7 @@ class OtiNanaiWeb implements Runnable {
 		return marktext;
 	}
 
-	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit, boolean autoRefresh, boolean showSpikes, boolean showDetails, String dashboardName) {
+	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit, boolean autoRefresh, boolean showSpikes, boolean showDetails, String currentDashboard) {
 		ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
 		LLString kwtList = onl.getKWTList();
 
@@ -423,12 +438,13 @@ class OtiNanaiWeb implements Runnable {
                                 + "var idx = "+idx+";\n"
                                 + "var showSpikes = "+showSpikes+";\n"
 				+ "var stackedGraph = false;\n"
+				+ "var preStarred = true;\n"
 				+ "var datasets = {\n";
 
 			body = body +"\t<ul class=\"graphListing\">\n";
 
 			int j=0;
-			LLString dashKWs = onl.getDashboard(dashboardName);
+			LLString dashKWs = onl.getDashboard(currentDashboard);
 			for (String kwlist : dashKWs) {
 				logger.info("[Web]: Processing dashboard list : "+kwlist);
 				String [] dashkws = kwlist.split("[ ,]|%20");
@@ -440,8 +456,9 @@ class OtiNanaiWeb implements Runnable {
 						continue;
 					}
 					graphData = toGraph(onl.getKWT(kw), type, startTime, endTime);
+					logger.info("[Web]: Got Data for "+kw+", processing");
 					if (graphData[6].equals("0") || graphData[6].equals("1")) {
-						logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
+						logger.info("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
 						nodata = nodata + "\t<li>No data in timerange for "+kw+"</li>\n";
 						continue;
 					} else {
@@ -502,6 +519,7 @@ class OtiNanaiWeb implements Runnable {
 				+ "var stackedGraph = "+(type == OtiNanai.GRAPH_STACKED)+";\n"
                                 + "var idx = "+idx+";\n"
                                 + "var showSpikes = "+showSpikes+";\n"
+				+ "var preStarred = false;\n"
 				+ "var datasets = {\n";
 
 			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
@@ -532,10 +550,15 @@ class OtiNanaiWeb implements Runnable {
 			body = body +"\t<ul class=\"graphListing\">\n";
 
 
+			String keysInGraph = new String();
                         for (int j=0 ; j < totalKeys ; j++) {
                                 Map.Entry<String, String[]> foo = sortedMap.pollLastEntry();
 				String kw = foo.getKey();
                                 graphData = foo.getValue();
+
+				if (keysInGraph.length() > 0)
+					keysInGraph += " ";
+				keysInGraph += kw;
 
 				output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
 					+ "\t\tlabel: \""+kw+" "+onl.getUnits(kw)+"\",\n";
@@ -575,7 +598,9 @@ class OtiNanaiWeb implements Runnable {
 
                                 drawnGraphs++;
                                 if (drawnGraphs >= graphLimit) {
-					output = output + "},\n";
+					output = output 
+						+ "starred: "+onl.dashContainsKey(currentDashboard, keysInGraph)+","
+						+ "},\n";
 					body = body
 						+ "<div>\n"
 						+ "\t<div id=\"placeholder_"+(idx-1+(int)drawnGraphs/maxMergeCount)+"\" class=\"mergedGraph\"></div>\n"
@@ -584,6 +609,7 @@ class OtiNanaiWeb implements Runnable {
 				}
 				if (drawnGraphs % maxMergeCount == 0) {
 					output = output 
+						+ "starred: "+onl.dashContainsKey(currentDashboard, keysInGraph)+","
 						+ "},\n"
 						+ "graph"+ (idx + (int)drawnGraphs/maxMergeCount) +": {\n";
 					body = body
@@ -592,6 +618,7 @@ class OtiNanaiWeb implements Runnable {
 						+ "\t<div id=\"placeholder_"+(idx-1+(int)drawnGraphs/maxMergeCount)+"\" class=\"mergedGraph\"></div>\n"
 						+ "</div>\n"
 						+ "</li>\n";
+					keysInGraph = new String();
 				}
 			}
 		}
@@ -727,7 +754,7 @@ class OtiNanaiWeb implements Runnable {
 	}
 
 
-	private String searchBar(String input) {
+	private String searchBar(String input, String currentDashboard) {
 		if (input.contains("--no-search") || input.contains("--no-bar") || input.contains("--ns") || input.contains("--nb")) {
 			return new String();
 		}
@@ -738,8 +765,13 @@ class OtiNanaiWeb implements Runnable {
 			+ "<input type=\"text\" name=\"q\" id=\"q\" placeholder=\"search\" autofocus value=\""
 			+ input
 			+ "\" />\n"
-			+ "<span id=\"star\" class=\"fa "+ (onl.isStarred(input) ? "fa-star" : "fa-star-o") + " fa-2x\" "
-			+ "onClick=\"toggleStar('"+input+"')\" ></span>\n"
+			+ "<span id=\"currentDashboard\" onclick=\"showDashSelector()\">\n"
+			+ "dashboard: "+currentDashboard
+			+ "</span>\n"
+			+ "<a href=\"--dashboard\" class=\"goToDashboard fa fa-dashboard fa-2x\"></a>"
+			//+ "<span id=\"star\" class=\"fa "+ (onl.isStarred(input) ? "fa-star" : "fa-star-o") + " fa-2x\" "
+			//+ "onClick=\"toggleStar('"+input+"')\" ></span>\n"
+/*
 			+ "<div class=\"helpTrigger fa fa-info-circle fa-2x\">\n"
 			+ " <div>\n"
 			+ "  <ul class=\"helpContent\">\n"
@@ -766,23 +798,28 @@ class OtiNanaiWeb implements Runnable {
 			+ "  </ul>\n"
 			+ " </div>\n"
 			+ "</div>\n"
-			+ "<a class=\"github fa fa-github fa-2x\" href=\"https://github.com/rkrambovitis/otinanai\"></a>\n"
+*/
+			//+ "<a class=\"github fa fa-github fa-2x\" href=\"https://github.com/rkrambovitis/otinanai\"></a>\n"
 			+ "</form>\n"
-			+ getDashboardNav()
 			+ "<!-- END search bar -->\n\n"
-			+ "<script>onload = function () { document.getElementById('q').selectionStart = document.getElementById('q').value.length;}</script>\n";
+			+ "<script>onload = function () { document.getElementById('q').selectionStart = document.getElementById('q').value.length;}</script>\n"
+			+ getDashSelector();
 		return searchBar;
 	}
 
-	private String getDashboardNav() {
+
+	private String getDashSelector() {
 		LLString list = onl.getDashBoardList();
-		String op = "<ul class=\"dashSelector\">\n";
+		String op =
+			"<span id=\"dashSelector\">\n"
+			+ "<ul>\n";
 		for ( String s : list ) {
 			op = op + "\t<li onclick=\"setDashboard('"+s+"')\">"+s+"</li>\n";
 		}
 		op = op
 			+ "\t<li><input type=\"text\" id=\"NewDashboard\"/> <span onclick=\"setDashboard(document.getElementById('NewDashboard').value)\">add</span></li>\n"
-			+ "</ul>\n";
+			+ "</ul>\n"
+			+ "</span>\n";
 		return op;
 	}
 
@@ -790,7 +827,7 @@ class OtiNanaiWeb implements Runnable {
 		return new String("<title>OtiNanai Graphs|" + search+"</title>\n");
 	}
 
-	private String showKeyWords(String input, boolean cache) {
+	private String showKeyWords(String input, String currentDashboard, boolean cache) {
 		String op = onc.getCached(input);
 		if (!cache) {
 			logger.info("[Web]: non-cached result requested");
@@ -801,11 +838,8 @@ class OtiNanaiWeb implements Runnable {
 			logger.info("[Web]: Not cached: \"" + input + "\"");
 
 		if (input.contains("--toggledashboard")) {
-			int dashNameStart = input.indexOf("--toggledashboard");
-			input = input.replaceFirst("--toggledashboard ", "");
-			String dashbName = input.substring(dashNameStart);
-			String keywords = input.replaceAll(" "+dashbName, "");
-			return String.valueOf(onl.toggleDashboard(keywords, dashbName));
+			input = input.replaceFirst("--toggledashboard", "");
+			return String.valueOf(onl.toggleDashboard(input, currentDashboard));
 		}
 
 		String [] keyList = input.split("[ ,]|%20");
@@ -844,17 +878,9 @@ class OtiNanaiWeb implements Runnable {
                 boolean autoRefresh = true;
                 boolean showSpikes = false;
 		boolean showDetails = true;
-		String dashboardName = new String();
-		boolean nextWordIsDashboard = false;
 		boolean showDashboard = false;
 
 		for (String word : keyList) {
-			if (nextWordIsDashboard) {
-				dashboardName = word;
-				nextWordIsDashboard = false;
-				showDashboard = true;
-				continue;
-			}
 			if (nextWordIsUnit) {
 				units=word;
 				nextWordIsUnit = false;
@@ -928,7 +954,7 @@ class OtiNanaiWeb implements Runnable {
                                         nextWordIsLimit=true;
                                         continue;
 				case "--dashboard":
-					nextWordIsDashboard=true;
+					showDashboard = true;
 					continue;
 				case "--force":
 					force = true;
@@ -1213,7 +1239,7 @@ class OtiNanaiWeb implements Runnable {
 			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
 			return kwTree(kws, keyList, words);
 		}
-		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit, autoRefresh, showSpikes, showDetails, dashboardName);
+		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit, autoRefresh, showSpikes, showDetails, currentDashboard);
 		onc.cache(input, op);
 		return op;
 	}

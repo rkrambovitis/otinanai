@@ -45,7 +45,12 @@ function getCookie(cname) {
 }
 
 function setDashboard(dashName) {
-	document.cookie = "dashboard="+dashName+";"; 
+	var d = new Date();
+	d.setTime(d.getTime() + 31104000000);
+	var expires = "expires="+d.toUTCString();
+	document.cookie = "dashboard="+dashName+"; " + expires;
+	document.getElementById('dashSelector').style.display = "none";
+	document.getElementById('currentDashboard').innerHTML="dashboard: "+dashName;
 }
 
 function getDashboard() {
@@ -55,4 +60,13 @@ function getDashboard() {
 		dashName = "test";
 	}
 	return dashName;
+}
+
+function showDashSelector() {
+        var foo = document.getElementById('dashSelector');
+        if (foo.style.display == 'block') {
+                foo.style.display = 'none';
+        } else {
+                foo.style.display = 'block';
+        }
 }
