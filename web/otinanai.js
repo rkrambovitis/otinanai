@@ -50,7 +50,7 @@ function setDashboard(dashName) {
 	var expires = "expires="+d.toUTCString();
 	document.cookie = "dashboard="+dashName+"; " + expires;
 	document.getElementById('dashSelector').style.display = "none";
-	document.getElementById('currentDashboard').innerHTML="dashboard: "+dashName;
+	document.getElementById('currentDashboard').innerHTML=dashName;
 }
 
 function getDashboard() {

@@ -379,7 +379,7 @@ class OtiNanaiWeb implements Runnable {
 		}
 
 		String output;
-		String nodata = new String("<ul class=\"nodata\">\n");
+		String nodata = new String();
 		String body = new String("");
 		String[] graphData;
                 int drawnGraphs = 0;
@@ -387,7 +387,7 @@ class OtiNanaiWeb implements Runnable {
                 if (graphLimit == 0) 
                         graphLimit = kws.size();
 
-
+                String deleteAll = new String();
 		if (type == OtiNanai.GRAPH_GAUGE) {
 			output = commonHTML(OtiNanai.GAGE) + commonHTML(OtiNanai.REFRESH);
 			for (KeyWordTracker kwt : kws) {
@@ -400,7 +400,8 @@ class OtiNanaiWeb implements Runnable {
 				graphData = toGraph(kwt, type, startTime, endTime);
 				if (graphData[6].equals("0")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points. - 0");
-					nodata = nodata + "\t<li>No data in timerange for "+kw+"</li>\n";
+                                        nodata = nodata + "\t<li>No data in timerange for "+kw+"</li>\n";
+                                        deleteAll = deleteAll + "^"+kw+"$ ";
 					continue;
 				}
 				output = output
@@ -460,6 +461,7 @@ class OtiNanaiWeb implements Runnable {
 					if (graphData[6].equals("0") || graphData[6].equals("1")) {
 						logger.info("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
 						nodata = nodata + "\t<li>No data in timerange for "+kw+"</li>\n";
+                                                deleteAll = deleteAll + "^"+kw+"$ ";
 						continue;
 					} else {
 						output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
@@ -532,6 +534,7 @@ class OtiNanaiWeb implements Runnable {
 				if (graphData[6].equals("0") || graphData[6].equals("1")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
 					nodata = nodata + "\t<li>No data in timerange for "+kw+"</li>\n";
+                                        deleteAll = deleteAll + "^"+kw+"$ ";
 					continue;
 				}
 				dataMap.put(kw, graphData);
@@ -627,12 +630,15 @@ class OtiNanaiWeb implements Runnable {
 			}
 		}
 
+                if (nodata.length() > 0 )
+                        nodata = "<ul class=\"nodata\">\n"+nodata + "<li><a href=\""+deleteAll+" --delete\">Delete Empty</a>&nbsp;</li>\n</ul>\n";
+
 		if (type != OtiNanai.GRAPH_GAUGE) {
 			output = output + "};\n"
 				+ commonHTML(OtiNanai.ENDJS)
 				+ commonHTML(OtiNanai.ENDHEAD)
 				+ body
-				+ (nodata.length() > 1 ? nodata + "</ul>\n" : "")
+				+ nodata
 				+ commonHTML(OtiNanai.ENDBODY);
 		}
 
@@ -772,7 +778,7 @@ class OtiNanaiWeb implements Runnable {
 			+ "\" />\n"
 			+ "<a href=\"--dashboard --nd\" class=\"goToDashboard fa fa-dashboard fa-2x\"></a>"
 			+ "<span id=\"currentDashboard\" onclick=\"showDashSelector()\">\n"
-			+ "dashboard: "+currentDashboard
+			+ currentDashboard
 			+ "</span>\n"
 			//+ "<span id=\"star\" class=\"fa "+ (onl.isStarred(input) ? "fa-star" : "fa-star-o") + " fa-2x\" "
 			//+ "onClick=\"toggleStar('"+input+"')\" ></span>\n"
