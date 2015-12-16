@@ -95,6 +95,7 @@ $(function() {
 				legend: { show: true, position: "nw", sorted: "reverse" },
 				events: { data: marktext },
 				series: { stack: stacked, lines: {show: true, fill: stacked}},
+                                crosshair: { mode: "y" },
 				selection: { mode: "x" }
 			});
 
