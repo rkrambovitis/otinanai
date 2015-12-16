@@ -235,7 +235,7 @@ class OtiNanaiWeb implements Runnable {
 				break;
 			if (timeStamp > endTime)
 				continue;
-			if (type != OtiNanai.GAGE)
+			if (type != OtiNanai.GRAPH_GAUGE && type != OtiNanai.GRAPH_PERCENTILES)
 				output = "\t\t\t[" +timeStamp + "," + val + "],\n" + output;
 			samples++;
 			if (!lastSet) {
@@ -287,6 +287,19 @@ class OtiNanaiWeb implements Runnable {
 		} else {
 			allData.add(0f);
 		}
+
+		if (type == OtiNanai.GRAPH_PERCENTILES) {
+			output =
+				"\t\t\t[0," + min + "],\n"
+				+ "\t\t\t[5," + allData.get(fifth) + "],\n"
+				+ "\t\t\t[25," + allData.get(tfifth) + "],\n"
+				+ "\t\t\t[50," + allData.get(fiftieth) + "],\n"
+				+ "\t\t\t[75," + allData.get(sfifth) + "],\n"
+				+ "\t\t\t[95," + allData.get(nfth) + "],\n"
+				+ "\t\t\t[99," + allData.get(nninth) + "],\n"
+				+ "\t\t\t[100," + max + "],\n";
+		}
+
 		toReturn[0]=String.format("%.2f", min).replaceAll(",", ".");
 		toReturn[1]=String.format("%.2f", max).replaceAll(",", ".");
 		toReturn[2]=String.format("%.2f", mean).replaceAll(",", ".");
@@ -299,6 +312,7 @@ class OtiNanaiWeb implements Runnable {
 		toReturn[9]=allData.get(fiftieth).toString();
 		toReturn[10]=allData.get(sfifth).toString();
 		toReturn[11]=allData.get(nninth).toString();
+
 		return toReturn;
 	}
 
@@ -439,6 +453,7 @@ class OtiNanaiWeb implements Runnable {
                                 + "var idx = "+idx+";\n"
                                 + "var showSpikes = "+showSpikes+";\n"
 				+ "var stackedGraph = false;\n"
+				+ "var percentilesGraph = false;\n"
 				+ "var preStarred = true;\n"
 				+ "var datasets = {\n";
 
@@ -522,6 +537,7 @@ class OtiNanaiWeb implements Runnable {
 			output = output+ commonHTML(OtiNanai.JS)
 				+ getMarkings(showEvents, startTime, endTime, kws)
 				+ "var stackedGraph = "+(type == OtiNanai.GRAPH_STACKED)+";\n"
+				+ "var percentilesGraph = "+(type == OtiNanai.GRAPH_PERCENTILES)+";\n"
                                 + "var idx = "+idx+";\n"
                                 + "var showSpikes = "+showSpikes+";\n"
 				+ "var preStarred = false;\n"
@@ -981,6 +997,10 @@ class OtiNanaiWeb implements Runnable {
 				case "--m":
 				case "--combine":
 					graphType = OtiNanai.GRAPH_MERGED;
+					continue;
+				case "--pcnt":
+				case "--percentiles":
+					graphType = OtiNanai.GRAPH_PERCENTILES;
 					continue;
 				case "--alarms":
 				case "--alerts":

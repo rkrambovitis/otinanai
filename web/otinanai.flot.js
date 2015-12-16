@@ -64,6 +64,8 @@ $(function() {
 		var spikes = spikesDefault;
 		var starredDefault = preStarred;
 		var starred = starredDefault;
+		var percentilesDefault = percentilesGraph;
+		var percentiles = percentilesDefault;
 		var storeLink = "";
 
 		$.each(datasets, function(wrapper, graph) {
@@ -72,6 +74,8 @@ $(function() {
 					spikes = val;
 				} else if (key == "stackedGraph") {
 					stacked = val;
+				} else if (key == "percentilesGraph") {
+					percentiles = val;
 				} else if (key == "preStarred") {
 					starred = true;
 				} else {
@@ -89,7 +93,7 @@ $(function() {
 				y = ymax;
 			
 			$.plot(window.$("#placeholder_"+ph), data, {
-				xaxis: { mode: "time", tickDecimals: 0, timezone: "browser", min: xmin, max: xmax },
+				xaxis: { mode: (percentiles ? "null" : "time"), tickDecimals: 0, timezone: "browser", min: xmin, max: xmax },
 				yaxis: { show: true, tickFormatter: addSuffix, min: null, max: y},
 				grid: { hoverable: true, autoHighlight: false, clickable: true},
 				legend: { show: true, position: "nw", sorted: "reverse" },
@@ -130,6 +134,7 @@ $(function() {
 			stacked = stackedDefault;
 			spikes = spikesDefault;
 			starred = starredDefault;
+			percentiles = percentilesDefault;
 			storeLink = "";
 		});
 	};

@@ -72,6 +72,7 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	* `--nr|--no-refresh|--nar|--no-auto-refresh` (Disable auto refresh)
 	* `--m|--merge|--combine` (merge graphs)
 	* `--stack` (stack graphs)
+	* `--pcnt|--percentiles` (graph percentiles, not data)
 	* `--starred` (show list of starred queries)
 	* `--ss|--show-spikes` (Do not crop graphs to 99 percentile)
 	* `--alarms|--alerts` (show only matching keywords in "alarm" state)
