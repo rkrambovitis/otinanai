@@ -289,16 +289,16 @@ class OtiNanaiWeb implements Runnable {
 		}
 
 		if (type == OtiNanai.GRAPH_PERCENTILES) {
-			output =
-				"\t\t\t[0," + min + "],\n"
-				+ "\t\t\t[5," + allData.get(fifth) + "],\n"
-				+ "\t\t\t[25," + allData.get(tfifth) + "],\n"
-				+ "\t\t\t[50," + allData.get(fiftieth) + "],\n"
-				+ "\t\t\t[75," + allData.get(sfifth) + "],\n"
-				+ "\t\t\t[95," + allData.get(nfth) + "],\n"
-				+ "\t\t\t[99," + allData.get(nninth) + "],\n"
-				+ "\t\t\t[100," + max + "],\n";
-		}
+                        for (float k = 0.05f ; k <= 1 ; ) {
+                                try {
+                                        output = output + "\t\t\t["+String.format("%.2f", (k*100)).replaceAll(",", ".")+","+allData.get((int)(k*samples)-1)+"],\n";
+                                } catch (ArrayIndexOutOfBoundsException aioobe) {}
+                                if (k > 0.9)
+                                        k+=0.001;
+                                else
+                                        k+=0.01;
+                        }
+                }
 
 		toReturn[0]=String.format("%.2f", min).replaceAll(",", ".");
 		toReturn[1]=String.format("%.2f", max).replaceAll(",", ".");

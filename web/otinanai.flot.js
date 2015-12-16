@@ -15,7 +15,9 @@ function addSuffix(number) {
                 result = number / 1000;
         }
 
-        if (number < 10 )
+        if (number < 1 )
+                result = result.toFixed(3);
+        else if (number < 10 )
                 result = result.toFixed(2);
         else if (Math.abs(result) < 10 )
                 result = result.toFixed(1);
