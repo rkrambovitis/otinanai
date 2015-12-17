@@ -6,7 +6,7 @@ import redis.clients.jedis.*;
 
 class RedisTracker implements KeyWordTracker {
 
-	public RedisTracker(String key, int as, float atl, float ath, int acs, String rh, Jedis j, Logger l) {
+	public RedisTracker(String key, int as, float atl, float ath, int acs, JedisPool jp, Logger l) {
 		mean = 0f;
 		variance = 0d;
 		stdev = 0d;
@@ -20,9 +20,6 @@ class RedisTracker implements KeyWordTracker {
                 zeroesCount = 0;
 		keyWord = new String(key);
 		logger = l;
-		redisHost = rh;
-		jedis = j;
-                jedisRetries = 2;
 		sampleCount = 1;
 		currentFloat = 0f;
 		currentDataCount = 0;
@@ -33,37 +30,25 @@ class RedisTracker implements KeyWordTracker {
 		step1Key = keyWord + "thirtySec";
 		step2Key = keyWord + "fiveMin";
 		step3Key = keyWord + "thirtyMin";
-
-                alarmDisabled = keyWord+"alarmDisabled";
-                try {
-                        if (jedis.exists(alarmDisabled)) {
-                                alarmEnabled = false;
-                        }
-                } catch (Exception e) {
-                        logger.severe("[RedisTracker]: Unable to retrieve alarm enabled stats\n" +e);
-                }
-
+		jediTemple = jp;
+		alarmDisabled = keyWord+"alarmDisabled";
 		alarmKey = keyWord + "alarmTS";
-                try {
-                        String alarmSaved = jedis.get(alarmKey);
-                        if (alarmSaved == null) {
-                                alarm = 0L;
-                        } else {
-                                        alarm = Long.parseLong(alarmSaved);
-                        }
-                } catch (Exception e) {
-                        logger.severe("[RedisTracker]: Unable to retrieve stored alarm state\n"+e);
-                        alarm = 0L;
-                }
 
-		logger.finest("[RedisTracker]: new RedisTracker initialized for \"" +keyWord+"\"");
-	}
+		try ( Jedis jedis = jediTemple.getResource() ) {
+			if (jedis.exists(alarmDisabled)) {
+				alarmEnabled = false;
+			}
 
-	private Jedis resetJedis(Jedis j) {
-                logger.info("[RedisTracker]: Resetting jedis for \"" + keyWord+"\"");
-		j.disconnect();
-		j = new Jedis(redisHost);
-                return j;
+			String alarmSaved = jedis.get(alarmKey);
+			if (alarmSaved == null) {
+				alarm = 0L;
+			} else {
+				alarm = Long.parseLong(alarmSaved);
+			}
+			logger.finest("[RedisTracker]: new RedisTracker initialized for \"" +keyWord+"\"");
+		} catch (Exception e) {
+			logger.severe("[RedisTracker]: "+e.getCause());
+		}
 	}
 
 	public String getKeyWord() {
@@ -71,9 +56,15 @@ class RedisTracker implements KeyWordTracker {
 	}
 
 	public void delete() {
-		jedis.del(step1Key);
-		jedis.del(step2Key);
-		jedis.del(step3Key);
+		try ( Jedis jedis = jediTemple.getResource() ) {
+			jedis.del(step1Key);
+			jedis.del(step2Key);
+			jedis.del(step3Key);
+			jedis.del(alarmKey);
+			jedis.del(alarmDisabled);
+		} catch (Exception e) {
+			logger.severe("[RedisTracker]: "+e.getCause());
+		}
 	}
 
 	public void putFreq() {
@@ -146,164 +137,166 @@ class RedisTracker implements KeyWordTracker {
 		float perSec = 0f;
 		float timeDiff = (float)(ts - lastTimeStamp);
 		lastTimeStamp = ts;
-                Jedis j2 = new Jedis(redisHost);
+		try ( Jedis jedis = jediTemple.getResource() ) {
 
-		if (recordType == OtiNanai.GAUGE) {
-			logger.fine("[RedisTracker]: currentFloat = " +currentFloat);
-			perSec = (currentFloat / currentDataCount);
-			currentFloat = 0f;
-			currentDataCount = 0;
-		} else if (recordType == OtiNanai.SUM) {
-			perSec = ((float)((1000f*currentFloat)/timeDiff));
-			currentFloat = 0f;
-		} else if (recordType == OtiNanai.COUNTER) {
-			if (currentLong != currentPrev) {
-				logger.fine("[RedisTracker]: currentLong = " + currentLong);
-				if (currentPrev == 0l || currentPrev > currentLong) {
-					logger.fine("Last count is 0 or decrementing. Setting and Skipping");
-				} else {
-					float valueDiff = (float)(currentLong - currentPrev);
-					perSec = ((float)((valueDiff*1000f)/timeDiff));
+			if (recordType == OtiNanai.GAUGE) {
+				logger.fine("[RedisTracker]: currentFloat = " +currentFloat);
+				perSec = (currentFloat / currentDataCount);
+				currentFloat = 0f;
+				currentDataCount = 0;
+			} else if (recordType == OtiNanai.SUM) {
+				perSec = ((float)((1000f*currentFloat)/timeDiff));
+				currentFloat = 0f;
+			} else if (recordType == OtiNanai.COUNTER) {
+				if (currentLong != currentPrev) {
+					logger.fine("[RedisTracker]: currentLong = " + currentLong);
+					if (currentPrev == 0l || currentPrev > currentLong) {
+						logger.fine("Last count is 0 or decrementing. Setting and Skipping");
+					} else {
+						float valueDiff = (float)(currentLong - currentPrev);
+						perSec = ((float)((valueDiff*1000f)/timeDiff));
+					}
+					currentPrev = currentLong;
+					currentLong = 0l;
 				}
-				currentPrev = currentLong;
-				currentLong = 0l;
+
+			} else if (recordType == OtiNanai.FREQ ) {
+				perSec = ((float)currentCount*1000f)/timeDiff;
+				logger.finest("[RedisTracker]: perSec = " +perSec);
+				currentCount = 0;
 			}
 
-		} else if (recordType == OtiNanai.FREQ ) {
-			perSec = ((float)currentCount*1000f)/timeDiff;
-			logger.finest("[RedisTracker]: perSec = " +perSec);
-			currentCount = 0;
-		}
-
-		logger.fine("[RedisTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
-		String toPush = new String(ts+" "+String.format("%.3f", perSec));
-		logger.finest("[RedisTracker]: lpush "+step1Key+" "+toPush);
-		j2.lpush(step1Key, toPush);
+			logger.fine("[RedisTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
+			String toPush = new String(ts+" "+String.format("%.3f", perSec));
+			logger.finest("[RedisTracker]: lpush "+step1Key+" "+toPush);
+			jedis.lpush(step1Key, toPush);
 
 
-
-		/*
-		 * Aggregation
-		 */
-		float lastMerge = 0f;
-		long tsMerge = 0l;
-		long lastts = 0l;
-		String lastDato = new String();
-		String lastDatoString = new String();
-		List<String> newestData;
-
-		/*
-		 * Aggregate last X samples and expire the 1 latest sample when limit exceeded
-		 * This will allow us to choose to show the aggregated data stream only
-		 * when we exceed the limit of the shortest.
-		 * Otherwise, graphs have too many data points, and the change from non aggregated
-		 * to aggregated makes it look like crap.
-		 */
-		if ((j2.llen(step1Key) % OtiNanai.STEP1_SAMPLES_TO_MERGE) == 0) {
-			newestData = j2.lrange(step1Key, 0, OtiNanai.STEP1_SAMPLES_TO_MERGE-1);
-			for (String dato : newestData) {
-				lastts = Long.parseLong(dato.substring(0,dato.indexOf(" ")));
-				lastDato = dato.substring(dato.indexOf(" ")+1).replaceAll(",",".");
-				logger.finest("[RedisTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
-				lastMerge += Float.parseFloat(lastDato);
-				tsMerge += lastts;
-				if (j2.llen(step1Key) >= OtiNanai.STEP1_MAX_SAMPLES)
-					j2.rpop(step1Key);
-			}
-
-			float finalSum = lastMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
-			long finalts = tsMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
-
-			logger.fine("[RedisTracker]: "+keyWord+": First Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+ finalts);
-
-			toPush = new String(finalts+" "+String.format("%.3f", finalSum));
-			j2.lpush(step2Key, toPush);
 
 			/*
-			 * Same as above, but for step2, i.e. second aggregation,
-			 * or further aggregation of already aggregated values,
-			 * so aggregating aggregation aggro aggreviate aggrevous
-			 * oh aggravation, how aggravating you are.
+			 * Aggregation
 			 */
+			float lastMerge = 0f;
+			long tsMerge = 0l;
+			long lastts = 0l;
+			String lastDato = new String();
+			String lastDatoString = new String();
+			List<String> newestData;
 
-			if ((j2.llen(step2Key) % OtiNanai.STEP2_SAMPLES_TO_MERGE) == 0) {
-				lastMerge = 0;
-				tsMerge = 0;
-				newestData = j2.lrange(step2Key, 0, OtiNanai.STEP2_SAMPLES_TO_MERGE-1);
+			/*
+			 * Aggregate last X samples and expire the 1 latest sample when limit exceeded
+			 * This will allow us to choose to show the aggregated data stream only
+			 * when we exceed the limit of the shortest.
+			 * Otherwise, graphs have too many data points, and the change from non aggregated
+			 * to aggregated makes it look like crap.
+			 */
+			if ((jedis.llen(step1Key) % OtiNanai.STEP1_SAMPLES_TO_MERGE) == 0) {
+				newestData = jedis.lrange(step1Key, 0, OtiNanai.STEP1_SAMPLES_TO_MERGE-1);
 				for (String dato : newestData) {
 					lastts = Long.parseLong(dato.substring(0,dato.indexOf(" ")));
 					lastDato = dato.substring(dato.indexOf(" ")+1).replaceAll(",",".");
 					logger.finest("[RedisTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
 					lastMerge += Float.parseFloat(lastDato);
 					tsMerge += lastts;
-					if (j2.llen(step2Key) >= OtiNanai.STEP2_MAX_SAMPLES)
-						j2.rpop(step2Key);
+					if (jedis.llen(step1Key) >= OtiNanai.STEP1_MAX_SAMPLES)
+						jedis.rpop(step1Key);
 				}
 
-				finalSum = lastMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
-				finalts = tsMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
+				float finalSum = lastMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
+				long finalts = tsMerge/OtiNanai.STEP1_SAMPLES_TO_MERGE;
 
-				logger.fine("[RedisTracker]: "+keyWord+": Second Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+ finalts);
+				logger.fine("[RedisTracker]: "+keyWord+": First Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP1_SAMPLES_TO_MERGE+" = "+ finalts);
 
 				toPush = new String(finalts+" "+String.format("%.3f", finalSum));
-				j2.lpush(step3Key, toPush);
+				jedis.lpush(step2Key, toPush);
 
+				/*
+				 * Same as above, but for step2, i.e. second aggregation,
+				 * or further aggregation of already aggregated values,
+				 * so aggregating aggregation aggro aggreviate aggrevous
+				 * oh aggravation, how aggravating you are.
+				 */
+
+				if ((jedis.llen(step2Key) % OtiNanai.STEP2_SAMPLES_TO_MERGE) == 0) {
+					lastMerge = 0;
+					tsMerge = 0;
+					newestData = jedis.lrange(step2Key, 0, OtiNanai.STEP2_SAMPLES_TO_MERGE-1);
+					for (String dato : newestData) {
+						lastts = Long.parseLong(dato.substring(0,dato.indexOf(" ")));
+						lastDato = dato.substring(dato.indexOf(" ")+1).replaceAll(",",".");
+						logger.finest("[RedisTracker]: Data: "+lastMerge+" += "+lastDato+" ts: "+tsMerge+" += "+lastts);
+						lastMerge += Float.parseFloat(lastDato);
+						tsMerge += lastts;
+						if (jedis.llen(step2Key) >= OtiNanai.STEP2_MAX_SAMPLES)
+							jedis.rpop(step2Key);
+					}
+
+					finalSum = lastMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
+					finalts = tsMerge/OtiNanai.STEP2_SAMPLES_TO_MERGE;
+
+					logger.fine("[RedisTracker]: "+keyWord+": Second Aggregated dataSum:"+ lastMerge + " / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+finalSum+". tsSum: "+tsMerge+" / "+OtiNanai.STEP2_SAMPLES_TO_MERGE+" = "+ finalts);
+
+					toPush = new String(finalts+" "+String.format("%.3f", finalSum));
+					jedis.lpush(step3Key, toPush);
+
+				}
 			}
+
+
+			/*
+			 * Alarm detection
+			 */
+
+			if (alarmEnabled) {
+				if (mean == 0f && perSec != 0f) {
+					logger.fine("[RedisTracker]: mean is 0, setting new value");
+					mean = perSec;
+					sampleCount = 1;
+					return;
+				}
+
+				mean += (perSec-mean)/alarmSamples;
+				variance += ((perSec-mean)*(perSec-mean))/alarmSamples;
+				stdev = Math.sqrt(variance);
+
+				if ( sampleCount < alarmSamples ) {
+					sampleCount++;
+					if (perSec == 0f) {
+						zeroesCount ++;
+						zeroPct = 100.0f * ((float)zeroesCount / (float)sampleCount);
+					}
+				} else {
+					if (perSec < (mean - 3*stdev )) {
+					//if ((Math.abs(perSec) < (Math.abs(mean) / lowAlarmThreshold)) && (perSec != 0f || zeroPct < 2.0f)) {
+						lowAlarmCount++;
+						highAlarmCount = 0;
+					} else if (perSec > (mean + 3*stdev)) {
+					//} else if (Math.abs(perSec) > (Math.abs(mean) * highAlarmThreshold)) {
+						highAlarmCount++;
+						lowAlarmCount = 0;
+					} else {
+						highAlarmCount = 0;
+						lowAlarmCount = 0;
+					}
+
+					if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
+						if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
+							logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount+" highCount: "+highAlarmCount+" lowCount: "+lowAlarmCount);
+							OtiNanaiNotifier onn = new OtiNanaiNotifier((highAlarmCount >= alarmConsecutiveSamples ? "High" : "Low" )
+									+ " " + keyWord
+									+ " " + OtiNanai.WEBURL+"/"+keyWord
+									+ " " + String.format("%.2f", perSec)
+									+ " " + String.format("%.3f", mean));
+							onn.send();
+							alarm=ts;
+							jedis.set(alarmKey, Long.toString(ts));
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.severe("[RedisTracker]: "+e.getCause());
 		}
-
-
-		/*
-		 * Alarm detection
-		 */
-
-                if (alarmEnabled) {
-                        if (mean == 0f && perSec != 0f) {
-                                logger.fine("[RedisTracker]: mean is 0, setting new value");
-                                mean = perSec;
-                                sampleCount = 1;
-                                return;
-                        }
-
-			mean += (perSec-mean)/alarmSamples;
-			variance += ((perSec-mean)*(perSec-mean))/alarmSamples;
-			stdev = Math.sqrt(variance);
-
-                        if ( sampleCount < alarmSamples ) {
-                                sampleCount++;
-                                if (perSec == 0f) {
-                                        zeroesCount ++;
-                                        zeroPct = 100.0f * ((float)zeroesCount / (float)sampleCount);
-                                }
-                        } else {
-				if (perSec < (mean - 3*stdev )) {
-                                //if ((Math.abs(perSec) < (Math.abs(mean) / lowAlarmThreshold)) && (perSec != 0f || zeroPct < 2.0f)) {
-                                        lowAlarmCount++;
-                                        highAlarmCount = 0;
-				} else if (perSec > (mean + 3*stdev)) {
-                                //} else if (Math.abs(perSec) > (Math.abs(mean) * highAlarmThreshold)) {
-                                        highAlarmCount++;
-                                        lowAlarmCount = 0;
-                                } else {
-                                        highAlarmCount = 0;
-                                        lowAlarmCount = 0;
-                                }
-
-                                if (lowAlarmCount >= alarmConsecutiveSamples || highAlarmCount >= alarmConsecutiveSamples ) {
-                                        if ( alarm == 0 || (ts - alarm > OtiNanai.ALARMLIFE) ) {
-                                                logger.info("[RedisTracker]: Error conditions met for " + keyWord + " mean: "+mean +" value: "+perSec+" zeroPct: "+zeroPct+" zeroesCount: "+zeroesCount+" sampleCount: "+sampleCount+" highCount: "+highAlarmCount+" lowCount: "+lowAlarmCount);
-                                                OtiNanaiNotifier onn = new OtiNanaiNotifier((highAlarmCount >= alarmConsecutiveSamples ? "High" : "Low" )
-                                                                + " " + keyWord
-                                                                + " " + OtiNanai.WEBURL+"/"+keyWord
-                                                                + " " + String.format("%.2f", perSec)
-                                                                + " " + String.format("%.3f", mean));
-                                                onn.send();
-                                                alarm=ts;
-                                                j2.set(alarmKey, Long.toString(ts));
-                                        }
-                                }
-                        }
-                }
-                j2.disconnect();
 	}
 
 	public long getAlarm() {
@@ -314,25 +307,18 @@ class RedisTracker implements KeyWordTracker {
 
 	public ArrayList<String> getMemory(Long startTime) {
 		ArrayList<String> returner = new ArrayList<String>();
-                for (int i=0;i<jedisRetries;i++) {
-                        try {
-				
-				long startTimeAgo = (System.currentTimeMillis() - startTime);
-                                if (startTimeAgo <= OtiNanai.STEP1_MILLISECONDS || jedis.llen(step2Key) < 2 ) {
-					returner.addAll(jedis.lrange(step1Key,0,-1));
-				} else if (startTimeAgo <= OtiNanai.STEP2_MILLISECONDS || jedis.llen(step3Key) < 2 ) {
-					returner.addAll(jedis.lrange(step2Key,0,-1));
-				} else {
-					returner.addAll(jedis.lrange(step3Key,0, -1));
-				}
-				return returner;
-                        } catch (Exception e) {
-                                logger.severe("[RedisTracker]: getMemory(): "+keyWord + ": " + e);
-                                System.err.println("[RedisTracker]: getMemory(): "+keyWord + ": "+e.getMessage());
-                                returner = new ArrayList<String>();
-                                jedis = resetJedis(jedis);
-                        }
-                }
+		try ( Jedis jedis = jediTemple.getResource() ) {
+			long startTimeAgo = (System.currentTimeMillis() - startTime);
+			if (startTimeAgo <= OtiNanai.STEP1_MILLISECONDS || jedis.llen(step2Key) < 2 ) {
+				returner.addAll(jedis.lrange(step1Key,0,-1));
+			} else if (startTimeAgo <= OtiNanai.STEP2_MILLISECONDS || jedis.llen(step3Key) < 2 ) {
+				returner.addAll(jedis.lrange(step2Key,0,-1));
+			} else {
+				returner.addAll(jedis.lrange(step3Key,0, -1));
+			}
+		} catch (Exception e) {
+                        logger.severe("[RedisTracker]: "+e.getCause());
+		}
 		return returner;
 	}
 
@@ -354,25 +340,18 @@ class RedisTracker implements KeyWordTracker {
 	}
 
         public void alarmEnabled(boolean onOrOff) {
-                for (int i=0;i<jedisRetries;i++) {
-                        try {
-                                alarmEnabled = onOrOff;
-                                if (alarmEnabled && (onOrOff == false)) {
-                                        jedis.set(alarmDisabled, "true");
-                                        break;
-                                } else if (!alarmEnabled && (onOrOff == true)) {
-                                        jedis.del(alarmDisabled);
-                                        break;
-                                }
-                        } catch (Exception e) {
-                                logger.severe("[RedisTracker]: alarmEnabled(): "+keyWord + ": "+e);
-                                System.err.println("[RedisTracker]: alarmEnabled(): "+keyWord + ": "+e);
-                                jedis = resetJedis(jedis);
-                        }
+		try ( Jedis jedis = jediTemple.getResource() ) {
+			alarmEnabled = onOrOff;
+			if (alarmEnabled && (onOrOff == false)) {
+				jedis.set(alarmDisabled, "true");
+			} else if (!alarmEnabled && (onOrOff == true)) {
+				jedis.del(alarmDisabled);
+			}
+		} catch (Exception e) {
+                        logger.severe("[RedisTracker]: "+e.getCause());
                 }
         }
 
-        private int jedisRetries;
 	private String keyWord;
 	private long currentCount;
 	private float mean;
@@ -397,7 +376,7 @@ class RedisTracker implements KeyWordTracker {
 	private int lowAlarmCount;
 	private short recordType;
         private int zeroesCount;
-	private Jedis jedis;
+	private JedisPool jediTemple;
 	private String redisHost;
 	private String step1Key;
 	private String step2Key;

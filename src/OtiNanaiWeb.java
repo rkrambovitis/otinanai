@@ -876,7 +876,7 @@ class OtiNanaiWeb implements Runnable {
                 try {
                         allKWTs.addAll(onl.getKWTList());
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
-                        return new String("Error, Pls let me know what you did when this happened");
+			return new String("Pls let me know what you were doing at the time :) <br /><br />\n\n" +aioobe.getCause());
                 }
 		ArrayList<String> kws = new ArrayList<String>();
 		ArrayList<String> words = new ArrayList<String>();

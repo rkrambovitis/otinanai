@@ -20,7 +20,7 @@ class OtiNanaiTicker implements Runnable {
 				onl.tick();
 				logger.info("[Ticker]: TOCK !");
 			} catch (InterruptedException ie) {
-				logger.severe("[Ticker]: "+ie.getStackTrace());
+				logger.severe("[Ticker]: "+ie.getCause());
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 SRC= src
 CURDIR = $(shell pwd)
-CPATH= $(CURDIR)/jars/jedis.jar
+CPATH= $(CURDIR)/jars/jedis.jar:$(CURDIR)/jars/commons-pool2.jar
 DST= $(CURDIR)/gr/phaistosnetworks/admin/otinanai
 
 

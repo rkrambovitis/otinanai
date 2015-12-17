@@ -81,7 +81,7 @@ class OtiNanai {
 
 		} catch (java.lang.Exception e) {
 			System.err.println(e);
-			logger.severe("[Init]: "+e.getStackTrace());
+			logger.severe("[Init]: "+e.getCause());
 			System.exit(1);
 		}
 		//OtiNanaiCommander onc = new OtiNanaiCommander(onl);
