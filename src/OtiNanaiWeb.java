@@ -289,7 +289,7 @@ class OtiNanaiWeb implements Runnable {
 		}
 
 		if (type == OtiNanai.GRAPH_PERCENTILES) {
-                        for (float k = 0.05f ; k <= 1 ; ) {
+                        for (float k = 0.8f ; k <= 1 ; ) {
                                 try {
                                         output = output + "\t\t\t["+String.format("%.2f", (k*100)).replaceAll(",", ".")+","+allData.get((int)(k*samples)-1)+"],\n";
                                 } catch (ArrayIndexOutOfBoundsException aioobe) {}
@@ -873,7 +873,11 @@ class OtiNanaiWeb implements Runnable {
 		logger.fine("[Web]: Searching for keywords");
 		//Collection<KeyWordTracker> allKWTs = onl.getTrackerMap().values();
 		LLString allKWTs = new LLString();
-		allKWTs.addAll(onl.getKWTList());
+                try {
+                        allKWTs.addAll(onl.getKWTList());
+                } catch (ArrayIndexOutOfBoundsException aioobe) {
+                        return new String("Error, Pls let me know what you did when this happened");
+                }
 		ArrayList<String> kws = new ArrayList<String>();
 		ArrayList<String> words = new ArrayList<String>();
 
