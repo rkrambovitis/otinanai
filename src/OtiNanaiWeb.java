@@ -36,8 +36,8 @@ class OtiNanaiWeb implements Runnable {
 			String requestMessageLine;
 			String query = new String("*");
 			boolean gzip = false;
-			String currentDashboard = "default";
 			while (true) {
+				String currentDashboard = "default";
 				Socket connectionSocket = listenSocket.accept();
 				ArrayList<String> results = new ArrayList<String>();
 				try {
