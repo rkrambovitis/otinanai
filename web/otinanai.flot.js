@@ -98,7 +98,7 @@ $(function() {
 				xaxis: { mode: (percentiles ? "null" : "time"), tickDecimals: 0, timezone: "browser", min: xmin, max: xmax },
 				yaxis: { show: true, tickFormatter: addSuffix, min: null, max: y},
 				grid: { hoverable: true, autoHighlight: false, clickable: true},
-				legend: { show: true, position: "nw", sorted: "reverse" },
+				legend: { show: true, position: "nw", sorted: (stacked ? "reverse" : false ) },
 				events: { data: marktext },
 				series: { stack: stacked, lines: {show: true, fill: stacked}},
                                 crosshair: { mode: "y" },
