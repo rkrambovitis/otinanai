@@ -16,13 +16,15 @@ All in all, it makes finding patterns and correlations relatively simple *and* i
 + Automatic spike handling. No need to clear rrd spikes just because you restarted something :)
 + Multiple metrics per graph. Mean, avg, 99th, 95th, min, max all within the timeframe you choose.
 + Relevant graph viewport. By default spikes are outside graphing area, making graphs relevant.
-+ Multiple output visualizations (merged, stacked, gauge or individual)
++ For the outliers lovers, percentiles graph has been added.
++ Multiple output visualizations (merged, stacked, gauge, percentiles or individual)
 + Automatic spike and valley detection and notification
 + Graphs generated on the fly, no need to set up in advance.
 + No fancy queries or programming needed. Just pipe it data, and type keywords in web field.
 
 ## Limitations ##
 + Persistence depends on redis with all it's pros and cons. So don't rely on this to store critical data.
++ Percentiles are only accurate if you sample a time range shorter than 1st aggregation (configurable), and only receive 1 data point within tick window.
 
 ## System Requirements ##
 + java 7+
