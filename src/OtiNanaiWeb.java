@@ -93,9 +93,6 @@ class OtiNanaiWeb implements Runnable {
 					case " jquery.flot.time.js ":
 					case " jquery.flot.crosshair.min.js ":
 					case " jquery.flot.crosshair.js ":
-					case " jquery.gridster.min.js ":
-					case " jquery.gridster.js ":
-					case " jquery.gridster.css ":
 					case " jquery.flot.resize.min.js ":
 					case " jquery.flot.resize.js ":
 					case " jquery.flot.selection.min.js ":
