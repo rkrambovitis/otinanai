@@ -95,7 +95,7 @@ li {
 }
 ul {
 	list-style-type: none;
-	display: inline-block;
+	display: inline-table;
 }
 .graphListing {
 	list-style-type: none;
