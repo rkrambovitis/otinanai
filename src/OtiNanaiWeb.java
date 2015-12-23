@@ -713,7 +713,7 @@ class OtiNanaiWeb implements Runnable {
 					for (String wb : wordBreaks) {
 						nextWB=kw.indexOf(wb, length+1);
 						if (nextWB > 0) {
-							tmp = kw.substring(0,nextWB);
+							tmp = kw.substring(0,nextWB+1);
 							break;
 						}
 					}
@@ -745,11 +745,22 @@ class OtiNanaiWeb implements Runnable {
 
 		for (String key : keyMap.keySet()) {
 			String title = new String();
+			String url = new String("^"+key);
 			contents = keyContents.get(key);
 			Collections.sort(contents);
+
+			//Special case. if you have foo.bar and foo.bar.lala, clicking foo.bar shows the same
+			if (Arrays.asList(existingKeyWords).contains(url)) {
+				for (String toExclude : keyMap.keySet()) {
+					if (toExclude.equals(key))
+						continue;
+					url += " -^"+toExclude;
+				}
+			}
+
 			for (String foo : contents)
 				title += foo+"\n";
-			output = output + "<li><a title=\""+title+"\" href=\"^"+key+" --merge\">^"+key+" "+keyMap.get(key)+"</a></li>\n";
+			output = output + "<li><a title=\""+title+"\" href=\""+url+" --merge\">"+key+" "+keyMap.get(key)+"</a></li>\n";
 		}
 		output = output + "</ul>\n" + commonHTML(OtiNanai.ENDBODY);
 		return output;
