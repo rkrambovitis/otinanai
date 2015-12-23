@@ -923,17 +923,27 @@ class OtiNanaiWeb implements Runnable {
 		LLString pluses = new LLString();
 		LLString minuses = new LLString();
 		LLString special = new LLString();
+		boolean isArg = false;
 		for (String word:keyList) {
+			if (word.length() == 0)
+				continue;
 			firstChar = word.substring(0,1);
 			secondChar = "";
 			if (word.length() > 1)
                                 secondChar = word.substring(1,2);
 
-			if (firstChar.equals("+"))
+			if (isArg) {
+				special.add(word);
+				isArg = false;
+			} else if (word.equals("--limit") || word.equals("--units") || word.equals("--multiplier")) {
+				special.add(word);
+				isArg = true;
+			}
+			else if (firstChar.equals("+"))
 				pluses.add(word);
 			else if (firstChar.equals("-") && !secondChar.equals("-"))
 				minuses.add(word);
-			else if (firstChar.equals("@") || firstChar.equals("#"))
+			else if (firstChar.equals("@") || firstChar.equals("#") || (firstChar.equals("-") && secondChar.equals("-")))
 				special.add(word);
 			else
 				properOrder.add(word);
@@ -945,6 +955,8 @@ class OtiNanaiWeb implements Runnable {
 		properOrder.addAll(special);
 
 		for (String word : properOrder) {
+			if (word.length() == 0)
+				continue;
 			if (nextWordIsUnit) {
 				units=word;
 				nextWordIsUnit = false;
@@ -1003,15 +1015,10 @@ class OtiNanaiWeb implements Runnable {
                                         enableAlarm = true;
                                         continue;
 				case "--units":
-				case "--setunits":
-				case "--unit":
 					setUnits=true;
 					nextWordIsUnit=true;
 					continue;
-                                case "--multip":
-                                case "--setmultip":
                                 case "--multiplier":
-                                case "--setmultiplier":
                                         setMultip=true;
                                         nextWordIsMultip=true;
                                         continue;
