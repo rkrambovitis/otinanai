@@ -365,6 +365,29 @@ class OtiNanaiListener implements Runnable {
                 return false;
 	}
 
+	public boolean updateDashboard(String kws, String dashboardName) {
+		String rDashboardKey = dashboardName+"_Dashboard";
+                try ( Jedis jedis = jediTemple.getResource() ) {
+			if (!dashList.contains(dashboardName)) {
+				dashList.add(dashboardName);
+                                jedis.sadd(rDashList, rDashboardKey);
+			}
+
+			jedis.del(rDashboardKey);
+			LLString updatedList = new LLString();
+			String[] fromJS = kws.split(",");
+			for (String input : fromJS) {
+				jedis.sadd(rDashboardKey, input);
+				updatedList.add(input);
+			}
+			dashMap.put(dashboardName, updatedList);
+			return true;
+		} catch (Exception e) {
+                        logger.severe("[Listener]: "+e.getCause());
+                }
+                return false;
+	}
+
 	private ExecutorService threadPool;
 	private ConcurrentHashMap<String,KeyWordTracker> trackerMap;
 	private int port;

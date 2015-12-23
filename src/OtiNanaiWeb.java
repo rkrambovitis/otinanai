@@ -145,6 +145,8 @@ class OtiNanaiWeb implements Runnable {
 							text = String.valueOf(onl.toggleStar(query.replaceAll(" --toggleStar","")));
 						else if (query.contains("--toggleDashboard"))
 							text = showKeyWords(query.toLowerCase(), currentDashboard, false);
+						else if (query.contains("--updateDashboard"))
+							text = showKeyWords(query.toLowerCase(), currentDashboard, false);
 						else if (query.contains("--starred"))
 							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + starList();
 						else
@@ -464,7 +466,7 @@ class OtiNanaiWeb implements Runnable {
 				logger.info("[Web]: Processing dashboard list : \""+kwlist+"\"");
 				String [] dashkws = kwlist.split("[ ,]|%20");
 				output = output + "graph"+ (idx+j) +": {\n";
-				body = body + "\t<ul class=\"graphListing\">\n";
+				body = body + "\t<ul data-id=\""+kwlist+"\" class=\"graphListing\">\n";
 				for (String kw : dashkws) {
 					logger.info("[Web]: Processing dashboard keyword : "+kw);
 					if (kw.equals("--stacked")) {
@@ -900,6 +902,11 @@ class OtiNanaiWeb implements Runnable {
 		if (input.contains("--toggledashboard")) {
 			input = input.replaceFirst("--toggledashboard", "");
 			return String.valueOf(onl.toggleDashboard(input, currentDashboard));
+		}
+
+		if (input.contains("--updatedashboard")) {
+			input = input.replaceFirst("--updatedashboard", "");
+			return String.valueOf(onl.updateDashboard(input, currentDashboard));
 		}
 
 		String [] keyList = input.split("[ ,]|%20");
