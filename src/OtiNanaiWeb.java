@@ -34,7 +34,7 @@ class OtiNanaiWeb implements Runnable {
 		try {
 			BufferedReader inFromClient;
 			String requestMessageLine;
-			String query = new String("*");
+			String query = new String("");
 			boolean gzip = false;
 			while (true) {
 				String currentDashboard = "default";
@@ -133,7 +133,7 @@ class OtiNanaiWeb implements Runnable {
 
 
 						if (query.equals("") || query.equals("/") )
-							query = "*";
+							query = "";
 
 						boolean cache = true;
 						if (query.contains("--nc") || query.contains("--no-cache") || query.contains("--gauge") || query.contains("--dashboard"))
