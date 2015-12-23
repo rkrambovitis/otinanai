@@ -685,25 +685,36 @@ class OtiNanaiWeb implements Runnable {
 		return output;
 	}
 
+
 	private String kwTree(ArrayList<String> kws, String[] existingKeyWords, ArrayList<String> words) {
 		TreeMap<String, Integer> keyMap = new TreeMap<String, Integer>();
 		String tmp;
 		int sofar;
 		int totalCount = kws.size();
 		int length = 0;
-		int nextDot = 0;
+		int nextWB = 0;
+		LLString wordBreaks = new LLString();
+		wordBreaks.add(".");
+		wordBreaks.add(",");
+		wordBreaks.add("_");
+		wordBreaks.add("-");
+
 		for (String word : words) {
-			//System.out.println(word);
+			if (word.equals("*"))
+				word = "";
 			ArrayList<String> tmpAS = new ArrayList<String>();
 			tmpAS.addAll(kws);
 			for (String kw : tmpAS) {
 				if (kw.contains(word)) {
 					length=kw.indexOf(word)+word.length();
-					nextDot=kw.indexOf(".", length+1);
-					if (nextDot > 0)
-						tmp = kw.substring(0,nextDot);
-					else
-						tmp = kw.substring(0,length);
+					tmp = kw.substring(0,length);
+					for (String wb : wordBreaks) {
+						nextWB=kw.indexOf(wb, length+1);
+						if (nextWB > 0) {
+							tmp = kw.substring(0,nextWB);
+							break;
+						}
+					}
 					sofar = 0;
 					if (keyMap.containsKey(tmp)) {
 						sofar = keyMap.get(tmp);
@@ -713,21 +724,6 @@ class OtiNanaiWeb implements Runnable {
 				}
 			}
 		}
-		for (String kw : kws) {
-			if (kw.contains("."))
-				tmp = kw.substring(0, kw.indexOf("."));
-			else
-				tmp = kw;
-			sofar = 0;
-			if (keyMap.containsKey(tmp)) {
-				sofar = keyMap.get(tmp);
-			}
-			keyMap.put(tmp, ++sofar);
-		}
-
-		//ValueComparator vc = new ValueComparator(keyMap);
-		//TreeMap <String, Integer> sortedKeys = new TreeMap<String, Integer>(vc);
-		//sortedKeys.putAll(keyMap);
 
 		String oldKeys = new String();
 		for (String foo : existingKeyWords) {
@@ -736,7 +732,7 @@ class OtiNanaiWeb implements Runnable {
 		oldKeys = oldKeys.substring(0,oldKeys.length()-1);
 
 		String output = commonHTML(OtiNanai.ENDHEAD)
-			+ "<ul><li><a href=\""+oldKeys + " --sa --merge\">Show All (slow) (--sa) "+totalCount+"</a></li>\n";
+			+ "<ul><li><a href=\""+oldKeys.replaceAll("\\+","%2B") + " --sa --merge\">Show All (slow) (--sa) "+totalCount+"</a></li>\n";
 
 		for (String key : keyMap.keySet()) {
 			output = output + "<li><a href=\"^"+key+" --merge\">^"+key+" "+keyMap.get(key)+"</a></li>\n";
@@ -757,6 +753,8 @@ class OtiNanaiWeb implements Runnable {
 		} else if (out == OtiNanai.ENDBODY) {
 			return new String("</body>\n</html>\n");
 		} else if (out == OtiNanai.REFRESH) {
+			if ( OtiNanai.TICKER_INTERVAL == 0 )
+				return new String();
 			return new String("<meta http-equiv=\"refresh\" content="+OtiNanai.TICKER_INTERVAL/1000+">\n");
 		} else if (out == OtiNanai.GAGE) {
 			return new String("<script src=\"raphael.min.js\"></script>\n"
@@ -918,6 +916,7 @@ class OtiNanaiWeb implements Runnable {
                                 try {
                                         graphLimit = Integer.parseInt(word);
                                         nextWordIsLimit = false;
+					showAll = true;
                                 } catch (NumberFormatException nfe) {
                                         logger.info("Invalid argument for --limit : "+word);
                                 }

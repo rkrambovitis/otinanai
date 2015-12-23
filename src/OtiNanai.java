@@ -398,14 +398,16 @@ class OtiNanai {
 		NOTIFYSCRIPT = notifyScript;
 		ALARMLIFE = alarmLife;
 
-		if (step1HoursOverride) {
-			STEP1_MAX_SAMPLES = (int)((step1Hours * 3600000) / TICKER_INTERVAL);
+		if ( TICKER_INTERVAL > 0 ) {
+			if (step1HoursOverride) {
+				STEP1_MAX_SAMPLES = (int)((step1Hours * 3600000) / TICKER_INTERVAL);
+			}
+			if (step2HoursOverride) {
+				STEP2_MAX_SAMPLES = (int)((step2Hours * 3600000) / TICKER_INTERVAL);
+			}
+			STEP1_MILLISECONDS = STEP1_MAX_SAMPLES * TICKER_INTERVAL;
+			STEP2_MILLISECONDS = STEP2_MAX_SAMPLES * TICKER_INTERVAL;
 		}
-		if (step2HoursOverride) {
-			STEP2_MAX_SAMPLES = (int)((step2Hours * 3600000) / TICKER_INTERVAL);
-		}
-		STEP1_MILLISECONDS = STEP1_MAX_SAMPLES * TICKER_INTERVAL;
-		STEP2_MILLISECONDS = STEP2_MAX_SAMPLES * TICKER_INTERVAL;
 
 		OtiNanai non = new OtiNanai(udpPort, listenerThreads, webPort, webThreads, cacheTime, cacheItems, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, logFile, logLevel, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList, redisMultipList, udpRecvBufferSize);
 	}
