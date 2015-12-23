@@ -489,7 +489,7 @@ class OtiNanaiWeb implements Runnable {
 
 						if (showDetails) {
 							body = body
-								+ "\t\t<li>\n"
+								+ "\t\t<li class=\"draggable\">\n"
 								+ "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
 								//+ onl.getUnits(kw)
 								//+ " ("+parseType(kwt.getType())+") "
@@ -592,7 +592,7 @@ class OtiNanaiWeb implements Runnable {
 
 				if (showDetails) {
 					body = body
-						+ "\t\t<li>\n"
+						+ "\t\t<li class=\"draggable\">\n"
 						+ "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
 						//+ onl.getUnits(kw)
 						//+ " ("+parseType(kwt.getType())+") "

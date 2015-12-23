@@ -131,6 +131,17 @@ ul.graphListing {
 	cursor: pointer;
 }
 
+.dragGraph {
+	color: #4169E1;
+	float: right;
+	margin: 20px 0;
+}
+
+.draggable {
+	cursor: move;
+	cursor: -webkit-grabbing;
+}
+
 .helpTrigger {
 	width: 10px;
 	height: 10px;
