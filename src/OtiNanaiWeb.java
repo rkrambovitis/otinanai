@@ -905,8 +905,28 @@ class OtiNanaiWeb implements Runnable {
                 boolean showSpikes = false;
 		boolean showDetails = true;
 		boolean showDashboard = false;
+		LLString properOrder = new LLString();
+		LLString pluses = new LLString();
+		LLString minuses = new LLString();
+		LLString special = new LLString();
+		for (String word:keyList) {
+			firstChar = word.substring(0,1);
+			if (firstChar.equals("+"))
+				pluses.add(word);
+			else if (firstChar.equals("-"))
+				minuses.add(word);
+			else if (firstChar.equals("@") || firstChar.equals("#"))
+				special.add(word);
+			else
+				properOrder.add(word);
+		}
+		if (properOrder.size() == 0)
+			properOrder.add(new String("*"));
+		properOrder.addAll(pluses);
+		properOrder.addAll(minuses);
+		properOrder.addAll(special);
 
-		for (String word : keyList) {
+		for (String word : properOrder) {
 			if (nextWordIsUnit) {
 				units=word;
 				nextWordIsUnit = false;
