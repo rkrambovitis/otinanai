@@ -161,6 +161,19 @@ class OtiNanaiListener implements Runnable {
 		return trackerMap.get(key);
 	}
 
+	public String getType(String key) {
+		if (trackerMap.containsKey(key)) {
+			short t = trackerMap.get(key).getType();
+			switch (t) {
+				case OtiNanai.GAUGE: return new String("gauge");
+				case OtiNanai.COUNTER: return new String("count");
+				case OtiNanai.FREQ: return new String("freq");
+				case OtiNanai.SUM: return new String("sum");
+			}
+		}
+		return new String("unset");
+	}
+
 	public KeyWordTracker addKWT(String key) {
 		if (!kwtList.contains(key)) {
 			KeyWordTracker kwt = new RedisTracker(key, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, jediTemple, logger);

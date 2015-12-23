@@ -494,11 +494,11 @@ class OtiNanaiWeb implements Runnable {
 								+ "\t\t<li class=\"draggable\">\n"
 								+ "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
 								//+ onl.getUnits(kw)
-								//+ " ("+parseType(kwt.getType())+") "
                                                                 + "\t\t\t<div style=\"text-align: right\">\n"
 								+ "\t\t\t\t<script>"
 								+ "document.write("
-								+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
+								+ "\"<span id=output_values>type: "+ onl.getType(kw)
+								+ "</span><span id=output_values>min:\" + addSuffix("+graphData[0]+")"
 								+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
 /*
 								+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
@@ -597,11 +597,11 @@ class OtiNanaiWeb implements Runnable {
 						+ "\t\t<li class=\"draggable\">\n"
 						+ "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
 						//+ onl.getUnits(kw)
-						//+ " ("+parseType(kwt.getType())+") "
                                                 + "\t\t\t<div style=\"text-align: right\">\n"
 						+ "\t\t\t\t<script>"
 						+ "document.write("
-						+ "\"<span id=output_values>min:\" + addSuffix("+graphData[0]+")"
+						+ "\"<span id=output_values>type: "+ onl.getType(kw)
+						+ "</span><span id=output_values>min:\" + addSuffix("+graphData[0]+")"
 						+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
 /*
 						+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
@@ -668,16 +668,6 @@ class OtiNanaiWeb implements Runnable {
 		}
 
 		return output;
-	}
-
-	private String parseType(short t) {
-		switch (t) {
-			case OtiNanai.GAUGE: return new String("gauge");
-			case OtiNanai.COUNTER: return new String("count");
-			case OtiNanai.FREQ: return new String("freq");
-			case OtiNanai.SUM: return new String("sum"); 
-		}
-		return new String("unset");
 	}
 
 	private String starList() {
