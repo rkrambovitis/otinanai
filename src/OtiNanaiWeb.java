@@ -688,6 +688,8 @@ class OtiNanaiWeb implements Runnable {
 
 	private String kwTree(ArrayList<String> kws, String[] existingKeyWords, ArrayList<String> words) {
 		TreeMap<String, Integer> keyMap = new TreeMap<String, Integer>();
+		HashMap<String, LLString> keyContents = new HashMap<String, LLString>();
+		LLString contents;
 		String tmp;
 		int sofar;
 		int totalCount = kws.size();
@@ -715,12 +717,19 @@ class OtiNanaiWeb implements Runnable {
 							break;
 						}
 					}
+
 					sofar = 0;
 					if (keyMap.containsKey(tmp)) {
 						sofar = keyMap.get(tmp);
 					}
 					keyMap.put(tmp, ++sofar);
-					kws.remove(kw);
+
+					if (keyContents.containsKey(tmp))
+						contents = keyContents.get(tmp);
+					else
+						contents = new LLString();
+					contents.add(kw);
+					keyContents.put(tmp, contents);
 				}
 			}
 		}
@@ -735,7 +744,12 @@ class OtiNanaiWeb implements Runnable {
 			+ "<ul><li><a href=\""+oldKeys.replaceAll("\\+","%2B") + " --sa --merge\">Show All (slow) (--sa) "+totalCount+"</a></li>\n";
 
 		for (String key : keyMap.keySet()) {
-			output = output + "<li><a href=\"^"+key+" --merge\">^"+key+" "+keyMap.get(key)+"</a></li>\n";
+			String title = new String();
+			contents = keyContents.get(key);
+			Collections.sort(contents);
+			for (String foo : contents)
+				title += foo+"\n";
+			output = output + "<li><a title=\""+title+"\" href=\"^"+key+" --merge\">^"+key+" "+keyMap.get(key)+"</a></li>\n";
 		}
 		output = output + "</ul>\n" + commonHTML(OtiNanai.ENDBODY);
 		return output;
