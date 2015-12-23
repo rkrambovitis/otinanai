@@ -925,9 +925,13 @@ class OtiNanaiWeb implements Runnable {
 		LLString special = new LLString();
 		for (String word:keyList) {
 			firstChar = word.substring(0,1);
+			secondChar = "";
+			if (word.length() > 1)
+                                secondChar = word.substring(1,2);
+
 			if (firstChar.equals("+"))
 				pluses.add(word);
-			else if (firstChar.equals("-"))
+			else if (firstChar.equals("-") && !secondChar.equals("-"))
 				minuses.add(word);
 			else if (firstChar.equals("@") || firstChar.equals("#"))
 				special.add(word);
