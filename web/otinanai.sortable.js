@@ -1,5 +1,5 @@
-var el = document.getElementById('sortable');
-var mySortable = Sortable.create(el, { 
+var sorty = document.getElementById('sortable');
+var mySortable = Sortable.create(sorty, {
 	handle: ".draggable",
 	store: {
 		get: function (sortable) {
@@ -13,23 +13,9 @@ var mySortable = Sortable.create(el, {
 	} 
 });
 
-function updateDashboard(foo) {
-/*
-	for (var blah of foo) {
-		console.log(blah);
-	}
-*/
+function updateDashboard(order) {
 	var xhttp = new XMLHttpRequest();
-        var urlToStar = encodeURIComponent(foo.toString() + "--updateDashboard");
+        var urlToStar = encodeURIComponent(order.toString() + "--updateDashboard");
 	xhttp.open("GET", urlToStar, true);
-/*
-	xhttp.onreadystatechange = function() {
-		if (xhttp.responseText == "true") {
-			element.className = "starGraph fa fa-star fa-2x";
-		} else {
-			element.className = "starGraph fa fa-star-o fa-2x";
-		}
-	}
-*/
 	xhttp.send();
 }

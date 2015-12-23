@@ -367,6 +367,8 @@ class OtiNanaiListener implements Runnable {
 
 	public boolean updateDashboard(String kws, String dashboardName) {
 		String rDashboardKey = dashboardName+"_Dashboard";
+		if (kws.toLowerCase().contains("donotsavetodashboard"))
+			return false;
                 try ( Jedis jedis = jediTemple.getResource() ) {
 			if (!dashList.contains(dashboardName)) {
 				dashList.add(dashboardName);

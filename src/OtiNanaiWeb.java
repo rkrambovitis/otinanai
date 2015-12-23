@@ -574,7 +574,7 @@ class OtiNanaiWeb implements Runnable {
 			output = output + "graph"+idx +": {\n";
 			body = body
 				+ "<div id=\"sortable\">\n"
-				+ "\t<ul class=\"graphListing\">\n";
+				+ "\t<ul data-id=\"donotsavetodashboard\" class=\"graphListing\">\n";
 
                         int mergedGraphs = 0;
 			String keysInGraph = new String();
@@ -644,7 +644,7 @@ class OtiNanaiWeb implements Runnable {
 						+ "},\n";
                                         if (drawnGraphs < graphLimit) {
 						output += "graph"+ (idx + mergedGraphs) +": {\n";
-						body += "\t<ul class=\"graphListing\">\n";
+						body += "\t<ul data-id=\"donotsavetodashboard\" class=\"graphListing\">\n";
 					}
                                         else
                                                 break;
