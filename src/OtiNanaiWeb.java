@@ -488,7 +488,7 @@ class OtiNanaiWeb implements Runnable {
 				body = body + "\t<ul data-id=\""+kwlist+"\" class=\"graphListing\">\n";
 				for (String kw : dashkws) {
 					logger.info("[Web]: Processing dashboard keyword : "+kw);
-					if (kw.equals("--stacked")) {
+					if (kw.equals("--stack")) {
 						output = output + "\tstackedGraph: true,\n";
 						continue;
 					}

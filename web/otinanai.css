@@ -127,6 +127,10 @@ ul.graphListing {
 	cursor: pointer;
 }
 
+.gotoGraph {
+        cursor: pointer;
+}
+
 .draggable {
 	cursor: move;
 	cursor: -webkit-grabbing;

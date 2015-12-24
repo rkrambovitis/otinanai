@@ -33,9 +33,9 @@ function toggleDashboard(input, element) {
 	xhttp.open("GET", urlToStar, true);
 	xhttp.onreadystatechange = function() {
 		if (xhttp.responseText == "true") {
-			element.className = "starGraph fa fa-star fa-2x";
+			element.className = "rightIcon starGraph fa fa-star fa-2x";
 		} else {
-			element.className = "starGraph fa fa-star-o fa-2x";
+			element.className = "rightIcon starGraph fa fa-star-o fa-2x";
 		}
 	}
 	xhttp.send();
@@ -126,9 +126,10 @@ $(function() {
 					  drawGraphs();
 			});
 			if (stacked)
-				storeLink +="--stacked ";
+				storeLink +="--stack ";
 			$("<span class='rightIcon starGraph fa "+ (starred ? "fa-star" : "fa-star-o") + " fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
-			$("<span class='rightIcon dragGraph fa fa-arrows fa-2x draggable'></span>").appendTo("#placeholder_"+ph);
+			$("<span class='rightIcon fa fa-arrows fa-2x draggable'></span>").appendTo("#placeholder_"+ph);
+			//$("<span class='rightIcon gotoGraph fa fa-arrow-right fa-2x' onclick=\"location.href = '"+storeLink+"'\"></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
 			data = [];

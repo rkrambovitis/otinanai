@@ -367,7 +367,7 @@ class OtiNanaiListener implements Runnable {
 
 	public boolean dashContainsKey(String dashboardName, String key, boolean stacked) {
                 if (stacked)
-                        key = key + " --stacked ";
+                        key = key + " --stack ";
                 logger.info("[Listener]: Checking "+dashboardName+" for \""+key+"\"");
                 try {
                         return (dashMap.get(dashboardName).contains(key));
