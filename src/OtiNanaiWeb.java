@@ -209,6 +209,8 @@ class OtiNanaiWeb implements Runnable {
 		ArrayList<String> data = new ArrayList<String>();
 
 		long timePrev = System.currentTimeMillis();
+		startTime -= offset;
+		endTime -= offset;
 		data = kwt.getMemory(startTime);
 		long now=System.currentTimeMillis();
 		logger.finest("[Web]: Timing - Total getMemory time: " + (now - timePrev));
@@ -237,6 +239,7 @@ class OtiNanaiWeb implements Runnable {
 				break;
 			if (timeStamp > endTime)
 				continue;
+			timeStamp += offset;
 			if (type != OtiNanai.GRAPH_GAUGE && type != OtiNanai.GRAPH_PERCENTILES)
 				output = "\t\t\t[" +timeStamp + "," + val + "],\n" + output;
 			samples++;
@@ -563,6 +566,7 @@ class OtiNanaiWeb implements Runnable {
 				+ "var datasets = {\n";
 
 			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
+			HashMap <String, String[]> vsMap = new HashMap<String, String[]>();
 			for (KeyWordTracker kwt : kws) {
 				graphData = toGraph(kwt, type, startTime, endTime, 0l);
 				String kw = kwt.getKeyWord();
@@ -573,6 +577,11 @@ class OtiNanaiWeb implements Runnable {
 					continue;
 				}
 				dataMap.put(kw, graphData);
+
+				if (vsTime != 0) {
+					graphData = toGraph(kwt, type, startTime, endTime, vsTime);
+					vsMap.put(kw, graphData);
+				}
 			}
 
                         NNComparator nnc = new NNComparator(dataMap);
@@ -607,31 +616,19 @@ class OtiNanaiWeb implements Runnable {
 					+ "\t\tkeyword: \""+kw+"\",\n"
 					+ "\t\tlabel: \""+kw+" "+onl.getUnits(kw)+"\",\n";
 
-
 				if (showDetails) {
 					body = body
 						+ "\t\t<li class=\"draggable\">\n"
 						+ "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
-						//+ onl.getUnits(kw)
                                                 + "\t\t\t<div style=\"text-align: right\">\n"
 						+ "\t\t\t\t<script>"
-						+ "document.write("
-						+ "\"<span id=output_values>type: "+ onl.getType(kw)
-						+ "</span><span id=output_values>min:\" + addSuffix("+graphData[0]+")"
-						+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
-/*
-						+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
-						+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
-						+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
-						+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
-						+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
-*/
-						+ "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
-						+ "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
-						//+ "+\"</span><span id=output_values> samples:\" + " + graphData[6]
-						//+ "+\"</span><span> alarm:\" + " + onl.alarmEnabled(kw)
-						+ "+\"</span>\""
-						+ ");"
+						+ "document.write(\""
+						+ "<span id=output_values>type: "+ onl.getType(kw) +"</span>"
+						+ "<span id=output_values>min:\" + addSuffix("+graphData[0]+") + \"</span>"
+						+ "<span id=output_values>max:\" + addSuffix("+graphData[1]+") + \"</span>"
+						+ "<span id=output_values>95%:\" + addSuffix("+graphData[4]+") + \"</span>"
+						+ "<span id=output_values>99%:\" + addSuffix("+graphData[11]+") + \"</span>"
+						+ "\");"
 						+ "</script>\n"
                                                 + "\t\t\t</div>\n"
 						+ "\t\t</li>\n";
@@ -639,11 +636,20 @@ class OtiNanaiWeb implements Runnable {
 
 				
 				output = output
-					+ "\t\tnn: "+ graphData[11] + ",\n";
-
-				output = output + "\t\tdata: [\n"
+					+ "\t\tnn: "+ graphData[11] + ",\n"
+					+ "\t\tdata: [\n"
 					+ graphData[3]
 					+ "\t\t]\n\t},\n\n";
+
+				if (vsTime != 0) {
+					graphData = vsMap.get(kw);
+					output = output + "\t\"" + kw.replaceAll("\\.","_") + "@vs\": {\n"
+						+ "\t\tlabel: \""+kw+"@vs "+onl.getUnits(kw)+"\",\n"
+						+ "\t\tnn: "+ graphData[11] + ",\n"
+						+ "\t\tdata: [\n"
+						+ graphData[3]
+						+ "\t\t]\n\t},\n\n";
+				}
 
                                 drawnGraphs++;
 				if (drawnGraphs % maxMergeCount == 0 || drawnGraphs >= graphLimit) {
