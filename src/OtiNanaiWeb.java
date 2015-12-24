@@ -386,13 +386,15 @@ class OtiNanaiWeb implements Runnable {
 		TreeSet<String> sortedKeys = new TreeSet<String>();
 		sortedKeys.addAll(keyList);
 
-		for (String key : sortedKeys) {
-			key=key.toLowerCase();
-			if (kwtList.contains(key)) {
-				logger.fine("[Web]: Matched "+key);
-				kws.add(onl.getKWT(key));
-			}
-		}
+                if (type != OtiNanai.GRAPH_DASHBOARD) {
+                        for (String key : sortedKeys) {
+                                key=key.toLowerCase();
+                                if (kwtList.contains(key)) {
+                                        logger.fine("[Web]: Matched "+key);
+                                        kws.add(onl.getKWT(key));
+                                }
+                        }
+                }
 
 		String output;
 		String nodata = new String();
@@ -449,9 +451,22 @@ class OtiNanaiWeb implements Runnable {
 			output = commonHTML(OtiNanai.FLOT)
                                 + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "");
 
+			LLString dashKWs = onl.getDashboard(currentDashboard);
+                        ArrayList<KeyWordTracker> dashMarks = new ArrayList<KeyWordTracker> ();
+                        KeyWordTracker indTracker;
+                        for (String kwlist : dashKWs) {
+				String [] individualKWs = kwlist.split(" ");
+                                for (String ind : individualKWs) {
+                                        indTracker = onl.getKWT(ind);
+                                        if (indTracker != null) {
+                                                dashMarks.add(onl.getKWT(ind));
+                                        }
+                                }
+                        }
+
 			int idx = (new Random()).nextInt(200);
 			output = output+ commonHTML(OtiNanai.JS)
-				+ getMarkings(showEvents, startTime, endTime, kws)
+				+ getMarkings(showEvents, startTime, endTime, dashMarks)
                                 + "var idx = "+idx+";\n"
                                 + "var showSpikes = "+showSpikes+";\n"
 				+ "var stackedGraph = false;\n"
@@ -463,7 +478,6 @@ class OtiNanaiWeb implements Runnable {
 				+ "<div id=\"sortable\">\n";
 
 			int j=0;
-			LLString dashKWs = onl.getDashboard(currentDashboard);
 			for (String kwlist : dashKWs) {
 				logger.info("[Web]: Processing dashboard list : \""+kwlist+"\"");
 				String [] dashkws = kwlist.split("[ ,]|%20");
