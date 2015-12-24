@@ -379,7 +379,7 @@ class OtiNanaiWeb implements Runnable {
 		return marktext;
 	}
 
-	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit, boolean autoRefresh, boolean showSpikes, boolean showDetails, String currentDashboard) {
+	private String timeGraph(ArrayList<String> keyList, short type, long startTime, long endTime, int maxMergeCount, boolean showEvents, int graphLimit, boolean autoRefresh, boolean showSpikes, boolean showDetails, String currentDashboard, long vsTime) {
 		ArrayList<KeyWordTracker> kws = new ArrayList<KeyWordTracker> ();
 		LLString kwtList = onl.getKWTList();
 
@@ -978,6 +978,8 @@ class OtiNanaiWeb implements Runnable {
                 boolean showSpikes = false;
 		boolean showDetails = true;
 		boolean showDashboard = false;
+		long vsTime = 0l;
+		boolean nextWordIsVsTime = false;
 		LLString properOrder = new LLString();
 		LLString pluses = new LLString();
 		LLString minuses = new LLString();
@@ -994,7 +996,7 @@ class OtiNanaiWeb implements Runnable {
 			if (isArg) {
 				special.add(word);
 				isArg = false;
-			} else if (word.equals("--limit") || word.equals("--units") || word.equals("--multiplier")) {
+			} else if (word.equals("--limit") || word.equals("--units") || word.equals("--multiplier") || word.equals("--vs")) {
 				special.add(word);
 				isArg = true;
 			}
@@ -1041,6 +1043,23 @@ class OtiNanaiWeb implements Runnable {
                                 }
                                 continue;
                         }
+			if (nextWordIsVsTime) {
+				try {
+					lastChar = word.substring(word.length()-1);
+					rest = word.replaceAll("[dh]", "");
+					//logger.info("[Web]: word: "+word +" rest: "+rest +" lastChar: "+lastChar);
+					long multiplier = 3600000l;
+					if (lastChar.equals("d"))
+						multiplier = 86400000l;
+					vsTime = Integer.parseInt(rest) * multiplier;
+				} catch (NumberFormatException nfe) {
+					logger.severe("[Web]: "+nfe.getCause());
+				} finally {
+					nextWordIsVsTime = false;
+				}
+				logger.info("[Web]: vsTime is "+vsTime);
+				continue;
+			}
 
 			boolean removeKW = false;
 			boolean exclusiveKW = false;
@@ -1084,6 +1103,9 @@ class OtiNanaiWeb implements Runnable {
                                 case "--limit":
                                         nextWordIsLimit=true;
                                         continue;
+				case "--vs":
+					nextWordIsVsTime = true;
+					continue;
 				case "--dashboard":
 					showDashboard = true;
 					continue;
@@ -1382,7 +1404,7 @@ class OtiNanaiWeb implements Runnable {
 			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
 			return kwTree(kws, keyList, words);
 		}
-		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit, autoRefresh, showSpikes, showDetails, currentDashboard);
+		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit, autoRefresh, showSpikes, showDetails, currentDashboard, vsTime);
 		onc.cache(input, op);
 		return op;
 	}
