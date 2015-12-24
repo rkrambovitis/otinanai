@@ -108,7 +108,7 @@ class OtiNanaiListener implements Runnable {
 					logger.info("[Listener]: Loading dashboard "+dashName+" from "+s);
 					dashData = new LLString();
 					dashList.add(dashName);
-					for (String t : jedis.smembers(s)) {
+					for (String t : jedis.lrange(s, 0, -1)) {
 						logger.info("[Listener]: + "+t);
 						dashData.add(t);
 					}
@@ -418,7 +418,7 @@ class OtiNanaiListener implements Runnable {
 			LLString updatedList = new LLString();
 			String[] fromJS = kws.split(",");
 			for (String input : fromJS) {
-				jedis.sadd(rDashboardKey, input);
+				jedis.rpush(rDashboardKey, input);
 				updatedList.add(input);
 			}
 			dashMap.put(dashboardName, updatedList);
