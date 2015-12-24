@@ -690,14 +690,19 @@ class OtiNanaiWeb implements Runnable {
 	}
 
 	private String storeList() {
-		String output = commonHTML(OtiNanai.ENDHEAD) + "<ul>\n";
+		String output = commonHTML(OtiNanai.ENDHEAD)
+                        + "<div id=\"tickBox\" class=\"fa fa-4x fa-check\"></div>\n"
+                        + "<ul class=\"storeList\">\n";
 		LLString storeList = (LLString)onl.getStoreList().clone();
 		int size = onl.getStoreList().size();
 		String stored;
 		for (int i=0; i < size ; i++) {
 			stored = storeList.removeLast();
                         try {
-                                output = output + "<li><a href=\""+URLEncoder.encode(stored, "UTF-8")+"\">"+stored+"</a></li>\n";
+                                output = output
+                                        + "<li><a href=\""+URLEncoder.encode(stored, "UTF-8")+"\">"+stored+"</a>"
+                                        + "</li>\n"
+                                        + "<span class=\"runXHR fa fa-1x fa-rotate-right\" onclick='runXHR(\""+URLEncoder.encode(stored, "UTF-8")+"\")'></span>\n";
                         } catch (UnsupportedEncodingException uee) {
                                 output = output + "<li><a href=\""+stored+"\">"+stored+"</a></li>\n";
                         }
@@ -1306,7 +1311,10 @@ class OtiNanaiWeb implements Runnable {
                         return listOP;
 		} else if (setUnits) {
 			logger.info("[Web]: Setting matching Keyword Units to "+units);
-			String unitsOP = new String("<h2>Setting units to "+units+" for keywords:</h2><br />\n<ul>\n");
+			String unitsOP = new String();
+                        unitsOP = "<div class=\"aTitle\">Setting units to "+units+" for keywords:</div>\n"
+                                + "<div class=\"aDescription\">use <a href=\"--stored\">--stored</a> to view history</div>\n"
+                                + "<ul>\n";
 			for (String kw : kws) {
 				logger.info("[Web]: Setting "+kw+" units to "+units);
 				unitsOP = unitsOP + "<li>"+kw+"</li>\n";
@@ -1318,7 +1326,10 @@ class OtiNanaiWeb implements Runnable {
 			return unitsOP;
 		} else if (setMultip) {
 			logger.info("[Web]: Setting matching Keyword Multiplier to "+multip);
-			String multipOP = new String("<h2>Setting multiplier to "+multip+" for keywords:</h2><br />\n<ul>\n");
+			String multipOP = new String();
+                        multipOP = "<div class=\"aTitle\">Setting multiplier to "+multip+" for keywords:</div>\n"
+                                + "<div class=\"aDescription\">use <a href=\"--stored\">--stored</a> to view history</div>\n"
+                                + "<ul>\n";
 			for (String kw : kws) {
 				logger.info("[Web]: Setting "+kw+" multiplier to "+multip);
 				multipOP = multipOP + "<li>"+kw+"</li>\n";

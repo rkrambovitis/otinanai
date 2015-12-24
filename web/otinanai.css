@@ -200,6 +200,42 @@ a.goToDashboard {
 	cursor: pointer;
 }
 
+.aTitle {
+        padding: 10px;
+        font-size: 2rem;
+        font-weight: bold;
+}
+.aDescription {
+        padding-left: 10px;
+        font-size: 1.2rem;
+        font-weight: italic;
+}
+.aDescription a {
+        display: inline;
+        padding: 2px;
+}
+.storeList a {
+        display: inline;
+        padding-right: 10px;
+}
+
+.runXHR {
+        float: right;
+        position: relative;
+        left: 20px;
+        bottom: 23px;
+        color: #4169E1;
+        cursor: pointer;
+}
+
+#tickBox {
+        color: green;
+        left: 50%;
+        display: none;
+        position: fixed;
+        margin: auto;
+}
+
 #dashSelector ul{
         padding: 10px;
         background-color: #999;

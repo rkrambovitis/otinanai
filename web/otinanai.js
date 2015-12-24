@@ -33,6 +33,19 @@ function toggleStar(input) {
 	xhttp.send();
 }
 
+function runXHR(input) {
+	var xhttp = new XMLHttpRequest();
+        var urlToStar = encodeURIComponent(input);
+	xhttp.open("GET", urlToStar, true);
+	xhttp.onreadystatechange = function() {
+		if (xhttp.readyState == 4 && xhttp.status == 200) {
+                        $('#tickBox').show();
+                        $('#tickBox').fadeOut("slow");
+		}
+	}
+	xhttp.send();
+}
+
 function getCookie(cname) {
 	var name = cname + "=";
 	var ca = document.cookie.split(';');
