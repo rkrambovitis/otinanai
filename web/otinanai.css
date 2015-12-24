@@ -40,7 +40,7 @@ form {
 	border: 2px solid #999;
 }
 form input {
-	font-size: 25px;
+	font-size: 1.4rem;
 	width: 80%;
 	padding: 3px;
         margin: 3px;
@@ -86,7 +86,7 @@ a:hover {
 	text-decoration:underline;
 }
 li {
-	padding: 3px 3px;
+	padding: 3px 30px;
 	border: 1px solid #ccc;
 	display: list-item;
 	background-color: #eee;
@@ -115,26 +115,16 @@ ul.graphListing {
 	background-color: #eee;
 	color: #252525;
 }
-/*
-#star {
-	color: #4169E1;
-	left: 10px;
-	position: relative;
-	cursor: pointer;
-}
-*/
 
+.rightIcon {
+	color: #4169E1;
+	float: right;
+        clear: right;
+        margin-right:-20px;
+}
 .starGraph {
-	color: #4169E1;
-	float: right;
-	margin: 20px 30px;
+	margin-top: 10px;
 	cursor: pointer;
-}
-
-.dragGraph {
-	color: #4169E1;
-	float: right;
-	margin: 20px 0;
 }
 
 .draggable {

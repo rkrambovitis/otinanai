@@ -127,8 +127,8 @@ $(function() {
 			});
 			if (stacked)
 				storeLink +="--stacked ";
-			$("<span class='starGraph fa "+ (starred ? "fa-star" : "fa-star-o") + " fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
-			$("<span class='dragGraph fa fa-arrows fa-2x draggable'></span>").appendTo("#placeholder_"+ph);
+			$("<span class='rightIcon starGraph fa "+ (starred ? "fa-star" : "fa-star-o") + " fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
+			$("<span class='rightIcon dragGraph fa fa-arrows fa-2x draggable'></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
 			data = [];
