@@ -149,6 +149,8 @@ class OtiNanaiWeb implements Runnable {
 							text = showKeyWords(query.toLowerCase(), currentDashboard, false);
 						else if (query.contains("--starred"))
 							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + starList();
+						else if (query.contains("--stored"))
+							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + storeList();
 						else
 							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + showKeyWords(query.toLowerCase(), currentDashboard, cache);
 
@@ -681,6 +683,23 @@ class OtiNanaiWeb implements Runnable {
                                 output = output + "<li><a href=\""+URLEncoder.encode(star, "UTF-8")+"\">"+star+"</a></li>\n";
                         } catch (UnsupportedEncodingException uee) {
                                 output = output + "<li><a href=\""+star+"\">"+star+"</a></li>\n";
+                        }
+		}
+		output = output + "</ul>\n" + commonHTML(OtiNanai.ENDBODY);
+		return output;
+	}
+
+	private String storeList() {
+		String output = commonHTML(OtiNanai.ENDHEAD) + "<ul>\n";
+		LLString storeList = (LLString)onl.getStoreList().clone();
+		int size = onl.getStoreList().size();
+		String stored;
+		for (int i=0; i < size ; i++) {
+			stored = storeList.removeLast();
+                        try {
+                                output = output + "<li><a href=\""+URLEncoder.encode(stored, "UTF-8")+"\">"+stored+"</a></li>\n";
+                        } catch (UnsupportedEncodingException uee) {
+                                output = output + "<li><a href=\""+stored+"\">"+stored+"</a></li>\n";
                         }
 		}
 		output = output + "</ul>\n" + commonHTML(OtiNanai.ENDBODY);
@@ -1295,6 +1314,7 @@ class OtiNanaiWeb implements Runnable {
 			}
                         unitsOP = unitsOP + "</ul>\n"
                                 + commonHTML(OtiNanai.ENDBODY);
+                        onl.storeQuery(input);
 			return unitsOP;
 		} else if (setMultip) {
 			logger.info("[Web]: Setting matching Keyword Multiplier to "+multip);
@@ -1306,6 +1326,7 @@ class OtiNanaiWeb implements Runnable {
 			}
                         multipOP = multipOP + "</ul>\n"
                                 + commonHTML(OtiNanai.ENDBODY);
+                        onl.storeQuery(input);
 			return multipOP;
 		} else if (wipe && force) {
 			logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");

@@ -88,6 +88,15 @@ class OtiNanaiListener implements Runnable {
 				}
 			}
 
+			rStoreList = new String("List_Of_Stored_Inputs");
+			logger.info("[Listener]: Loading stored queries from storelist: "+rStoreList);
+			storeList = new LLString();
+			if (jedis.exists(rStoreList)) {
+				for (String s : jedis.smembers(rStoreList)) {
+					storeList.add(s);
+				}
+			}
+
 			rDashList = new String("List_Of_Dashboards");
 			logger.info("[Listener]: Loading dashboard from: "+rDashList);
 			dashList = new LLString();
@@ -319,6 +328,23 @@ class OtiNanaiListener implements Runnable {
 		return false;
 	}
 
+	public boolean storeQuery(String input) {
+		try ( Jedis jedis = jediTemple.getResource() ) {
+			if (!storeList.contains(input)) {
+				storeList.add(input);
+				jedis.sadd(rStoreList, input);
+				return true;
+			}
+                } catch (Exception e) {
+                        logger.severe("[Listener]: "+e.getCause());
+                }
+		return false;
+	}
+
+        public LLString getStoreList() {
+                return storeList;
+        }
+
 	public boolean isStarred(String input) {
 		return starList.contains(input);
 	}
@@ -418,8 +444,10 @@ class OtiNanaiListener implements Runnable {
 	private String rMultipList;
 	private String rSavedQueries;
 	private String rStarList;
+	private String rStoreList;
 	private String rDashList;
 	private LLString starList;
+	private LLString storeList;
 	private LLString kwtList;
 	private String redisHost;
 	private JedisPool jediTemple;
