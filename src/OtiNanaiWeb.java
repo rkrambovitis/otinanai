@@ -196,7 +196,7 @@ class OtiNanaiWeb implements Runnable {
 		}
 	}
 
-	private String[] toGraph(KeyWordTracker kwt, short type, long startTime, long endTime, long offset) {
+	private String[] toGraph(KeyWordTracker kwt, short type, long startTime, long endTime, long offset, boolean isOffset) {
 		String[] toReturn = new String[12];
 		if (kwt == null) {
 			logger.fine("[Web]: null kwt");
@@ -209,9 +209,15 @@ class OtiNanaiWeb implements Runnable {
 		ArrayList<String> data = new ArrayList<String>();
 
 		long timePrev = System.currentTimeMillis();
-		startTime -= offset;
-		endTime -= offset;
-		data = kwt.getMemory(startTime);
+                if (isOffset) {
+                        startTime -= offset;
+                        endTime -= offset;
+                }
+                // isOffset is false for main graph, so we use offset to get lower resolution data
+                if (!isOffset)
+                        data = kwt.getMemory(startTime, offset);
+                else
+                        data = kwt.getMemory(startTime, 0l);
 		long now=System.currentTimeMillis();
 		logger.finest("[Web]: Timing - Total getMemory time: " + (now - timePrev));
 		double total=0;
@@ -239,7 +245,8 @@ class OtiNanaiWeb implements Runnable {
 				break;
 			if (timeStamp > endTime)
 				continue;
-			timeStamp += offset;
+                        if (isOffset)
+                                timeStamp += offset;
 			if (type != OtiNanai.GRAPH_GAUGE && type != OtiNanai.GRAPH_PERCENTILES)
 				output = "\t\t\t[" +timeStamp + "," + val + "],\n" + output;
 			samples++;
@@ -418,7 +425,7 @@ class OtiNanaiWeb implements Runnable {
 				if (kw.length() > OtiNanai.MAX_KW_LENGTH) 
 					skw = trimKW(kw);
 				kw = kw.replaceAll("\\.","_");
-				graphData = toGraph(kwt, type, startTime, endTime, 0l);
+				graphData = toGraph(kwt, type, startTime, endTime, 0l, false);
 				if (graphData[6].equals("0")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points. - 0");
                                         nodata = nodata + "\t<li>No data in timerange for "+kw+"</li>\n";
@@ -492,7 +499,7 @@ class OtiNanaiWeb implements Runnable {
 						output = output + "\tstackedGraph: true,\n";
 						continue;
 					}
-					graphData = toGraph(onl.getKWT(kw), type, startTime, endTime, 0l);
+					graphData = toGraph(onl.getKWT(kw), type, startTime, endTime, 0l, false);
 					logger.info("[Web]: Got Data for "+kw+", processing");
 					if (graphData[6].equals("0") || graphData[6].equals("1")) {
 						logger.info("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
@@ -568,7 +575,7 @@ class OtiNanaiWeb implements Runnable {
 			HashMap <String, String[]> dataMap = new HashMap<String, String[]>();
 			HashMap <String, String[]> vsMap = new HashMap<String, String[]>();
 			for (KeyWordTracker kwt : kws) {
-				graphData = toGraph(kwt, type, startTime, endTime, 0l);
+				graphData = toGraph(kwt, type, startTime, endTime, vsTime, false);
 				String kw = kwt.getKeyWord();
 				if (graphData[6].equals("0") || graphData[6].equals("1")) {
 					logger.fine("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
@@ -579,7 +586,7 @@ class OtiNanaiWeb implements Runnable {
 				dataMap.put(kw, graphData);
 
 				if (vsTime != 0) {
-					graphData = toGraph(kwt, type, startTime, endTime, vsTime);
+					graphData = toGraph(kwt, type, startTime, endTime, vsTime, true);
 					vsMap.put(kw, graphData);
 				}
 			}

@@ -28,7 +28,7 @@ interface KeyWordTracker {
 	
         public boolean alarmEnabled() ;
 
-        public ArrayList<String> getMemory(Long startTime) ;
+        public ArrayList<String> getMemory(Long startTime, Long offset) ;
 
         public long getCurrentCount() ;
 }
