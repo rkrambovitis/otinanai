@@ -499,7 +499,7 @@ class OtiNanaiWeb implements Runnable {
 						output = output + "\tstackedGraph: true,\n";
 						continue;
 					}
-					graphData = toGraph(onl.getKWT(kw), type, startTime, endTime, 0l, false);
+					graphData = toGraph(onl.getKWT(kw), type, startTime, endTime, vsTime, false);
 					logger.info("[Web]: Got Data for "+kw+", processing");
 					if (graphData[6].equals("0") || graphData[6].equals("1")) {
 						logger.info("[Web]: Skipping "+kw+ " due to insufficient data points - "+ graphData[6]);
@@ -519,33 +519,32 @@ class OtiNanaiWeb implements Runnable {
 							body = body
 								+ "\t\t<li class=\"draggable\">\n"
 								+ "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
-								//+ onl.getUnits(kw)
                                                                 + "\t\t\t<div style=\"text-align: right\">\n"
 								+ "\t\t\t\t<script>"
-								+ "document.write("
-								+ "\"<span id=output_values>type: "+ onl.getType(kw)
-								+ "</span><span id=output_values>min:\" + addSuffix("+graphData[0]+")"
-								+ "+\"</span><span id=output_values> max:\" + addSuffix("+graphData[1]+")"
-/*
-								+ "+\"</span><span id=output_values> mean:\" + addSuffix("+graphData[2]+")"
-								+ "+\"</span><span id=output_values> 5%:\"+ addSuffix("+graphData[7]+")"
-								+ "+\"</span><span id=output_values> 25%:\"+ addSuffix("+graphData[8]+")"
-								+ "+\"</span><span id=output_values> 50%:\"+ addSuffix("+graphData[9]+")"
-								+ "+\"</span><span id=output_values> 75%:\"+ addSuffix("+graphData[10]+")"
-*/
-								+ "+\"</span><span id=output_values> 95%:\"+ addSuffix("+graphData[4]+")"
-								+ "+\"</span><span id=output_values> 99%:\"+ addSuffix("+graphData[11]+")"
-								//+ "+\"</span><span id=output_values> samples:\" + " + graphData[6]
-								//+ "+\"</span><span> alarm:\" + " + onl.alarmEnabled(kw)
-								+ "+\"</span>\""
-								+ ");"
+                                                                + "document.write(\""
+                                                                + "<span id=output_values>type: "+ onl.getType(kw) +"</span>"
+                                                                + "<span id=output_values>min:\" + addSuffix("+graphData[0]+") + \"</span>"
+                                                                + "<span id=output_values>max:\" + addSuffix("+graphData[1]+") + \"</span>"
+                                                                + "<span id=output_values>95%:\" + addSuffix("+graphData[4]+") + \"</span>"
+                                                                + "<span id=output_values>99%:\" + addSuffix("+graphData[11]+") + \"</span>"
+                                                                + "\");"
 								+ "\t\t\t\t</script>\n"
                                                                 + "\t\t\t</div>\n"
 								+ "\t\t</li>\n";
 						}
+                                                if (vsTime != 0) {
+                                                        graphData = toGraph(onl.getKWT(kw), type, startTime, endTime, vsTime, true);
+                                                        output = output + "\t\"" + kw.replaceAll("\\.","_") + "@vs\": {\n"
+                                                                + "\t\tlabel: \""+kw+"@vs "+onl.getUnits(kw)+"\",\n"
+                                                                + "\t\tnn: "+ graphData[11] + ",\n"
+                                                                + "\t\tdata: [\n"
+                                                                + graphData[3]
+                                                                + "\t\t]\n\t},\n\n";
+                                                }
 					}
 				}
 				output = output + "},\n";
+
 
 				body = body
 					+ "\t\t<div id=\"placeholder_"+(idx+j) +"\" class=\"dashGraph\"></div>\n"
