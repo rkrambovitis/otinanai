@@ -97,15 +97,6 @@ ul {
 	list-style-type: none;
 	display: inline-table;
 }
-.graphListing {
-	list-style-type: none;
-}
-.graphListing a {
-        float: left;
-}
-ul.graphListing {
-	width: 95%;
-}
 .nodata {
 	margin: 2px;
 	width: 30%;
@@ -244,4 +235,20 @@ a.goToDashboard {
 	font-size: 1.3rem;
 	padding: 25px;
 	cursor: pointer;
+}
+
+.graphListing {
+	list-style-type: none;
+}
+.graphListing a {
+        float: left;
+}
+ul.graphListing {
+	width: 45%;
+}
+
+@media screen and (max-width: 1600px) {
+        ul.graphListing {
+                width: 95%;
+        }
 }

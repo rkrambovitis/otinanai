@@ -825,6 +825,7 @@ class OtiNanaiWeb implements Runnable {
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.js\"></script>\n"
 					+ "<link rel=\"stylesheet\" href=\"//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css\"/>\n"
+                                        + "<meta name=\"viewport\" content=\"width=device-width\" initial-scale=\"1.0\">\n"
 					+ "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n");
 		} else if (out == OtiNanai.ENDHEAD) {
 			return new String("</head>\n<body>\n");
