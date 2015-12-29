@@ -1372,8 +1372,12 @@ class OtiNanaiWeb implements Runnable {
 				}
 			} else {
 				for (String kw : allKWTs ) {
-					if ((kw.contains(word) || rest.equals("*")) && !kws.contains(kw))
-						kws.add(kw);
+                                        try {
+                                                if ((kw.contains(word) || rest.equals("*")) && !kws.contains(kw))
+                                                        kws.add(kw);
+                                        } catch (NullPointerException npe) {
+                                                logger.info("[Web]: word is \""+word+"\"");
+                                        }
 				}
 			}
 			words.add(rest);
