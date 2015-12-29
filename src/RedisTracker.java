@@ -309,7 +309,7 @@ class RedisTracker implements KeyWordTracker {
 		ArrayList<String> returner = new ArrayList<String>();
 		try ( Jedis jedis = jediTemple.getResource() ) {
 			long startTimeAgo = (System.currentTimeMillis() - startTime + offset);
-                        System.out.println("kw: "+keyWord +"startTime: "+startTime+" offset: "+offset+" startTimeAgo:" +startTimeAgo+" step1: "+OtiNanai.STEP1_MILLISECONDS+" step2: "+OtiNanai.STEP2_MILLISECONDS);
+                        //System.out.println("kw: "+keyWord +"startTime: "+startTime+" offset: "+offset+" startTimeAgo:" +startTimeAgo+" step1: "+OtiNanai.STEP1_MILLISECONDS+" step2: "+OtiNanai.STEP2_MILLISECONDS);
 			if (startTimeAgo <= OtiNanai.STEP1_MILLISECONDS || jedis.llen(step2Key) < 2 ) {
 				returner.addAll(jedis.lrange(step1Key,0,-1));
 			} else if (startTimeAgo <= OtiNanai.STEP2_MILLISECONDS || jedis.llen(step3Key) < 2 ) {
