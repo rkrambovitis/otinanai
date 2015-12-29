@@ -386,7 +386,7 @@ class OtiNanaiListener implements Runnable {
 			}
 
 			if (dashMap.get(dashboardName).contains(kws)) {
-				jedis.srem(rDashboardKey, kws);
+				jedis.lrem(rDashboardKey, 1,  kws);
 				dashMap.get(dashboardName).remove(kws);
 				if (dashMap.get(dashboardName).isEmpty()) {
 					dashList.remove(dashboardName);
@@ -394,7 +394,7 @@ class OtiNanaiListener implements Runnable {
 				}
 				return false;
 			} else {
-				jedis.sadd(rDashboardKey, kws);
+				jedis.rpush(rDashboardKey, kws);
 				dashMap.get(dashboardName).add(kws);
 				return true;
 			}
