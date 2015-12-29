@@ -300,7 +300,7 @@ class OtiNanaiWeb implements Runnable {
 			allData.add(0f);
 		}
 
-		if (type == OtiNanai.GRAPH_PERCENTILES) {
+		if (type == OtiNanai.GRAPH_PERCENTILES || type == OtiNanai.GRAPH_NONE) {
                         for (float k = 0.8f ; k <= 1 ; ) {
                                 try {
                                         output = output + "\t\t\t["+String.format("%.2f", (k*100)).replaceAll(",", ".")+","+allData.get((int)(k*samples)-1)+"],\n";
@@ -406,7 +406,7 @@ class OtiNanaiWeb implements Runnable {
                         }
                 }
 
-		String output;
+		String output = new String();
 		String nodata = new String();
 		String body = new String("");
 		String[] graphData;
@@ -456,7 +456,6 @@ class OtiNanaiWeb implements Runnable {
 			output = output 
 				+ commonHTML(OtiNanai.ENDHEAD)
 				+ commonHTML(OtiNanai.ENDBODY);
-
 		} else if (type == OtiNanai.GRAPH_DASHBOARD) {
 			output = commonHTML(OtiNanai.FLOT)
                                 + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "");
@@ -554,6 +553,48 @@ class OtiNanaiWeb implements Runnable {
 			body = body
 				+ "</div>\n"
 				+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.sortable.js\"></script>\n";
+                } else if (type == OtiNanai.GRAPH_NONE) {
+			body = body
+				+ "<div>\n"
+				+ "\t<ul class=\"graphListing\">\n";
+
+			for (KeyWordTracker kwt : kws) {
+				graphData = toGraph(kwt, type, startTime, endTime, vsTime, false);
+				String kw = kwt.getKeyWord();
+				if (graphData[6].equals("0")) {
+					nodata = nodata + "\t<li>No data in timerange for "+kw+"</li>\n";
+                                        deleteAll = deleteAll + "^"+kw+"$ ";
+					continue;
+				}
+                                body = body
+                                        + "\t\t<li>\n"
+                                        + "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
+                                        + "\t\t\t<div style=\"text-align: right\">\n"
+                                        + "\t\t\t\t<script>"
+                                        + "document.write(\""
+                                        + "<span id=output_values>type: "+ onl.getType(kw) +"</span>"
+                                        + "<span id=output_values>min:\" + addSuffix("+graphData[0]+") + \"</span>"
+                                        + "<span id=output_values>max:\" + addSuffix("+graphData[1]+") + \"</span>"
+                                        + "<span id=output_values>95%:\" + addSuffix("+graphData[4]+") + \"</span>"
+                                        + "<span id=output_values>99%:\" + addSuffix("+graphData[11]+") + \"</span>"
+                                        + "\");"
+                                        + "</script>\n"
+                                        + "\t\t\t</div>\n"
+                                        + "\t\t</li>\n";
+                        }
+
+			body = body
+                                + "\t</ul>\n"
+				+ "</div>\n";
+
+                        if (nodata.length() > 0 )
+                                nodata = "<ul class=\"nodata\">\n"+nodata + "<li><a href=\""+deleteAll+" --delete\">Delete Empty</a>&nbsp;</li>\n</ul>\n";
+
+			output = output
+				+ commonHTML(OtiNanai.ENDHEAD)
+				+ body
+				+ nodata
+				+ commonHTML(OtiNanai.ENDBODY);
 		} else {
 			output = commonHTML(OtiNanai.FLOT) 
                                 + (autoRefresh ? commonHTML(OtiNanai.REFRESH) : "");
@@ -686,7 +727,7 @@ class OtiNanaiWeb implements Runnable {
                 if (nodata.length() > 0 )
                         nodata = "<ul class=\"nodata\">\n"+nodata + "<li><a href=\""+deleteAll+" --delete\">Delete Empty</a>&nbsp;</li>\n</ul>\n";
 
-		if (type != OtiNanai.GRAPH_GAUGE) {
+		if (type != OtiNanai.GRAPH_GAUGE && type != OtiNanai.GRAPH_NONE) {
 			output = output + "};\n"
 				+ commonHTML(OtiNanai.ENDJS)
 				+ commonHTML(OtiNanai.ENDHEAD)
@@ -1090,6 +1131,10 @@ class OtiNanaiWeb implements Runnable {
 				case "--nd":
 				case "--no-details":
 					showDetails = false;
+					continue;
+				case "--ng":
+				case "--no-graphs":
+					graphType = OtiNanai.GRAPH_NONE;
 					continue;
 				case "--delete":
 					wipe = true;

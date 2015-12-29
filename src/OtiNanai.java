@@ -472,6 +472,7 @@ class OtiNanai {
 	public static final short GRAPH_STACKED=5;
 	public static final short GRAPH_DASHBOARD=6;
 	public static final short GRAPH_PERCENTILES=7;
+	public static final short GRAPH_NONE=8;
 
 	public static final short HEADER = 1;
 	public static final short ENDHEAD = 2;
