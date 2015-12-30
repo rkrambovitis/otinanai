@@ -528,10 +528,13 @@ class OtiNanaiWeb implements Runnable {
                                                 deleteAll = deleteAll + "^"+kw+"$ ";
 						continue;
 					} else {
-						output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
+						output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n";
+                                                        if (!showDetails && (graphData[12].length() > 0 || onl.getUnits(kw).length() > 0))
+                                                                output += "\t\tlabel: \""+ kw + "("+graphData[12]+onl.getUnits(kw)+")"+"\",\n";
+                                                        else
+                                                                output += "\t\tlabel: \""+kw+"\",\n";
+                                                output = output
                                                         + "\t\tkeyword: \""+kw+"\",\n"
-							//+ "\t\tlabel: \""+kw+" "+graphData[12]+onl.getUnits(kw)+"\",\n"
-							+ "\t\tlabel: \""+kw+"\",\n"
 							+ "\t\tnn: "+ graphData[13] + ",\n"
 							+ "\t\tdata: [\n"
 							+ graphData[3]
@@ -574,7 +577,7 @@ class OtiNanaiWeb implements Runnable {
 				+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.sortable.js\"></script>\n";
                 } else if (type == OtiNanai.GRAPH_NONE) {
 			body = body
-				+ "<table id=\"sortMe\">\n"
+				+ "<table id=\"sortMe\" class=\"nographs\">\n"
 				+ "\t<thead><tr>\n"
 				+ "\t\t<th data-sort=\"string\">keyword</th>\n"
 				+ "\t\t<th data-sort=\"float\">min</th>\n"
@@ -685,8 +688,12 @@ class OtiNanaiWeb implements Runnable {
 				keysInGraph += kw;
 
 				output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
-					+ "\t\tkeyword: \""+kw+"\",\n"
-					+ "\t\tlabel: \""+kw+"\",\n";
+					+ "\t\tkeyword: \""+kw+"\",\n";
+                                if (!showDetails && (graphData[12].length() > 0 || onl.getUnits(kw).length() > 0))
+                                        output += "\t\tlabel: \""+ kw + "("+graphData[12]+onl.getUnits(kw)+")"+"\",\n";
+                                else
+                                        output += "\t\tlabel: \""+kw+"\",\n";
+
 
 				if (showDetails) {
 					body = body
@@ -790,7 +797,8 @@ class OtiNanaiWeb implements Runnable {
                                 output = output
                                         + "<li><a href=\""+URLEncoder.encode(stored, "UTF-8")+"\">"+stored+"</a>"
                                         + "</li>\n"
-                                        + "<span class=\"runXHR fa fa-1x fa-rotate-right\" onclick='runXHR(\""+URLEncoder.encode(stored, "UTF-8")+"\")'></span>\n";
+                                        + "<span class=\"runXHR fa fa-1x fa-rotate-right\" onclick='runXHR(\""+stored+"\")'></span>\n";
+                                        //+ "<span class=\"runXHR fa fa-1x fa-rotate-right\" onclick='runXHR(\""+URLEncoder.encode(stored, "UTF-8")+"\")'></span>\n";
                         } catch (UnsupportedEncodingException uee) {
                                 output = output + "<li><a href=\""+stored+"\">"+stored+"</a></li>\n";
                         }

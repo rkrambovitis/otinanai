@@ -40,6 +40,7 @@ $(function() {
 		var percentilesDefault = percentilesGraph;
 		var percentiles = percentilesDefault;
 		var storeLink = "";
+                var singleLink = "";
 
 		$.each(datasets, function(wrapper, graph) {
 			$.each(graph, function(key, val) {
@@ -57,6 +58,7 @@ $(function() {
 						ymax = val['nn'];
 					ysum += val['nn'];
 					storeLink += val['keyword'] +" ";
+                                        singleLink += val['keyword']+" ";
 				}
 			});
 
@@ -96,11 +98,16 @@ $(function() {
 					  xmax = null;
 					  drawGraphs();
 			});
-			if (stacked)
+			if (stacked) {
 				storeLink +="--stack ";
+                                singleLink +="--stack ";
+                        }
+                        else
+                                singleLink +="--merge ";
+                        singleLink +="%23999 ";
 			$("<span class='rightIcon starGraph fa "+ (starred ? "fa-star" : "fa-star-o") + " fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
 			$("<span class='rightIcon fa fa-arrows fa-2x draggable'></span>").appendTo("#placeholder_"+ph);
-			//$("<span class='rightIcon gotoGraph fa fa-arrow-right fa-2x' onclick=\"location.href = '"+storeLink+"'\"></span>").appendTo("#placeholder_"+ph);
+			$("<span class='rightIcon gotoGraph fa fa-arrow-right fa-2x' onclick=\"location.href = '"+singleLink+"'\"></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
 			data = [];
@@ -111,6 +118,7 @@ $(function() {
 			starred = starredDefault;
 			percentiles = percentilesDefault;
 			storeLink = "";
+                        singleLink = "";
 		});
 	};
 	drawGraphs();

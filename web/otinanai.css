@@ -253,11 +253,17 @@ ul.graphListing {
         }
 }
 
-table {
+table.nographs {
 	border-collapse: collapse;
+        margin: 20px;
+        font-size: 1.5rem;
 }
-th, td {
+.nographs th {
 	padding: 5px 10px;
+	border: 1px solid #999;
+}
+.nographs td {
+	padding: 5px 15px;
 	border: 1px solid #999;
 }
 th {
@@ -266,6 +272,10 @@ th {
 th[data-sort]{
 	cursor:pointer;
 }
-tr.awesome{
-	color: red;
+
+.legendColorBox {
+        padding: 0px;
+}
+.legendLabel {
+        padding: 0px;
 }
