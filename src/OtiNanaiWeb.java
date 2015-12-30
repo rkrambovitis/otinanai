@@ -85,6 +85,7 @@ class OtiNanaiWeb implements Runnable {
 					case " otinanai.flot.js ":
 					case " otinanai.flot.common.js ":
 					case " otinanai.sortable.js ":
+					case " otinanai.stupidtable.js ":
 					case " jquery.flot.events.js ":
 					case " jquery.js ":
 					case " jquery.min.js ":
@@ -100,6 +101,7 @@ class OtiNanaiWeb implements Runnable {
 					case " jquery.flot.selection.js ":
 					case " jquery.flot.stack.min.js ":
 					case " jquery.flot.stack.js ":
+					case " stupidtable.min.js ":
 					case " raphael.min.js ":
 					case " raphael.js ":
 					case " justgage.min.js ":
@@ -197,7 +199,7 @@ class OtiNanaiWeb implements Runnable {
 	}
 
 	private String[] toGraph(KeyWordTracker kwt, short type, long startTime, long endTime, long offset, boolean isOffset) {
-		String[] toReturn = new String[12];
+		String[] toReturn = new String[14];
 		if (kwt == null) {
 			logger.fine("[Web]: null kwt");
 			toReturn[6] = new String("0");
@@ -247,7 +249,7 @@ class OtiNanaiWeb implements Runnable {
 				continue;
                         if (isOffset)
                                 timeStamp += offset;
-			if (type != OtiNanai.GRAPH_GAUGE && type != OtiNanai.GRAPH_PERCENTILES)
+			if (type != OtiNanai.GRAPH_GAUGE && type != OtiNanai.GRAPH_PERCENTILES && type != OtiNanai.GRAPH_NONE)
 				output = "\t\t\t[" +timeStamp + "," + val + "],\n" + output;
 			samples++;
 			if (!lastSet) {
@@ -278,10 +280,10 @@ class OtiNanaiWeb implements Runnable {
 		int fiftieth = 0;
 		int sfifth = 0;
 		int nninth = 0;
-		double mean = 0d;
+		float mean = 0f;
 
 		if ( samples != 0 ) {
-			mean = total / samples;
+			mean = (float)(total / samples);
 			nfth = (int)(0.95*samples)-1;
 			fifth = (int)(0.05*samples)-1;
 			tfifth = (int)(0.25*samples)-1;
@@ -300,8 +302,25 @@ class OtiNanaiWeb implements Runnable {
 			allData.add(0f);
 		}
 
-		if (type == OtiNanai.GRAPH_PERCENTILES || type == OtiNanai.GRAPH_NONE) {
-                        for (float k = 0.8f ; k <= 1 ; ) {
+		long divisor = 1l;
+		float nn = allData.get(nninth);
+		if (nn > 500000000000l) {
+			divisor = 1000000000000l;
+			toReturn[12] = "P";
+		} else if (nn > 500000000l) {
+			divisor = 1000000000l;
+			toReturn[12] = "G";
+		} else if (nn > 500000) {
+			divisor = 1000000l;
+			toReturn[12] = "M";
+		} else if (nn > 500) {
+			divisor = 1000l;
+			toReturn[12] = "k";
+		} else
+			toReturn[12] = "";
+
+		if (type == OtiNanai.GRAPH_PERCENTILES) {
+                        for (float k = 0.8f ; k < 1 ; ) {
                                 try {
                                         output = output + "\t\t\t["+String.format("%.2f", (k*100)).replaceAll(",", ".")+","+allData.get((int)(k*samples)-1)+"],\n";
                                 } catch (ArrayIndexOutOfBoundsException aioobe) {}
@@ -310,36 +329,34 @@ class OtiNanaiWeb implements Runnable {
                                 else
                                         k+=0.01;
                         }
+			//output = output + "\t\t\t[100, "+allData.get(samples-1)+"],\n";
                 }
 
-		toReturn[0]=String.format("%.2f", min).replaceAll(",", ".");
-		toReturn[1]=String.format("%.2f", max).replaceAll(",", ".");
-		toReturn[2]=String.format("%.2f", mean).replaceAll(",", ".");
+		toReturn[0]=formatNumber(min, divisor);
+		toReturn[1]=formatNumber(max, divisor);
+		toReturn[2]=formatNumber(mean, divisor);
 		toReturn[3]=output;
-		toReturn[4]=allData.get(nfth).toString();
-		toReturn[5]=Float.toString(last);
+		toReturn[4]=formatNumber(allData.get(nfth), divisor);
+		toReturn[5]=formatNumber(last, divisor);
 		toReturn[6]=Integer.toString(samples);
-		toReturn[7]=allData.get(fifth).toString();
-		toReturn[8]=allData.get(tfifth).toString();
-		toReturn[9]=allData.get(fiftieth).toString();
-		toReturn[10]=allData.get(sfifth).toString();
-		toReturn[11]=allData.get(nninth).toString();
+		toReturn[7]=formatNumber(allData.get(fifth), divisor);
+		toReturn[8]=formatNumber(allData.get(tfifth), divisor);
+		toReturn[9]=formatNumber(allData.get(fiftieth), divisor);
+		toReturn[10]=formatNumber(allData.get(sfifth), divisor);
+		toReturn[11]=formatNumber(allData.get(nninth), divisor);
+		toReturn[13]=formatNumber(allData.get(nninth), 1f);
 
 		return toReturn;
 	}
 
-	private short getSuffix(String sample) {
-		int len = sample.length();
-		if (len > 16) 
-			return OtiNanai.PETA;
-		else if (len > 13) 
-			return OtiNanai.GIGA;
-		else if (len > 10)
-			return OtiNanai.MEGA;
-		else if (len > 7)
-			return OtiNanai.KILO;
+	private String formatNumber(float value, float divisor) {
+		Float rv = value / divisor;
+		String op = new String();
+		if (Math.abs(rv) < 1)
+			op = String.format("%.3f", rv);
 		else
-			return OtiNanai.NADA;
+			op = String.format("%.2f", rv);
+		return op.replaceAll(",", ".");
 	}
 
 	private String trimKW(String kw) {
@@ -508,8 +525,8 @@ class OtiNanaiWeb implements Runnable {
 					} else {
 						output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
                                                         + "\t\tkeyword: \""+kw+"\",\n"
-							+ "\t\tlabel: \""+kw+" "+onl.getUnits(kw)+"\",\n"
-							+ "\t\tnn: "+ graphData[11] + ",\n"
+							+ "\t\tlabel: \""+kw+" ("+graphData[12]+onl.getUnits(kw)+")\",\n"
+							+ "\t\tnn: "+ graphData[13] + ",\n"
 							+ "\t\tdata: [\n"
 							+ graphData[3]
 							+ "\t\t]\n\t},\n\n";
@@ -519,23 +536,20 @@ class OtiNanaiWeb implements Runnable {
 								+ "\t\t<li class=\"draggable\">\n"
 								+ "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
                                                                 + "\t\t\t<div style=\"text-align: right\">\n"
-								+ "\t\t\t\t<script>"
-                                                                + "document.write(\""
                                                                 + "<span id=output_values>type: "+ onl.getType(kw) +"</span>"
-                                                                + "<span id=output_values>min:\" + addSuffix("+graphData[0]+") + \"</span>"
-                                                                + "<span id=output_values>max:\" + addSuffix("+graphData[1]+") + \"</span>"
-                                                                + "<span id=output_values>95%:\" + addSuffix("+graphData[4]+") + \"</span>"
-                                                                + "<span id=output_values>99%:\" + addSuffix("+graphData[11]+") + \"</span>"
-                                                                + "\");"
-								+ "\t\t\t\t</script>\n"
+                                                                + "<span id=output_values>min: "+graphData[0]+"</span>"
+                                                                + "<span id=output_values>max: "+graphData[1]+"</span>"
+                                                                + "<span id=output_values>95%: "+graphData[4]+"</span>"
+                                                                + "<span id=output_values>99%: "+graphData[11]+"</span>"
+                                                                + "<span id=output_values>now: "+graphData[5]+"</span>"
                                                                 + "\t\t\t</div>\n"
 								+ "\t\t</li>\n";
 						}
                                                 if (vsTime != 0) {
                                                         graphData = toGraph(onl.getKWT(kw), type, startTime, endTime, vsTime, true);
                                                         output = output + "\t\"" + kw.replaceAll("\\.","_") + "@vs\": {\n"
-                                                                + "\t\tlabel: \""+kw+"@vs "+onl.getUnits(kw)+"\",\n"
-                                                                + "\t\tnn: "+ graphData[11] + ",\n"
+                                                                + "\t\tlabel: \""+kw+"@vs ("+graphData[12]+onl.getUnits(kw)+")\",\n"
+                                                                + "\t\tnn: "+ graphData[13] + ",\n"
                                                                 + "\t\tdata: [\n"
                                                                 + graphData[3]
                                                                 + "\t\t]\n\t},\n\n";
@@ -555,8 +569,18 @@ class OtiNanaiWeb implements Runnable {
 				+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.sortable.js\"></script>\n";
                 } else if (type == OtiNanai.GRAPH_NONE) {
 			body = body
-				+ "<div>\n"
-				+ "\t<ul class=\"graphListing\">\n";
+				+ "<table id=\"sortMe\">\n"
+				+ "\t<thead><tr>\n"
+				+ "\t\t<th data-sort=\"string\">keyword</th>\n"
+				+ "\t\t<th data-sort=\"string\">type</th>\n"
+				+ "\t\t<th data-sort=\"float\">min</th>\n"
+				+ "\t\t<th data-sort=\"float\">max</th>\n"
+				+ "\t\t<th data-sort=\"float\">95%</th>\n"
+				+ "\t\t<th data-sort=\"float\">99%</th>\n"
+				+ "\t\t<th data-sort=\"float\">now</th>\n"
+				+ "\t\t<th data-sort=\"string\">units</th>\n"
+				+ "\t</tr></thead>\n"
+				+ "\t<tbody>\n";
 
 			for (KeyWordTracker kwt : kws) {
 				graphData = toGraph(kwt, type, startTime, endTime, vsTime, false);
@@ -566,31 +590,29 @@ class OtiNanaiWeb implements Runnable {
                                         deleteAll = deleteAll + "^"+kw+"$ ";
 					continue;
 				}
+
                                 body = body
-                                        + "\t\t<li>\n"
-                                        + "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
-                                        + "\t\t\t<div style=\"text-align: right\">\n"
-                                        + "\t\t\t\t<script>"
-                                        + "document.write(\""
-                                        + "<span id=output_values>type: "+ onl.getType(kw) +"</span>"
-                                        + "<span id=output_values>min:\" + addSuffix("+graphData[0]+") + \"</span>"
-                                        + "<span id=output_values>max:\" + addSuffix("+graphData[1]+") + \"</span>"
-                                        + "<span id=output_values>95%:\" + addSuffix("+graphData[4]+") + \"</span>"
-                                        + "<span id=output_values>99%:\" + addSuffix("+graphData[11]+") + \"</span>"
-                                        + "\");"
-                                        + "</script>\n"
-                                        + "\t\t\t</div>\n"
-                                        + "\t\t</li>\n";
+                                        + "\t\t<tr>\n"
+                                        + "\t\t\t<td><a href = \""+kw+"\">"+kw+"</a></td>\n"
+                                        + "\t\t\t<td>"+onl.getType(kw)+"</td>\n"
+                                        + "\t\t\t<td>"+graphData[0]+"</td>\n"
+                                        + "\t\t\t<td>"+graphData[1]+"</td>\n"
+                                        + "\t\t\t<td>"+graphData[4]+"</td>\n"
+                                        + "\t\t\t<td>"+graphData[11]+"</td>\n"
+                                        + "\t\t\t<td>"+graphData[5]+"</td>\n"
+					+ "\t\t\t<td>("+graphData[12]+onl.getUnits(kw)+")</td>\n"
+                                        + "\t\t</tr>\n";
                         }
 
 			body = body
-                                + "\t</ul>\n"
-				+ "</div>\n";
+				+ "\t</tbody>\n"
+				+ "</table>\n";
 
                         if (nodata.length() > 0 )
                                 nodata = "<ul class=\"nodata\">\n"+nodata + "<li><a href=\""+deleteAll+" --delete\">Delete Empty</a>&nbsp;</li>\n</ul>\n";
 
 			output = output
+				+ commonHTML(OtiNanai.STUPIDTABLE)
 				+ commonHTML(OtiNanai.ENDHEAD)
 				+ body
 				+ nodata
@@ -661,29 +683,26 @@ class OtiNanaiWeb implements Runnable {
 
 				output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
 					+ "\t\tkeyword: \""+kw+"\",\n"
-					+ "\t\tlabel: \""+kw+" "+onl.getUnits(kw)+"\",\n";
+					+ "\t\tlabel: \""+kw+" ("+graphData[12]+onl.getUnits(kw)+")\",\n";
 
 				if (showDetails) {
 					body = body
 						+ "\t\t<li class=\"draggable\">\n"
 						+ "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
                                                 + "\t\t\t<div style=\"text-align: right\">\n"
-						+ "\t\t\t\t<script>"
-						+ "document.write(\""
 						+ "<span id=output_values>type: "+ onl.getType(kw) +"</span>"
-						+ "<span id=output_values>min:\" + addSuffix("+graphData[0]+") + \"</span>"
-						+ "<span id=output_values>max:\" + addSuffix("+graphData[1]+") + \"</span>"
-						+ "<span id=output_values>95%:\" + addSuffix("+graphData[4]+") + \"</span>"
-						+ "<span id=output_values>99%:\" + addSuffix("+graphData[11]+") + \"</span>"
-						+ "\");"
-						+ "</script>\n"
+						+ "<span id=output_values>min: "+graphData[0]+"</span>"
+						+ "<span id=output_values>max: "+graphData[1]+"</span>"
+						+ "<span id=output_values>95%: "+graphData[4]+"</span>"
+						+ "<span id=output_values>99%: "+graphData[11]+"</span>"
+						+ "<span id=output_values>now: "+graphData[5]+"</span>"
                                                 + "\t\t\t</div>\n"
 						+ "\t\t</li>\n";
 				}
 
 				
 				output = output
-					+ "\t\tnn: "+ graphData[11] + ",\n"
+					+ "\t\tnn: "+ graphData[13] + ",\n"
 					+ "\t\tdata: [\n"
 					+ graphData[3]
 					+ "\t\t]\n\t},\n\n";
@@ -691,8 +710,8 @@ class OtiNanaiWeb implements Runnable {
 				if (vsTime != 0) {
 					graphData = vsMap.get(kw);
 					output = output + "\t\"" + kw.replaceAll("\\.","_") + "@vs\": {\n"
-						+ "\t\tlabel: \""+kw+"@vs "+onl.getUnits(kw)+"\",\n"
-						+ "\t\tnn: "+ graphData[11] + ",\n"
+						+ "\t\tlabel: \""+kw+"@vs ("+graphData[12]+onl.getUnits(kw)+")\",\n"
+						+ "\t\tnn: "+ graphData[13] + ",\n"
 						+ "\t\tdata: [\n"
 						+ graphData[3]
 						+ "\t\t]\n\t},\n\n";
@@ -893,6 +912,9 @@ class OtiNanaiWeb implements Runnable {
 			return new String("<script type=\"text/javascript\">\n");
 		} else if (out == OtiNanai.ENDJS) {
 			return new String ("</script>\n");
+		} else if (out == OtiNanai.STUPIDTABLE) {
+			return new String("<script language=\"javascript\" type=\"text/javascript\" src=\"stupidtable.min.js\"></script>\n"
+					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.stupidtable.js\"></script>\n");
 		}
 		return new String();
 	}

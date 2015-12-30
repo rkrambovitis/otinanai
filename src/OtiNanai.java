@@ -485,6 +485,7 @@ class OtiNanai {
 	public static final short ENDJS = 9;
 	public static final short GAGE = 10;
 	public static final short REFRESH = 11;
+	public static final short STUPIDTABLE = 12;
 
 	public static final short MAX_KW_LENGTH = 24;
 

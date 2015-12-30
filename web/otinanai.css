@@ -252,3 +252,20 @@ ul.graphListing {
                 width: 95%;
         }
 }
+
+table {
+	border-collapse: collapse;
+}
+th, td {
+	padding: 5px 10px;
+	border: 1px solid #999;
+}
+th {
+	background-color: #eee;
+}
+th[data-sort]{
+	cursor:pointer;
+}
+tr.awesome{
+	color: red;
+}
