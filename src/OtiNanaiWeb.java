@@ -580,6 +580,7 @@ class OtiNanaiWeb implements Runnable {
 				+ "\t\t<th data-sort=\"float\">min</th>\n"
 				+ "\t\t<th data-sort=\"float\">max</th>\n"
 				+ "\t\t<th data-sort=\"float\">99%</th>\n"
+				+ "\t\t<th data-sort=\"float\">99%</th>\n"
 				+ "\t\t<th data-sort=\"float\">now</th>\n"
 				+ "\t\t<th data-sort=\"string\">units</th>\n"
 				+ "\t</tr></thead>\n"
@@ -600,6 +601,7 @@ class OtiNanaiWeb implements Runnable {
                                         + "\t\t\t<td>"+graphData[0]+"</td>\n"
                                         + "\t\t\t<td>"+graphData[1]+"</td>\n"
                                         + "\t\t\t<td>"+graphData[11]+"</td>\n"
+                                        + "\t\t\t<td>"+graphData[13]+"</td>\n"
                                         + "\t\t\t<td>"+graphData[5]+"</td>\n"
 					+ "\t\t\t<td>"+graphData[12]+onl.getUnits(kw)+"</td>\n"
                                         + "\t\t</tr>\n";
