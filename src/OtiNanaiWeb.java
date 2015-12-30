@@ -322,14 +322,19 @@ class OtiNanaiWeb implements Runnable {
 		if (type == OtiNanai.GRAPH_PERCENTILES) {
                         for (float k = 0.8f ; k < 1 ; ) {
                                 try {
-                                        output = output + "\t\t\t["+String.format("%.2f", (k*100)).replaceAll(",", ".")+","+allData.get((int)(k*samples)-1)+"],\n";
-                                } catch (ArrayIndexOutOfBoundsException aioobe) {}
+					int sample = (int)(k*samples)-1;
+					logger.finest("[web]: "+k+" : "+sample +" / "+samples);
+                                        output = output + "\t\t\t["+String.format("%.2f", (k*100)).replaceAll(",", ".")+","+allData.get(sample)+"],\n";
+                                } catch (ArrayIndexOutOfBoundsException aioobe) {
+					logger.severe("[web]: getting sample "+k+" / "+samples+" "+aioobe.getCause());
+				}
                                 if (k > 0.9)
                                         k+=0.001;
                                 else
                                         k+=0.01;
                         }
-			//output = output + "\t\t\t[100, "+allData.get(samples-1)+"],\n";
+			//logger.fine("[Web] samples: "+samples +" size: "+allData.size());
+			output = output + "\t\t\t[100,"+allData.get(samples-1)+"],\n";
                 }
 
 		toReturn[0]=formatNumber(min, divisor);
@@ -525,7 +530,8 @@ class OtiNanaiWeb implements Runnable {
 					} else {
 						output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
                                                         + "\t\tkeyword: \""+kw+"\",\n"
-							+ "\t\tlabel: \""+kw+" ("+graphData[12]+onl.getUnits(kw)+")\",\n"
+							//+ "\t\tlabel: \""+kw+" "+graphData[12]+onl.getUnits(kw)+"\",\n"
+							+ "\t\tlabel: \""+kw+"\",\n"
 							+ "\t\tnn: "+ graphData[13] + ",\n"
 							+ "\t\tdata: [\n"
 							+ graphData[3]
@@ -536,10 +542,9 @@ class OtiNanaiWeb implements Runnable {
 								+ "\t\t<li class=\"draggable\">\n"
 								+ "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
                                                                 + "\t\t\t<div style=\"text-align: right\">\n"
+								+ "<span id=output_values>units: "+ graphData[12]+onl.getUnits(kw) +"</span>"
                                                                 + "<span id=output_values>type: "+ onl.getType(kw) +"</span>"
                                                                 + "<span id=output_values>min: "+graphData[0]+"</span>"
-                                                                + "<span id=output_values>max: "+graphData[1]+"</span>"
-                                                                + "<span id=output_values>95%: "+graphData[4]+"</span>"
                                                                 + "<span id=output_values>99%: "+graphData[11]+"</span>"
                                                                 + "<span id=output_values>now: "+graphData[5]+"</span>"
                                                                 + "\t\t\t</div>\n"
@@ -548,7 +553,7 @@ class OtiNanaiWeb implements Runnable {
                                                 if (vsTime != 0) {
                                                         graphData = toGraph(onl.getKWT(kw), type, startTime, endTime, vsTime, true);
                                                         output = output + "\t\"" + kw.replaceAll("\\.","_") + "@vs\": {\n"
-                                                                + "\t\tlabel: \""+kw+"@vs ("+graphData[12]+onl.getUnits(kw)+")\",\n"
+                                                                + "\t\tlabel: \""+kw+"@vs\",\n"
                                                                 + "\t\tnn: "+ graphData[13] + ",\n"
                                                                 + "\t\tdata: [\n"
                                                                 + graphData[3]
@@ -572,10 +577,8 @@ class OtiNanaiWeb implements Runnable {
 				+ "<table id=\"sortMe\">\n"
 				+ "\t<thead><tr>\n"
 				+ "\t\t<th data-sort=\"string\">keyword</th>\n"
-				+ "\t\t<th data-sort=\"string\">type</th>\n"
 				+ "\t\t<th data-sort=\"float\">min</th>\n"
 				+ "\t\t<th data-sort=\"float\">max</th>\n"
-				+ "\t\t<th data-sort=\"float\">95%</th>\n"
 				+ "\t\t<th data-sort=\"float\">99%</th>\n"
 				+ "\t\t<th data-sort=\"float\">now</th>\n"
 				+ "\t\t<th data-sort=\"string\">units</th>\n"
@@ -594,13 +597,11 @@ class OtiNanaiWeb implements Runnable {
                                 body = body
                                         + "\t\t<tr>\n"
                                         + "\t\t\t<td><a href = \""+kw+"\">"+kw+"</a></td>\n"
-                                        + "\t\t\t<td>"+onl.getType(kw)+"</td>\n"
                                         + "\t\t\t<td>"+graphData[0]+"</td>\n"
                                         + "\t\t\t<td>"+graphData[1]+"</td>\n"
-                                        + "\t\t\t<td>"+graphData[4]+"</td>\n"
                                         + "\t\t\t<td>"+graphData[11]+"</td>\n"
                                         + "\t\t\t<td>"+graphData[5]+"</td>\n"
-					+ "\t\t\t<td>("+graphData[12]+onl.getUnits(kw)+")</td>\n"
+					+ "\t\t\t<td>"+graphData[12]+onl.getUnits(kw)+"</td>\n"
                                         + "\t\t</tr>\n";
                         }
 
@@ -683,17 +684,16 @@ class OtiNanaiWeb implements Runnable {
 
 				output = output + "\t\"" + kw.replaceAll("\\.","_") + "\": {\n"
 					+ "\t\tkeyword: \""+kw+"\",\n"
-					+ "\t\tlabel: \""+kw+" ("+graphData[12]+onl.getUnits(kw)+")\",\n";
+					+ "\t\tlabel: \""+kw+"\",\n";
 
 				if (showDetails) {
 					body = body
 						+ "\t\t<li class=\"draggable\">\n"
 						+ "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
                                                 + "\t\t\t<div style=\"text-align: right\">\n"
+						+ "<span id=output_values>units: "+ graphData[12]+onl.getUnits(kw) +"</span>"
 						+ "<span id=output_values>type: "+ onl.getType(kw) +"</span>"
 						+ "<span id=output_values>min: "+graphData[0]+"</span>"
-						+ "<span id=output_values>max: "+graphData[1]+"</span>"
-						+ "<span id=output_values>95%: "+graphData[4]+"</span>"
 						+ "<span id=output_values>99%: "+graphData[11]+"</span>"
 						+ "<span id=output_values>now: "+graphData[5]+"</span>"
                                                 + "\t\t\t</div>\n"
@@ -710,7 +710,7 @@ class OtiNanaiWeb implements Runnable {
 				if (vsTime != 0) {
 					graphData = vsMap.get(kw);
 					output = output + "\t\"" + kw.replaceAll("\\.","_") + "@vs\": {\n"
-						+ "\t\tlabel: \""+kw+"@vs ("+graphData[12]+onl.getUnits(kw)+")\",\n"
+						+ "\t\tlabel: \""+kw+"@vs\",\n"
 						+ "\t\tnn: "+ graphData[13] + ",\n"
 						+ "\t\tdata: [\n"
 						+ graphData[3]
@@ -1157,6 +1157,7 @@ class OtiNanaiWeb implements Runnable {
 				case "--ng":
 				case "--no-graphs":
 					graphType = OtiNanai.GRAPH_NONE;
+					showAll = true;
 					continue;
 				case "--delete":
 					wipe = true;
