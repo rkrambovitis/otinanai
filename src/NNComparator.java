@@ -9,8 +9,8 @@ class NNComparator implements Comparator<Object> {
         }
 
         public int compare(Object o1, Object o2) {
-                Float v2 = Float.parseFloat(map.get(o2)[11]);
-                Float v1 = Float.parseFloat(map.get(o1)[11]);
+                Float v2 = Float.parseFloat(map.get(o2)[13]);
+                Float v1 = Float.parseFloat(map.get(o1)[13]);
                 int op = v1.compareTo(v2);
                 if (op == 0) 
                         return 1;
