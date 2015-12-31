@@ -77,10 +77,11 @@ form input {
 	font-weight: bold;
 }
 a {
-	color: #0B38C3;
+	color: #4169C1;
 	display: block;
 	text-decoration:none;
 	padding: 3px 8px;
+	font-size: 1.2rem;
 }
 a:hover {
 	text-decoration:underline;
@@ -89,7 +90,7 @@ li {
 	padding: 3px 30px;
 	border: 1px solid #ccc;
 	display: list-item;
-	background-color: #eee;
+	background-color: #f6f6f6;
 	color: #252525;
 	margin: 3px;
 }
@@ -103,12 +104,12 @@ ul {
 }
 .nodata li {
 	padding: 3px 3px;
-	background-color: #eee;
+	background-color: #f6f6f6;
 	color: #252525;
 }
 
 .rightIcon {
-	color: #4169E1;
+	color: #4169C1;
 	float: right;
         clear: right;
         margin-right:-20px;
@@ -132,7 +133,7 @@ ul {
 	height: 10px;
 	position: relative;
 	left: 20px;
-	color: #4169E1;
+	color: #4169C1;
 	position: relative;
 	z-index: 99999;
 }
@@ -156,7 +157,7 @@ ul {
 	width: 10px;
 	height: 10px;
 	left: 40px;
-	color: #4169E1;
+	color: #4169C1;
 	position: relative;
 }
 a.github {
@@ -167,7 +168,7 @@ a.github {
 	width: 10px;
 	height: 10px;
 	left: 10px;
-	color: #4169E1;
+	color: #4169C1;
 	position: relative;
 }
 a.goToDashboard {
@@ -209,7 +210,7 @@ a.goToDashboard {
         position: relative;
         left: 20px;
         bottom: 23px;
-        color: #4169E1;
+        color: #4169C1;
         cursor: pointer;
 }
 
@@ -226,12 +227,12 @@ a.goToDashboard {
         background-color: #999;
 }
 #dashSelector li{
-	color: #4169E1;
+	color: #4169C1;
 	font-size: 1.2rem;
         margin:2px;
 }
 #currentDashboard {
-	color: #4169E1;
+	color: #4169C1;
 	font-size: 1.3rem;
 	padding: 25px;
 	cursor: pointer;
@@ -245,6 +246,13 @@ a.goToDashboard {
 }
 ul.graphListing {
 	width: 45%;
+}
+
+ul.singleGraph {
+	width: 95%;
+}
+.singleGraph a{
+	float: left;
 }
 
 @media screen and (max-width: 1600px) {

@@ -436,6 +436,7 @@ class OtiNanaiWeb implements Runnable {
 
                 if (graphLimit == 0) 
                         graphLimit = kws.size();
+		String graphClass = "graphListing";
 
                 String deleteAll = new String();
 		if (type == OtiNanai.GRAPH_GAUGE) {
@@ -509,11 +510,13 @@ class OtiNanaiWeb implements Runnable {
 				+ "<div id=\"sortable\">\n";
 
 			int j=0;
+			if (dashKWs.size() == 1)
+				graphClass = "singleGraph";
 			for (String kwlist : dashKWs) {
 				logger.info("[Web]: Processing dashboard list : \""+kwlist+"\"");
 				String [] dashkws = kwlist.split("[ ,]|%20");
 				output = output + "graph"+ (idx+j) +": {\n";
-				body = body + "\t<ul data-id=\""+kwlist+"\" class=\"graphListing\">\n";
+				body = body + "\t<ul data-id=\""+kwlist+"\" class=\""+graphClass+"\">\n";
 				for (String kw : dashkws) {
 					logger.info("[Web]: Processing dashboard keyword : "+kw);
 					if (kw.equals("--stack")) {
@@ -666,15 +669,16 @@ class OtiNanaiWeb implements Runnable {
 			if (sortedMap.size() < maxMergeCount)
                                 maxMergeCount=sortedMap.size();
 
-
                         if (graphLimit > sortedMap.size())
                                 graphLimit = sortedMap.size();
                         int graphCount = (int)Math.ceil(graphLimit / (float)maxMergeCount);
+			if (graphCount == 1)
+				graphClass = "singleGraph";
                         int totalKeys = sortedMap.size();
 			output = output + "graph"+idx +": {\n";
 			body = body
 				+ "<div id=\"sortable\">\n"
-				+ "\t<ul data-id=\"donotsavetodashboard\" class=\"graphListing\">\n";
+				+ "\t<ul data-id=\"donotsavetodashboard\" class=\""+graphClass+"\">\n";
 
                         int mergedGraphs = 0;
 			String keysInGraph = new String();
@@ -741,7 +745,7 @@ class OtiNanaiWeb implements Runnable {
 						+ "},\n";
                                         if (drawnGraphs < graphLimit) {
 						output += "graph"+ (idx + mergedGraphs) +": {\n";
-						body += "\t<ul data-id=\"donotsavetodashboard\" class=\"graphListing\">\n";
+						body += "\t<ul data-id=\"donotsavetodashboard\" class=\""+graphClass+"\">\n";
 					}
                                         else
                                                 break;
