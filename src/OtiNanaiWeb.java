@@ -1392,32 +1392,32 @@ class OtiNanaiWeb implements Runnable {
 			if (removeKW || exclusiveKW) 
 				continue;
 
-			if (startsWithKW && endsWithKW) {
-				for (String kw : allKWTs ) {
-					if (kw.startsWith(rest) && kw.endsWith(rest) && !kws.contains(kw))
-						kws.add(kw);
-				}
-			} else if (startsWithKW) {
-				for (String kw : allKWTs ) {
-					if (kw.startsWith(rest) && !kws.contains(kw))
-						kws.add(kw);
-				}
-			} else if (endsWithKW) {
-				for (String kw : allKWTs ) {
-					if (kw.endsWith(rest) && !kws.contains(kw)) 
-						kws.add(kw);
-				}
-			} else {
-				for (String kw : allKWTs ) {
-                                        try {
+                        try {
+                                if (startsWithKW && endsWithKW) {
+                                        for (String kw : allKWTs ) {
+                                                if (kw.startsWith(rest) && kw.endsWith(rest) && !kws.contains(kw))
+                                                        kws.add(kw);
+                                        }
+                                } else if (startsWithKW) {
+                                        for (String kw : allKWTs ) {
+                                                if (kw.startsWith(rest) && !kws.contains(kw))
+                                                        kws.add(kw);
+                                        }
+                                } else if (endsWithKW) {
+                                        for (String kw : allKWTs ) {
+                                                if (kw.endsWith(rest) && !kws.contains(kw))
+                                                        kws.add(kw);
+                                        }
+                                } else {
+                                        for (String kw : allKWTs ) {
                                                 if ((kw.contains(word) || rest.equals("*")) && !kws.contains(kw))
                                                         kws.add(kw);
-                                        } catch (NullPointerException npe) {
-                                                logger.info("[Web]: word is \""+word+"\"");
                                         }
-				}
-			}
-			words.add(rest);
+                                }
+                                words.add(rest);
+                        } catch (NullPointerException npe) {
+                                logger.info("[Web]: word is \""+word+"\" rest is \""+rest+"\" "+npe.getCause());
+                        }
 		}
 		if (showAlarms) {
 			long timeNow = System.currentTimeMillis();
