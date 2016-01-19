@@ -214,6 +214,12 @@ class OtiNanaiListener implements Runnable {
 		try ( Jedis jedis = jediTemple.getResource()) {
 			jedis.srem(rKeyList, key);
 			jedis.del(key);
+                        if (unitMap.containsKey(key))
+                                jedis.srem(rUnitList, key+" "+unitMap.get(key));
+                        unitMap.remove(key);
+                        if (multipMap.containsKey(key))
+                                jedis.srem(rMultipList, key+" "+multipMap.get(key));
+                        multipMap.remove(key);
 		} catch (Exception e) {
 			logger.severe("[Listener]: "+e.getCause());
 		}
@@ -333,6 +339,19 @@ class OtiNanaiListener implements Runnable {
 			if (!storeList.contains(input)) {
 				storeList.add(input);
 				jedis.sadd(rStoreList, input);
+				return true;
+			}
+                } catch (Exception e) {
+                        logger.severe("[Listener]: "+e.getCause());
+                }
+		return false;
+	}
+
+	public boolean unStoreQuery(String input) {
+		try ( Jedis jedis = jediTemple.getResource() ) {
+			if (storeList.contains(input)) {
+				storeList.remove(input);
+				jedis.srem(rStoreList, input);
 				return true;
 			}
                 } catch (Exception e) {

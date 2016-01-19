@@ -793,6 +793,7 @@ class OtiNanaiWeb implements Runnable {
                         + "<div id=\"tickBox\" class=\"fa fa-4x fa-check\"></div>\n"
                         + "<ul class=\"storeList\">\n";
 		LLString storeList = (LLString)onl.getStoreList().clone();
+                Collections.sort(storeList);
 		int size = onl.getStoreList().size();
 		String stored;
 		for (int i=0; i < size ; i++) {
@@ -801,7 +802,8 @@ class OtiNanaiWeb implements Runnable {
                                 output = output
                                         + "<li><a href=\""+URLEncoder.encode(stored, "UTF-8")+"\">"+stored+"</a>"
                                         + "</li>\n"
-                                        + "<span class=\"runXHR fa fa-1x fa-rotate-right\" onclick='runXHR(\""+stored+"\")'></span>\n";
+                                        + "<span class=\"runXHR fa fa-1x fa-rotate-right\" onclick='runXHR(\""+stored+"\")'></span>\n"
+                                        + "<span class=\"runXHR fa fa-1x fa-remove\" onclick='runXHR(\"--unStore "+stored+"\")'></span>\n";
                                         //+ "<span class=\"runXHR fa fa-1x fa-rotate-right\" onclick='runXHR(\""+URLEncoder.encode(stored, "UTF-8")+"\")'></span>\n";
                         } catch (UnsupportedEncodingException uee) {
                                 output = output + "<li><a href=\""+stored+"\">"+stored+"</a></li>\n";
@@ -1026,6 +1028,11 @@ class OtiNanaiWeb implements Runnable {
 			input = input.replaceFirst("--updatedashboard", "");
 			return String.valueOf(onl.updateDashboard(input, currentDashboard));
 		}
+
+                if (input.contains("--unstore")) {
+                        input = input.replaceFirst("--unstore ", "");
+                        return String.valueOf(onl.unStoreQuery(input));
+                }
 
 		String [] keyList = input.split("[ ,]|%20");
 		logger.fine("[Web]: Searching for keywords");
