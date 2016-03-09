@@ -132,7 +132,7 @@ class OtiNanaiListener implements Runnable {
 	 */
 	public void run() {
 		while(true) {
-			byte[] receiveData = new byte[1490];
+			byte[] receiveData = new byte[9000];
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			try {
 				dataSocket.receive(receivePacket);
@@ -225,6 +225,7 @@ class OtiNanaiListener implements Runnable {
 		}
                 trackerMap.remove(key);
                 kwt.delete();
+                kwt=null;
 		deleteLock = false;
 	}
 
@@ -254,6 +255,7 @@ class OtiNanaiListener implements Runnable {
 				logger.severe("[Listener]: Unable to tick "+kw+" :\n"+e);
 			}
 		}
+                tempKW = null;
 		deleteLock=false;
 	}
 

@@ -270,6 +270,7 @@ class OtiNanaiWeb implements Runnable {
 			}
 			allData.add(val);
 		}
+                data=null;
 
 		long post=System.currentTimeMillis();
 		logger.finest("[Web]: Timing - Total processing time: " + (post - now));
@@ -427,6 +428,7 @@ class OtiNanaiWeb implements Runnable {
                                 }
                         }
                 }
+                sortedKeys = null;
 
 		String output = new String();
 		String nodata = new String();
@@ -815,6 +817,7 @@ class OtiNanaiWeb implements Runnable {
 
 
 	private String kwTree(ArrayList<String> kws, String[] existingKeyWords, ArrayList<String> words) {
+		logger.info("[Web]: issues kwTree: kws: "+kws.size()+" existingKeyWords: "+existingKeyWords.length+" words: "+words.size());
 		TreeMap<String, Integer> keyMap = new TreeMap<String, Integer>();
 		HashMap<String, LLString> keyContents = new HashMap<String, LLString>();
 		LLString contents;
@@ -860,6 +863,7 @@ class OtiNanaiWeb implements Runnable {
 					keyContents.put(tmp, contents);
 				}
 			}
+                        tmpAS = null;
 		}
 
 		String oldKeys = new String();
@@ -1396,6 +1400,7 @@ class OtiNanaiWeb implements Runnable {
 					}
 				}
 			}
+                        kwsClone = null;
 			if (removeKW || exclusiveKW) 
 				continue;
 
@@ -1426,6 +1431,9 @@ class OtiNanaiWeb implements Runnable {
                                 logger.info("[Web]: word is \""+word+"\" rest is \""+rest+"\" "+npe.getCause());
                         }
 		}
+                properOrder=null;
+                if (!showAlarms)
+                        allKWTs = null;
 		if (showAlarms) {
 			long timeNow = System.currentTimeMillis();
 			long lastAlarm;
@@ -1439,6 +1447,7 @@ class OtiNanaiWeb implements Runnable {
 					logger.info("[Web]: Alarm for "+kw);
 				}
 			}
+                        allKWTs = null;
                 } else if (enableAlarm || disableAlarm) {
                         boolean onOrOff = (enableAlarm ? true : false);
                         logger.info("[Web]: Setting alarmEnabled for matching keywords to "+onOrOff);
@@ -1484,7 +1493,7 @@ class OtiNanaiWeb implements Runnable {
 		} else if (wipe && force) {
 			logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");
 			KeyWordTracker kwt;
-			String delOP = new String("<h2>RIP Data for keywords:</h2><br />\n<ul>\n");
+			String delOP = new String("<h2>RIP Data for keywords:</h2><br />\n<a href=\"/\">Home</a>\n<ul>\n");
 			for (String todel : kws) {
 				logger.info("[Web]: Deleting data for " + todel);
 				delOP = delOP + "<li>"+todel+"</li>\n";
@@ -1495,11 +1504,18 @@ class OtiNanaiWeb implements Runnable {
 			return delOP;
 		} else if (wipe) {
 			logger.fine("[Web]: Wipe command received. Sending Warning");
-			String delOP = new String("<h2>[WARNING] : You are about to permanently delete the following keywords</h2><br/>Add --force to actually delete<br />\n<ul>\n");
+			String delOP = new String("<h2>[WARNING] : You are about to permanently delete the following keywords</h2><br/>");
+                        String allKWsToDelete = new String();
+                        String theDeleteList = new String();
+
+                        //Add <a href=\""+kws+" --delete --force\">--force</a> to actually delete<br />\n<ul>\n");
 			for (String todel : kws) {
-				delOP = delOP + "<li><a href=\"" + todel + "\">"+todel+"</a></li>\n";
+				theDeleteList += "<li><a href=\"" + todel + "\">"+todel+"</a></li>\n";
+                                allKWsToDelete += "^"+todel+"$ ";
 			}
-                        delOP = delOP + "</ul>\n"
+                        delOP = delOP 
+                                + "<a href=\""+allKWsToDelete+" --delete --force\">Yup, Do it ! (--force)</a><br />\n"
+                                + "<ul>\n"+theDeleteList+"</ul>\n"
                                 + commonHTML(OtiNanai.ENDBODY);
 			return delOP;
 		}
