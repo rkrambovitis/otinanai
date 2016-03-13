@@ -112,7 +112,7 @@ class SomeRecord {
 		int i=0;
 		boolean indexAll = false;
 		String genKW = new String();
-		if (tokens[i].equals("index")) {
+		if (tokens[i].equals("index_all_words")) {
 			indexAll = true;
 			genKW=getHostName();
 			i++;

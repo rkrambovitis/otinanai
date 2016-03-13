@@ -368,7 +368,7 @@ class OtiNanaiWeb implements Runnable {
 	private String trimKW(String kw) {
 		String[] broken = kw.split("\\.");
 		int wc = broken.length;
-		logger.info("[Web]: Detected "+wc+" words while trimming "+kw);
+		logger.info("[Web]: Detected "+wc+" Words while trimming "+kw);
 		String skw = new String(kw);
 		if (wc > 3)
 			skw  = broken[0]+"."+broken[1]+"..."+broken[wc-2]+"."+broken[wc-1];
@@ -903,7 +903,7 @@ class OtiNanaiWeb implements Runnable {
 			return new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.min.js\"></script>\n"
 					+ "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.js\"></script>\n"
-					+ "<link rel=\"stylesheet\" href=\"//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css\"/>\n"
+					+ "<link rel=\"stylesheet\" href=\"//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css\"/>\n"
                                         + "<meta name=\"viewport\" content=\"width=device-width\" initial-scale=\"1.0\">\n"
 					+ "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n");
 		} else if (out == OtiNanai.ENDHEAD) {
@@ -1275,7 +1275,7 @@ class OtiNanaiWeb implements Runnable {
 			word = word.replaceAll("%5E", "^");
 			word = word.replaceAll("%24", "$");
 			word = word.replaceAll("%40", "@");
-			logger.fine("[Web]: word is: \""+word+"\"");
+			logger.info("[Web]: word is: \""+word+"\"");
 			firstChar = word.substring(0,1);
 			rest = word;
 
@@ -1362,11 +1362,11 @@ class OtiNanaiWeb implements Runnable {
 			*/
 
 
-			logger.fine("[Web]: removeKW: "+removeKW+" exclusiveKW: "+exclusiveKW+ " startsWithKW: "+startsWithKW+" endsWithKW: "+endsWithKW);
+			logger.info("[Web]: removeKW: "+removeKW+" exclusiveKW: "+exclusiveKW+ " startsWithKW: "+startsWithKW+" endsWithKW: "+endsWithKW);
 			ArrayList<String> kwsClone = new ArrayList<String>();
 
 			kwsClone.addAll(kws);
-			logger.fine("[Web]: Current kws.size(): " + kws.size());
+			logger.info("[Web]: Current kws.size(): " + kws.size());
 			for (String key : kwsClone) {
 				if (removeKW) {
 					if (startsWithKW && endsWithKW) {
@@ -1403,8 +1403,9 @@ class OtiNanaiWeb implements Runnable {
                         kwsClone = null;
 			if (removeKW || exclusiveKW) 
 				continue;
-
                         try {
+                                words.add(rest);
+                                logger.info("[Web]: allKWTs.size():"+allKWTs.size()+" kws.size():"+kws.size()+" words.size():"+words.size());
                                 if (startsWithKW && endsWithKW) {
                                         for (String kw : allKWTs ) {
                                                 if (kw.startsWith(rest) && kw.endsWith(rest) && !kws.contains(kw))
@@ -1426,7 +1427,6 @@ class OtiNanaiWeb implements Runnable {
                                                         kws.add(kw);
                                         }
                                 }
-                                words.add(rest);
                         } catch (NullPointerException npe) {
                                 logger.info("[Web]: word is \""+word+"\" rest is \""+rest+"\" "+npe.getCause());
                         }
@@ -1523,7 +1523,7 @@ class OtiNanaiWeb implements Runnable {
 		if (showDashboard)
 			graphType = OtiNanai.GRAPH_DASHBOARD;
 		else if (!showAll && kws.size() > OtiNanai.MAXPERPAGE) {
-			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE);
+			logger.info("[Web]: Exceeded MAXPERPAGE: "+ kws.size() + " > " +OtiNanai.MAXPERPAGE +" words:" +words.size());
 			return kwTree(kws, keyList, words);
 		}
 		op  = timeGraph(kws, graphType, startTime, endTime, maxMergeCount, showEvents, graphLimit, autoRefresh, showSpikes, showDetails, currentDashboard, vsTime);
