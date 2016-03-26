@@ -8,6 +8,8 @@ The search bar is pretty simple, and makes it easy to narrow down on something,
 but at the same time, allows you to browse data you didn't recall you were graphing.  
 All in all, it makes finding patterns and correlations relatively simple *and* it doesn't require a cluster of supercomputers to run.
 
+![Screenshot](https://cloud.githubusercontent.com/assets/12841643/14060371/558c2ecc-f36b-11e5-82ca-8339aa412688.png)
+
 ## Features ##
 + Multiple data types (gauge, sum, freq, counter)
 + SUM option allows you to easily graph apache traffic per virtualhost.
@@ -125,4 +127,3 @@ $ `java -cp jars/jedis.jar:. gr.phaistosnetworks.admin.otinanai.OtiNanai -lf out
 	-rdevtlist <redisEventList>    : Name of event list for redis. (default: OtiNanai_Event_List)
 	-rdunitlist <redisUnitList>    : Name of event list for redis. (default: OtiNanai_Event_List)
 	-udpRecvBufferSize <bytes>     : (default: 1048576)
-
