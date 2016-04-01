@@ -54,6 +54,8 @@ class OtiNanaiCache {
 			theCache.put(keyword, data);
 			cacheTime.put(keyword, System.currentTimeMillis());
 		}
+		data = null;
+		keyword = null;
 	}
 
 	public String getCached(String keyWord) {

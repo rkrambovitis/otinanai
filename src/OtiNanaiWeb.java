@@ -34,12 +34,13 @@ class OtiNanaiWeb implements Runnable {
 		try {
 			BufferedReader inFromClient;
 			String requestMessageLine;
-			String query = new String("");
+			String query;
 			boolean gzip = false;
 			while (true) {
 				String currentDashboard = "default";
 				Socket connectionSocket = listenSocket.accept();
 				ArrayList<String> results = new ArrayList<String>();
+				query = new String();
 				try {
 					inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 					requestMessageLine = inFromClient.readLine();
@@ -68,8 +69,11 @@ class OtiNanaiWeb implements Runnable {
 					}
 				} catch (NullPointerException npe) {
 					logger.warning("[Web]: "+npe);
-					//continue;
+					continue;
 				}
+
+				if (query == null || query.equals(""))
+					continue;
 				/*logger.fine("[Web]: about to switch");*/
 				boolean alarms=false;
 				boolean graph=false;
@@ -121,6 +125,10 @@ class OtiNanaiWeb implements Runnable {
 						} else if (noSpaces.endsWith(".js")) {
 							sendToClient(data, "application/x-javascript", true, connectionSocket, gzip);
 						}
+						data = null;
+						noSpaces = null;
+						path = null;
+						query = null;
 						break;
 					default:
 						try {
@@ -159,10 +167,12 @@ class OtiNanaiWeb implements Runnable {
 						logger.fine("[Web]: got text, sending to client");
 						sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket, gzip);
 						//connectionSocket.close();
+						text = null;
+						query = null;
 				}
 			}
 		} catch (IOException ioe) {
-			logger.severe("[Web]: "+ioe);
+			logger.severe("[Web]: "+ioe.getCause());
 		}
 	}
 
@@ -183,6 +193,7 @@ class OtiNanaiWeb implements Runnable {
 				byte[] littleDato = new byte[dato.length + 30];
 				int contentLength = compressor.deflate(littleDato);
 				compressor.end();
+				compressor = null;
 				dos.writeBytes("Content-Length: " + contentLength + "\r\n\r\n");
 				dos.write(littleDato, 0, contentLength);
 			} else {
@@ -191,9 +202,10 @@ class OtiNanaiWeb implements Runnable {
 			}
 
 			connectionSocket.close();
+			dos = null;
 			return true;
 		} catch (IOException ioe) {
-			logger.severe("[Web]: "+ioe);
+			logger.severe("[Web]: "+ioe.getCause());
 			return false;
 		}
 	}
@@ -352,6 +364,7 @@ class OtiNanaiWeb implements Runnable {
 		toReturn[11]=formatNumber(allData.get(nninth), divisor);
 		toReturn[13]=formatNumber(allData.get(nninth), 1f);
 
+		allData = null;
 		return toReturn;
 	}
 
@@ -429,6 +442,7 @@ class OtiNanaiWeb implements Runnable {
                         }
                 }
                 sortedKeys = null;
+		kwtList = null;
 
 		String output = new String();
 		String nodata = new String();
@@ -895,6 +909,10 @@ class OtiNanaiWeb implements Runnable {
 			output = output + "<li><a title=\""+title+"\" href=\""+url+" --merge\">"+key+" "+keyMap.get(key)+"</a></li>\n";
 		}
 		output = output + "</ul>\n" + commonHTML(OtiNanai.ENDBODY);
+		keyContents = null;
+		keyMap = null;
+		oldKeys = null;
+		contents = null;
 		return output;
 	}
 
