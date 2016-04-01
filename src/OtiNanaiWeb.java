@@ -43,18 +43,18 @@ class OtiNanaiWeb implements Runnable {
 				query = new String();
 				try {
 					inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-					requestMessageLine = inFromClient.readLine();
+					requestMessageLine = inFromClient.readLine().toLowerCase();
 					while (requestMessageLine != null && !requestMessageLine.equals("")) {
-						if (requestMessageLine.startsWith("GET ")) {
-							query=requestMessageLine.replaceAll("[;\\/]", "").replaceAll("GET|HTTP1.1|HTTP1.0|\\?q=", "");
-							logger.info("[Web]: GET: \"" + query + "\"");
-						} else if (requestMessageLine.startsWith("Accept-Encoding:")) {
-							if (requestMessageLine.toLowerCase().contains("gzip"))
+						if (requestMessageLine.startsWith("get ")) {
+							query=requestMessageLine.replaceAll("[;\\/]", "").replaceAll("get|http1.1|http1.0|\\?q=", "");
+							logger.info("[web]: get: \"" + query + "\"");
+						} else if (requestMessageLine.startsWith("accept-encoding:")) {
+							if (requestMessageLine.contains("gzip"))
 								gzip = true;
-							logger.info("[Web]: gzip? " + gzip + " ("+ requestMessageLine.replaceAll("Accept-Encoding: ", "") +" )");
-						} else if (requestMessageLine.startsWith("Cookie: ")) {
+							logger.info("[Web]: gzip? " + gzip + " ("+ requestMessageLine.replaceAll("accept-encoding: ", "") +" )");
+						} else if (requestMessageLine.startsWith("cookie: ")) {
 							logger.info("[Web]: Processing "+requestMessageLine);
-							requestMessageLine = requestMessageLine.replaceAll("Cookie: ", "");
+							requestMessageLine = requestMessageLine.replaceAll("cookie: ", "");
 							String[] cookies = requestMessageLine.split(";");
 							for (String cookie : cookies ) {
 								String[] c = cookie.split("=");
@@ -151,18 +151,16 @@ class OtiNanaiWeb implements Runnable {
 							cache = false;
 
 						String text;
-						if (query.contains("--toggleStar"))
-							text = String.valueOf(onl.toggleStar(query.replaceAll(" --toggleStar","")));
-						else if (query.contains("--toggleDashboard"))
-							text = showKeyWords(query.toLowerCase(), currentDashboard, false);
-						else if (query.contains("--updateDashboard"))
-							text = showKeyWords(query.toLowerCase(), currentDashboard, false);
+						if (query.contains("--togglestar"))
+							text = String.valueOf(onl.toggleStar(query.replaceAll(" --togglestar","")));
+						else if (query.contains("--toggledashboard") || query.contains("--updatedashboard"))
+							text = showKeyWords(query, currentDashboard, false);
 						else if (query.contains("--starred"))
 							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + starList();
 						else if (query.contains("--stored"))
 							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + storeList();
 						else
-							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + showKeyWords(query.toLowerCase(), currentDashboard, cache);
+							text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + showKeyWords(query, currentDashboard, cache);
 
 						logger.fine("[Web]: got text, sending to client");
 						sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket, gzip);
