@@ -70,7 +70,7 @@ class OtiNanaiWeb implements Runnable {
 						} else {
 							logger.fine("[Web]: Ignoring: " + requestMessageLine);
 						}
-						requestMessageLine = inFromClient.readLine();
+						requestMessageLine = inFromClient.readLine().toLowerCase();
 					}
 				} catch (NullPointerException npe) {
 					logger.warning("[Web]: "+npe);
