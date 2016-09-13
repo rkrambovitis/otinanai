@@ -220,11 +220,11 @@ class OtiNanaiListener implements Runnable {
                         if (multipMap.containsKey(key))
                                 jedis.srem(rMultipList, key+" "+multipMap.get(key));
                         multipMap.remove(key);
+			trackerMap.remove(key);
+			kwt.delete();
 		} catch (Exception e) {
 			logger.severe("[Listener]: "+e.getCause());
 		}
-                trackerMap.remove(key);
-                kwt.delete();
                 kwt=null;
 		deleteLock = false;
 	}
