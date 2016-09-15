@@ -1342,6 +1342,9 @@ class OtiNanaiWeb implements Runnable {
 								pt2 = pt2.substring(0, pt2.length()-1);
 								pt2l = 86400000 * Long.parseLong(pt2);
 							} else {
+								if (pt2.substring(pt2.length()-1).equals("h")) {
+									pt2 = pt2.substring(0, pt2.length()-1);
+								}
 								pt2l = 3600000 * Long.parseLong(pt2);
 							}
 						}
@@ -1354,6 +1357,9 @@ class OtiNanaiWeb implements Runnable {
 							pt1 = pt1.substring(0, pt1.length()-1);
 							pt1l = 86400000 * Long.parseLong(pt1);
 						} else {
+							if (pt1.substring(pt1.length()-1).equals("h")) {
+								pt1 = pt1.substring(0, pt1.length()-1);
+							}
 							pt1l = 3600000 * Long.parseLong(pt1);
 						}
 					}
