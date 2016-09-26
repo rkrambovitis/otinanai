@@ -1102,6 +1102,7 @@ class OtiNanaiWeb implements Runnable {
     boolean showDashboard = false;
     long vsTime = 0l;
     boolean nextWordIsVsTime = false;
+    boolean nextWordIsDashName = false;
     LLString properOrder = new LLString();
     LLString pluses = new LLString();
     LLString minuses = new LLString();
@@ -1118,7 +1119,11 @@ class OtiNanaiWeb implements Runnable {
       if (isArg) {
         special.add(word);
         isArg = false;
-      } else if (word.equals("--limit") || word.equals("--units") || word.equals("--multiplier") || word.equals("--vs")) {
+      } else if (word.equals("--limit")
+          || word.equals("--units")
+          || word.equals("--multiplier")
+          || word.equals("--vs")
+          || word.equals("--dash")) {
         special.add(word);
         isArg = true;
       }
@@ -1182,6 +1187,10 @@ class OtiNanaiWeb implements Runnable {
         logger.info("[Web]: vsTime is "+vsTime);
         continue;
       }
+      if (nextWordIsDashName) {
+        currentDashboard = word;
+        nextWordIsDashName = false;
+      }
 
       boolean removeKW = false;
       boolean exclusiveKW = false;
@@ -1232,6 +1241,10 @@ class OtiNanaiWeb implements Runnable {
           continue;
         case "--vs":
           nextWordIsVsTime = true;
+          continue;
+        case "--dash":
+          showDashboard = true;
+          nextWordIsDashName = true;
           continue;
         case "--dashboard":
           showDashboard = true;
