@@ -28,6 +28,9 @@ All in all, it makes finding patterns and correlations relatively simple *and* i
 + Persistence depends on redis with all it's pros and cons. So don't rely on this to store critical data.
 + Percentiles may or may not be accurate depending on data aggregation.
 
+## Docker ##
+docker run -d --link redis:redis -p 9876:9876 -p 9876:9876/udp otinanai
+
 ## System Requirements ##
 + java 7+
 + redis

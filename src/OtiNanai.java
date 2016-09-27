@@ -52,19 +52,19 @@ class OtiNanai {
       logger.config("[Init]: Web url: "+WEBURL);
 
       DatagramSocket ds = new DatagramSocket(listenerPort);
-                        ds.setReceiveBufferSize(udpRecvBufferSize);
-                        logger.config("[Init]: Udp socket listen buffer is: "+ ds.getReceiveBufferSize());
+      ds.setReceiveBufferSize(udpRecvBufferSize);
+      logger.config("[Init]: Udp socket listen buffer is: "+ ds.getReceiveBufferSize());
 
       OtiNanaiListener onl = new OtiNanaiListener(ds, alarmSamples, lowAlarmThreshold, highAlarmThreshold, alarmConsecutiveSamples, logger, bucketName, redisHost, redisKeyWordList, redisSavedQueries, redisEventList, redisUnitList, redisMultipList);
       new Thread(onl).start();
 
       // Ticker
       logger.config("[Init]: Setting up ticker");
-                        if (TICKER_INTERVAL > 0) {
-                                OtiNanaiTicker ont = new OtiNanaiTicker(onl, logger);
-                                new Thread(ont).start();
-                        } else
-                                System.err.println("[Init]: Ticker Disabled");
+      if (TICKER_INTERVAL > 0) {
+        OtiNanaiTicker ont = new OtiNanaiTicker(onl, logger);
+        new Thread(ont).start();
+      } else
+        System.err.println("[Init]: Ticker Disabled");
 
       // Cacher
       logger.config("[Init]: Setting up cacher (life: " +cacheTime+ " items: "+cacheItems+")");
@@ -146,13 +146,13 @@ class OtiNanai {
     int alarmSamples = 20;
     float lowAlarmThreshold = 15.0f;
     float highAlarmThreshold = 6.0f;
-                float parsedFloat = 0f;
+    float parsedFloat = 0f;
     int cacheItems = 50; 
     int alarmConsecutiveSamples = 3;
     int step1Hours = 28;
     boolean step1HoursOverride = true;
     int step2Hours = 340;
-                int udpRecvBufferSize = 1048576;
+    int udpRecvBufferSize = 1048576;
     boolean step2HoursOverride = true;
     String bucketName = new String("OtiNanai");
     String logFile = new String("/var/log/otinanai.log");
@@ -160,9 +160,9 @@ class OtiNanai {
     String redisHost = new String("localhost");
     String redisKeyWordList = new String("existing_keywords_list"); 
     String redisSavedQueries = new String("saved_queries_list");
-                String redisEventList = new String("OtiNanai_Event_List");
-                String redisUnitList = new String("OtiNanai_Unit_List");
-                String redisMultipList = new String("OtiNanai_Multiplier_List");
+    String redisEventList = new String("OtiNanai_Event_List");
+    String redisUnitList = new String("OtiNanai_Unit_List");
+    String redisMultipList = new String("OtiNanai_Multiplier_List");
     String notifyScript = new String("/tmp/otinanai_notifier");
     String webUrl = new String();
     try {
@@ -218,19 +218,19 @@ class OtiNanai {
           case "-atl":
             i++;
             parsedFloat = Float.parseFloat(args[i]);
-                                                if (parsedFloat <= 0f) 
-                                                        System.out.println("Invalid Low Alarm Threshold given.");
-                                                else 
-                                                        lowAlarmThreshold = parsedFloat;
+            if (parsedFloat <= 0f)
+              System.out.println("Invalid Low Alarm Threshold given.");
+            else
+              lowAlarmThreshold = parsedFloat;
             System.out.println("lowAlarmThreshold = " + lowAlarmThreshold);
             break;
           case "-ath":
             i++;
             parsedFloat = Float.parseFloat(args[i]);
-                                                if (parsedFloat <= 0f)
-                                                        System.out.println("Invalid Alarm Threshold given.");
-                                                else
-                                                        highAlarmThreshold = parsedFloat;
+            if (parsedFloat <= 0f)
+              System.out.println("Invalid Alarm Threshold given.");
+            else
+              highAlarmThreshold = parsedFloat;
             System.out.println("highAlarmThreshold = " + highAlarmThreshold);
             break;
           case "-acs":
@@ -345,11 +345,11 @@ class OtiNanai {
             webUrl = args[i];
             customUrl = true;
             break;
-                                        case "-udpRecvBufferSize":
-                                                i++;
-                                                System.out.println("udpRecvBufferSize = " + args[i]);
-                                                udpRecvBufferSize = Integer.parseInt(args[i]);
-                                                break;
+          case "-udpRecvBufferSize":
+            i++;
+            System.out.println("udpRecvBufferSize = " + args[i]);
+            udpRecvBufferSize = Integer.parseInt(args[i]);
+            break;
           default:
             System.out.println(
                 "-help  : This output\n"
