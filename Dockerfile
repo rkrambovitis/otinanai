@@ -6,7 +6,6 @@ WORKDIR /otinanai
 ADD src src/
 ADD web web/
 ADD jars jars/
-ADD run.sh ./
 
 RUN javac -d . -cp .:jars/* src/*.java
 
