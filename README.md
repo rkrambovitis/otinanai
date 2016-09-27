@@ -29,7 +29,18 @@ All in all, it makes finding patterns and correlations relatively simple *and* i
 + Percentiles may or may not be accurate depending on data aggregation.
 
 ## Docker ##
-docker run -d --link redis:redis -p 9876:9876 -p 9876:9876/udp otinanai
+### Redis on remote host 1.2.3.4 ###
+docker run -d -p 9876:9876 -p 9876:9876/udp phaistos/otinanai -rh 1.2.3.4
+
+### Linked redis instance ###
+docker run --name redis -d redis
+docker run -d --link redis:redis -p 9876:9876 -p 9876:9876/udp phaistos/otinanai
+
+### Notify script ###
+docker run -d --link redis:redis -p 9876:9876 -p 9876:9876/udp -v /path/to/myscript.sh:/myscript.sh phaistos/otinanai -notify /myscript.sh
+
+### Other Options ###
+docker run -ti --rm phaistos/otinanai -help
 
 ## System Requirements ##
 + java 7+
