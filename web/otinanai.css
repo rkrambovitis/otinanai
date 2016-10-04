@@ -1,289 +1,289 @@
 body, html {
-        font-family:verdana,helvetica,arial,sans-serif;
-        font-size: 14px;
-        background: #fefefe;
+  font-family:verdana,helvetica,arial,sans-serif;
+  font-size: 14px;
+  /* background: #fefefe; */
+  background: #1f1f1f;
 }
 
 .mergedGraph {
-        height: 200px;
-        width: 100%;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 15px;
-        margin-bottom: 10px;
+  height: 200px;
+  width: 100%;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .dashGraph {
-        height: 180px;
-        width: 100%;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 15px;
-        margin-bottom: 10px;
+  height: 180px;
+  width: 100%;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .gage {
-        width: 23%;
-        height: 16%;
-        float: left;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        padding: 2px;
-        margin: 2px;
+  width: 23%;
+  height: 16%;
+  float: left;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 2px;
+  margin: 2px;
 }
 
 form {
-	/*margin: 0;*/
-        width: 99%;
-        margin: auto;
-	padding: 10px 0;
-	/*text-align: center;*/
-	background: #eee;
-	border: 2px solid #999;
+  /*margin: 0;*/
+  width: 99%;
+  margin: auto;
+  padding: 10px 0;
+  /*text-align: center;*/
+  background: #eee;
+  border: 2px solid #999;
 }
 form input {
-	font-size: 1.4rem;
-	width: 80%;
-	padding: 3px;
-        margin: 3px;
+  font-size: 1.4rem;
+  width: 80%;
+  padding: 3px;
+   margin: 3px;
 }
 .section {
-	height: 100%;
-	border: none;
+  height: 100%;
+  border: none;
 }
 .section div {
-	padding: 2px;
-	background: #fefefe;
-	height: 100%;
-	padding-left: 0;
+  padding: 2px;
+  background: #fefefe;
+  height: 100%;
+  padding-left: 0;
 }
 
 #output_values {
-	display: inline-block;
-	padding: 3px 6px;
-	margin: 0 3px;
-	background: #9B9B9B;
-	color: #fff;
+  display: inline-block;
+  padding: 3px 6px;
+  margin: 0 3px;
+  background: #9B9B9B;
+  color: #fff;
 }
 
 #tooltip {
-	position: absolute;
-	display: none;
-	width: 200px;
-	border: 1px solid #fdd;
-	padding: 2px;
-	background-color: #9b9b9b;
-	opacity: 0.80;
-	font-size: smaller;
-	cursor:move;
-	font-weight: bold;
+  position: absolute;
+  display: none;
+  width: 200px;
+  border: 1px solid #fdd;
+  padding: 2px;
+  background-color: #9b9b9b;
+  opacity: 0.80;
+  font-size: smaller;
+  cursor:move;
+  font-weight: bold;
 }
 a {
-	color: #4169C1;
-	display: block;
-	text-decoration:none;
-	padding: 3px 8px;
-	font-size: 1.2rem;
+  color: #4169C1;
+  display: block;
+  text-decoration:none;
+  padding: 3px 8px;
+  font-size: 1.2rem;
 }
 a:hover {
-	text-decoration:underline;
+  text-decoration:underline;
 }
 li {
-	padding: 3px 30px;
-	border: 1px solid #ccc;
-	display: list-item;
-	background-color: #f6f6f6;
-	color: #252525;
-	margin: 3px;
+  padding: 3px 30px;
+  border: 1px solid #ccc;
+  display: list-item;
+  /*background-color: #f6f6f6;*/
+  color: #252525;
+  margin: 3px;
 }
 ul {
-	list-style-type: none;
-	display: inline-table;
+  list-style-type: none;
+  display: inline-table;
 }
 .nodata {
-	margin: 2px;
-	width: 30%;
+  margin: 2px;
+  width: 30%;
 }
 .nodata li {
-	padding: 3px 3px;
-	background-color: #f6f6f6;
-	color: #252525;
+  padding: 3px 3px;
+  background-color: #f6f6f6;
+  color: #252525;
 }
 
 .rightIcon {
-	color: #4169C1;
-	float: right;
-        clear: right;
-        margin-right:-20px;
+  color: #4169C1;
+  float: right;
+  clear: right;
+  margin-right:-20px;
 }
 .starGraph {
-	margin-top: 10px;
-	cursor: pointer;
+  margin-top: 10px;
+  cursor: pointer;
 }
 
 .gotoGraph {
-        cursor: pointer;
+   cursor: pointer;
 }
 
 .draggable {
-	cursor: move;
-	cursor: -webkit-grabbing;
+  cursor: move;
+  cursor: -webkit-grabbing;
 }
 
 .helpTrigger {
-	width: 10px;
-	height: 10px;
-	position: relative;
-	left: 20px;
-	color: #4169C1;
-	position: relative;
-	z-index: 99999;
+  width: 10px;
+  height: 10px;
+  position: relative;
+  left: 20px;
+  color: #4169C1;
+  position: relative;
+  z-index: 99999;
 }
 .helpTrigger > div {
-	display: none;
-	position: absolute;
-	right: 30px;
-	top: 50px;
-	width: 900px;
-
+  display: none;
+  position: absolute;
+  right: 30px;
+  top: 50px;
+  width: 900px;
 }
 .helpContent {
-	background: rgba(255,255,255,0.8);
-	border: 1px solid rgba(50, 50, 50, 0.3);
-	border-radius: 5px;
-	padding: 5px;
-	text-align: left;
-	font-size: 0.8em;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(50, 50, 50, 0.3);
+  border-radius: 5px;
+  padding: 5px;
+  text-align: left;
+  font-size: 0.8em;
 }
 .github {
-	width: 10px;
-	height: 10px;
-	left: 10px;
-	color: #4169C1;
-	position: relative;
+  width: 10px;
+  height: 10px;
+  left: 10px;
+  color: #4169C1;
+  position: relative;
 }
 a.github {
-	float: none;
-	text-decoration: none;
+  float: none;
+  text-decoration: none;
 }
 .goToDashboard {
-	width: 10px;
-	height: 10px;
-	left: 10px;
-	color: #4169C1;
-	position: relative;
+  width: 10px;
+  height: 10px;
+  left: 10px;
+  color: #4169C1;
+  position: relative;
 }
 a.goToDashboard {
-	float: none;
-	text-decoration: none;
+  float: none;
+  text-decoration: none;
 }
 #dashSelector {
-	width: 250px;
-	display: none;
-	float: right;
-	position: absolute;
-	right: 105px;
-	top: 55px;
-	z-index: 99999;
-	cursor: pointer;
+  width: 250px;
+  display: none;
+  float: right;
+  position: absolute;
+  right: 105px;
+  top: 55px;
+  z-index: 99999;
+  cursor: pointer;
 }
 
 .aTitle {
-        padding: 10px;
-        font-size: 2rem;
-        font-weight: bold;
+  padding: 10px;
+  font-size: 2rem;
+  font-weight: bold;
 }
 .aDescription {
-        padding-left: 10px;
-        font-size: 1.2rem;
-        font-weight: italic;
+  padding-left: 10px;
+  font-size: 1.2rem;
+  font-weight: italic;
 }
 .aDescription a {
-        display: inline;
-        padding: 2px;
+  display: inline;
+  padding: 2px;
 }
 .storeList a {
-        display: inline;
-        padding-right: 10px;
+  display: inline;
+  padding-right: 10px;
 }
 
 .runXHR {
-        float: right;
-        position: relative;
-        left: 20px;
-        bottom: 23px;
-        color: #4169C1;
-        cursor: pointer;
+  float: right;
+  position: relative;
+  left: 20px;
+  bottom: 23px;
+  color: #4169C1;
+  cursor: pointer;
 }
 
 #tickBox {
-        color: green;
-        left: 50%;
-        display: none;
-        position: fixed;
-        margin: auto;
+  color: green;
+  left: 50%;
+  display: none;
+  position: fixed;
+  margin: auto;
 }
 
 #dashSelector ul{
-        padding: 10px;
-        background-color: #999;
+  padding: 10px;
+  background-color: #999;
 }
 #dashSelector li{
-	color: #4169C1;
-	font-size: 1.2rem;
-        margin:2px;
+  color: #4169C1;
+  font-size: 1.2rem;
+  margin:2px;
 }
 #currentDashboard {
-	color: #4169C1;
-	font-size: 1.3rem;
-	padding: 25px;
-	cursor: pointer;
+  color: #4169C1;
+  font-size: 1.3rem;
+  padding: 25px;
+  cursor: pointer;
 }
 
 .graphListing {
-	list-style-type: none;
+  list-style-type: none;
 }
 .graphListing a {
-        float: left;
+  float: left;
 }
 ul.graphListing {
-	width: 45%;
+  width: 45%;
 }
 
 ul.singleGraph {
-	width: 95%;
+  width: 95%;
 }
 .singleGraph a{
-	float: left;
+  float: left;
 }
 
 @media screen and (max-width: 1600px) {
-        ul.graphListing {
-                width: 95%;
-        }
+  ul.graphListing {
+    width: 95%;
+  }
 }
 
 table.nographs {
-	border-collapse: collapse;
-        margin: 20px;
-        font-size: 1.5rem;
+  border-collapse: collapse;
+  margin: 20px;
+  font-size: 1.5rem;
 }
 .nographs th {
-	padding: 5px 10px;
-	border: 1px solid #999;
+  padding: 5px 10px;
+  border: 1px solid #999;
 }
 .nographs td {
-	padding: 5px 15px;
-	border: 1px solid #999;
+  padding: 5px 15px;
+  border: 1px solid #999;
 }
 th {
-	background-color: #eee;
+  background-color: #eee;
 }
 th[data-sort]{
-	cursor:pointer;
+  cursor:pointer;
 }
 
 .legendColorBox {
-        padding: 0px;
+  padding: 0px;
 }
 .legendLabel {
-        padding: 0px;
+  padding: 0px;
 }
