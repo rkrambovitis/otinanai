@@ -90,6 +90,7 @@ class OtiNanaiWeb implements Runnable {
           case " favicon.ico ":
           case " red-pointer.png ":
           case " otinanai.css ":
+          case " dark.css ":
           case " otinanai.js ":
           case " otinanai.flot.js ":
           case " otinanai.flot.common.js ":
@@ -155,6 +156,11 @@ class OtiNanaiWeb implements Runnable {
             if (query.contains("--nc") || query.contains("--no-cache") || query.contains("--gauge") || query.contains("--dashboard"))
               cache = false;
 
+            boolean darkTheme = false;
+            if (query.contains("--dark")) {
+              darkTheme = true;
+            }
+
             String text;
             if (query.contains("--togglestar"))
               text = String.valueOf(onl.toggleStar(query.replaceAll(" --togglestar","")));
@@ -165,7 +171,11 @@ class OtiNanaiWeb implements Runnable {
             else if (query.contains("--stored"))
               text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + storeList();
             else
-              text = commonHTML(OtiNanai.HEADER) + webTitle(query) + searchBar(query, currentDashboard) + showKeyWords(query, currentDashboard, cache);
+              text = commonHTML(OtiNanai.HEADER)
+                  + (darkTheme ? commonHTML(OtiNanai.DARKTHEME) : "" )
+                  + webTitle(query)
+                  + searchBar(query, currentDashboard)
+                  + showKeyWords(query, currentDashboard, cache);
 
             logger.fine("[Web]: got text, sending to client");
             sendToClient(text.getBytes(), "text/html; charset=utf-8", false, connectionSocket, gzip);
@@ -927,6 +937,8 @@ class OtiNanaiWeb implements Runnable {
           + "<link rel=\"stylesheet\" href=\"//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css\"/>\n"
           + "<meta name=\"viewport\" content=\"width=device-width\" initial-scale=\"1.0\">\n"
           + "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n");
+    } else if (out == OtiNanai.DARKTHEME) {
+      return new String("<link rel=\"stylesheet\" type=\"text/css\" href=\"dark.css\" />\n");
     } else if (out == OtiNanai.ENDHEAD) {
       return new String("</head>\n<body>\n");
     } else if (out == OtiNanai.ENDBODY) {
@@ -1302,6 +1314,7 @@ class OtiNanaiWeb implements Runnable {
         case "--nb":
         case "--nc":
         case "--no-cache":
+        case "--dark":
         case "":
           continue;
       }
