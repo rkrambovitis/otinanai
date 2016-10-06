@@ -955,7 +955,7 @@ class OtiNanaiWeb implements Runnable {
           + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.time.min.js\"></script>\n"
           + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.crosshair.min.js\"></script>\n"
           + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.selection.min.js\"></script>\n"
-          + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.min.js\"></script>\n"
+          + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.stack.js\"></script>\n"
           + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.events.js\"></script>\n"
           + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.flot.resize.min.js\"></script>\n"
           //https://github.com/RubaXa/Sortable
