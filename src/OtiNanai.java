@@ -366,7 +366,7 @@ class OtiNanai {
                 +"-acs <alarmConsecutiveSamples>    : How many consecutive samples above threshold trigger alarm state (default: 3)\n"
                 +"-notify <notifyScript>            : Script to use for alarms (default: /tmp/otinanai_notifier)\n"
                 +"-gpp <graphsPerPage>  : Max graphs per page (default: 30)\n"
-                +"-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60)\n"
+                +"-tick <tickInterval>  : Every how often (seconds) does the ticker run (add new samples, aggregate old) (default: 60) (0 to disable ticker)\n"
                 +"-s1hours <step1Hours>            : Time for aggregation. Overrides old s1samples setting.(default: 28)\n"
                 +"-s1agg <step1SamplesToAggregate>  : Samples to aggregate when sample count exceeded (default: 10)\n"
                 +"-s2hours <step2Hours>            : Time for further aggregation. Overrides old s2samples setting.(default: 340)\n"
