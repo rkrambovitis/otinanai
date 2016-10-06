@@ -1,3 +1,28 @@
 body, html {
   background: #1f1f1f;
 }
+
+.intBackground {
+  background: #353535;
+}
+
+.highlightBackground {
+  background: #6f3b3b;
+}
+
+.lightBackground {
+  background: #ccc;
+}
+
+.link {
+  color: #88a3de;
+}
+
+a {
+  color: #88a3de;
+}
+
+.plainText {
+  color: #ccc;
+}
+

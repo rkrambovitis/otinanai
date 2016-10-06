@@ -4,9 +4,9 @@ function toggleDashboard(input, element) {
 	xhttp.open("GET", urlToStar, true);
 	xhttp.onreadystatechange = function() {
 		if (xhttp.responseText == "true") {
-			element.className = "rightIcon starGraph fa fa-star fa-2x";
+			element.className = "rightIcon link starGraph fa fa-star fa-2x";
 		} else {
-			element.className = "rightIcon starGraph fa fa-star-o fa-2x";
+			element.className = "rightIcon link starGraph fa fa-star-o fa-2x";
 		}
 	}
 	xhttp.send();
@@ -105,9 +105,9 @@ $(function() {
                         else
                                 singleLink +="--merge ";
                         singleLink +="%23999 ";
-			$("<span class='rightIcon starGraph fa "+ (starred ? "fa-star" : "fa-star-o") + " fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
-			$("<span class='rightIcon fa fa-arrows fa-2x draggable'></span>").appendTo("#placeholder_"+ph);
-			$("<span class='rightIcon gotoGraph fa fa-arrow-right fa-2x' onclick=\"location.href = '"+singleLink+"'\"></span>").appendTo("#placeholder_"+ph);
+			$("<span class='rightIcon link starGraph fa "+ (starred ? "fa-star" : "fa-star-o") + " fa-2x' onclick=\"toggleDashboard('"+storeLink+"', this)\"></span>").appendTo("#placeholder_"+ph);
+			$("<span class='rightIcon link fa fa-arrows fa-2x draggable'></span>").appendTo("#placeholder_"+ph);
+			$("<span class='rightIcon link gotoGraph fa fa-arrow-right fa-2x' onclick=\"location.href = '"+singleLink+"'\"></span>").appendTo("#placeholder_"+ph);
 
 			ph++;
 			data = [];

@@ -4,6 +4,24 @@ body, html {
   background: #fefefe;
 }
 
+.intBackground {
+  background: #ccc;
+}
+
+.highlightBackground {
+  background: #9B9B9B;
+}
+
+.lightBackground {
+  background: #eee;
+}
+
+.link {
+  color: #4169C0;
+}
+.plainText {
+  color: #333;
+}
 .mergedGraph {
   height: 200px;
   width: 100%;
@@ -36,7 +54,6 @@ form {
   margin: auto;
   padding: 10px 0;
   /*text-align: center;*/
-  background: #eee;
   border: 2px solid #999;
 }
 form input {
@@ -56,11 +73,10 @@ form input {
   padding-left: 0;
 }
 
-#output_values {
+.outputValues {
   display: inline-block;
   padding: 3px 6px;
   margin: 0 3px;
-  background: #9B9B9B;
   color: #fff;
 }
 
@@ -88,7 +104,7 @@ a:hover {
 }
 li {
   padding: 3px 30px;
-  border: 1px solid #ccc;
+  border: 1px solid #eee;
   display: list-item;
   /*background-color: #f6f6f6;*/
   color: #252525;
@@ -109,7 +125,6 @@ ul {
 }
 
 .rightIcon {
-  color: #4169C1;
   float: right;
   clear: right;
   margin-right:-20px;
@@ -128,35 +143,10 @@ ul {
   cursor: -webkit-grabbing;
 }
 
-.helpTrigger {
-  width: 10px;
-  height: 10px;
-  position: relative;
-  left: 20px;
-  color: #4169C1;
-  position: relative;
-  z-index: 99999;
-}
-.helpTrigger > div {
-  display: none;
-  position: absolute;
-  right: 30px;
-  top: 50px;
-  width: 900px;
-}
-.helpContent {
-  background: rgba(255,255,255,0.8);
-  border: 1px solid rgba(50, 50, 50, 0.3);
-  border-radius: 5px;
-  padding: 5px;
-  text-align: left;
-  font-size: 0.8em;
-}
 .github {
   width: 10px;
   height: 10px;
   left: 10px;
-  color: #4169C1;
   position: relative;
 }
 a.github {
@@ -167,7 +157,6 @@ a.github {
   width: 10px;
   height: 10px;
   left: 10px;
-  color: #4169C1;
   position: relative;
 }
 a.goToDashboard {
@@ -209,7 +198,6 @@ a.goToDashboard {
   position: relative;
   left: 20px;
   bottom: 23px;
-  color: #4169C1;
   cursor: pointer;
 }
 
@@ -223,15 +211,12 @@ a.goToDashboard {
 
 #dashSelector ul{
   padding: 10px;
-  background-color: #999;
 }
 #dashSelector li{
-  color: #4169C1;
   font-size: 1.2rem;
   margin:2px;
 }
 #currentDashboard {
-  color: #4169C1;
   font-size: 1.3rem;
   padding: 25px;
   cursor: pointer;
@@ -272,9 +257,6 @@ table.nographs {
 .nographs td {
   padding: 5px 15px;
   border: 1px solid #999;
-}
-th {
-  background-color: #eee;
 }
 th[data-sort]{
   cursor:pointer;

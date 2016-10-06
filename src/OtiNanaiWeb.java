@@ -577,11 +577,11 @@ class OtiNanaiWeb implements Runnable {
                 + "\t\t<li class=\"draggable\">\n"
                 + "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
                 + "\t\t\t<div style=\"text-align: right\">\n"
-                + "<span id=output_values>units: "+ graphData[12]+onl.getUnits(kw) +"</span>"
-                + "<span id=output_values>type: "+ onl.getType(kw) +"</span>"
-                + "<span id=output_values>min: "+graphData[0]+"</span>"
-                + "<span id=output_values>99%: "+graphData[11]+"</span>"
-                + "<span id=output_values>now: "+graphData[5]+"</span>"
+                + "<span class=\"outputValues highlightBackground\">units: "+ graphData[12]+onl.getUnits(kw) +"</span>"
+                + "<span class=\"outputValues highlightBackground\">type: "+ onl.getType(kw) +"</span>"
+                + "<span class=\"outputValues highlightBackground\">min: "+graphData[0]+"</span>"
+                + "<span class=\"outputValues highlightBackground\">99%: "+graphData[11]+"</span>"
+                + "<span class=\"outputValues highlightBackground\">now: "+graphData[5]+"</span>"
                 + "\t\t\t</div>\n"
                 + "\t\t</li>\n";
             }
@@ -611,13 +611,13 @@ class OtiNanaiWeb implements Runnable {
       body = body
         + "<table id=\"sortMe\" class=\"nographs\">\n"
         + "\t<thead><tr>\n"
-        + "\t\t<th data-sort=\"string\">keyword</th>\n"
-        + "\t\t<th data-sort=\"float\">min</th>\n"
-        + "\t\t<th data-sort=\"float\">max</th>\n"
-        + "\t\t<th data-sort=\"float\">99%</th>\n"
-        + "\t\t<th data-sort=\"float\">99%</th>\n"
-        + "\t\t<th data-sort=\"float\">now</th>\n"
-        + "\t\t<th data-sort=\"string\">units</th>\n"
+        + "\t\t<th class=\"intBackground plainText\" data-sort=\"string\">keyword</th>\n"
+        + "\t\t<th class=\"intBackground plainText\" data-sort=\"float\">min</th>\n"
+        + "\t\t<th class=\"intBackground plainText\" data-sort=\"float\">max</th>\n"
+        + "\t\t<th class=\"intBackground plainText\" data-sort=\"float\">99%</th>\n"
+        + "\t\t<th class=\"intBackground plainText\" data-sort=\"float\">99%</th>\n"
+        + "\t\t<th class=\"intBackground plainText\" data-sort=\"float\">now</th>\n"
+        + "\t\t<th class=\"intBackground plainText\" data-sort=\"string\">units</th>\n"
         + "\t</tr></thead>\n"
         + "\t<tbody>\n";
 
@@ -632,13 +632,13 @@ class OtiNanaiWeb implements Runnable {
 
         body = body
           + "\t\t<tr>\n"
-          + "\t\t\t<td><a href = \""+kw+"\">"+kw+"</a></td>\n"
-          + "\t\t\t<td>"+graphData[0]+"</td>\n"
-          + "\t\t\t<td>"+graphData[1]+"</td>\n"
-          + "\t\t\t<td>"+graphData[11]+"</td>\n"
-          + "\t\t\t<td>"+graphData[13]+"</td>\n"
-          + "\t\t\t<td>"+graphData[5]+"</td>\n"
-          + "\t\t\t<td>"+graphData[12]+onl.getUnits(kw)+"</td>\n"
+          + "\t\t\t<td class=\"plainText\"><a href = \""+kw+"\">"+kw+"</a></td>\n"
+          + "\t\t\t<td class=\"plainText\">"+graphData[0]+"</td>\n"
+          + "\t\t\t<td class=\"plainText\">"+graphData[1]+"</td>\n"
+          + "\t\t\t<td class=\"plainText\">"+graphData[11]+"</td>\n"
+          + "\t\t\t<td class=\"plainText\">"+graphData[13]+"</td>\n"
+          + "\t\t\t<td class=\"plainText\">"+graphData[5]+"</td>\n"
+          + "\t\t\t<td class=\"plainText\">"+graphData[12]+onl.getUnits(kw)+"</td>\n"
           + "\t\t</tr>\n";
       }
 
@@ -733,11 +733,11 @@ class OtiNanaiWeb implements Runnable {
             + "\t\t<li class=\"draggable\">\n"
             + "\t\t\t<a href = \""+kw+"\">"+kw+"</a>\n"
             + "\t\t\t<div style=\"text-align: right\">\n"
-            + "<span id=output_values>units: "+ graphData[12]+onl.getUnits(kw) +"</span>"
-            + "<span id=output_values>type: "+ onl.getType(kw) +"</span>"
-            + "<span id=output_values>min: "+graphData[0]+"</span>"
-            + "<span id=output_values>99%: "+graphData[11]+"</span>"
-            + "<span id=output_values>now: "+graphData[5]+"</span>"
+            + "<span class=\"outputValues highlightBackground\">units: "+ graphData[12]+onl.getUnits(kw) +"</span>"
+            + "<span class=\"outputValues highlightBackground\">type: "+ onl.getType(kw) +"</span>"
+            + "<span class=\"outputValues highlightBackground\">min: "+graphData[0]+"</span>"
+            + "<span class=\"outputValues highlightBackground\">99%: "+graphData[11]+"</span>"
+            + "<span class=\"outputValues highlightBackground\">now: "+graphData[5]+"</span>"
             + "\t\t\t</div>\n"
             + "\t\t</li>\n";
         }
@@ -831,9 +831,9 @@ class OtiNanaiWeb implements Runnable {
         output = output
           + "<li><a href=\""+URLEncoder.encode(stored, "UTF-8")+"\">"+stored+"</a>"
           + "</li>\n"
-          + "<span class=\"runXHR fa fa-1x fa-rotate-right\" onclick='runXHR(\""+stored+"\")'></span>\n"
-          + "<span class=\"runXHR fa fa-1x fa-remove\" onclick='runXHR(\"--unStore "+stored+"\")'></span>\n";
-        //+ "<span class=\"runXHR fa fa-1x fa-rotate-right\" onclick='runXHR(\""+URLEncoder.encode(stored, "UTF-8")+"\")'></span>\n";
+          + "<span class=\"runXHR link fa fa-1x fa-rotate-right\" onclick='runXHR(\""+stored+"\")'></span>\n"
+          + "<span class=\"runXHR link fa fa-1x fa-remove\" onclick='runXHR(\"--unStore "+stored+"\")'></span>\n";
+        //+ "<span class=\"runXHR link fa fa-1x fa-rotate-right\" onclick='runXHR(\""+URLEncoder.encode(stored, "UTF-8")+"\")'></span>\n";
       } catch (UnsupportedEncodingException uee) {
         output = output + "<li><a href=\""+stored+"\">"+stored+"</a></li>\n";
       }
@@ -979,46 +979,18 @@ class OtiNanaiWeb implements Runnable {
     }
     String searchBar=new String("\n<!-- The search bar -->\n");
     searchBar = searchBar 
-      + "<form action=\"/"
+      + "<form class=\"intBackground\" action=\"/"
       + "\" method=\"get\" >\n"
-      + "<input type=\"text\" name=\"q\" id=\"q\" placeholder=\"search\" autofocus value=\""
+      + "<input class=\"lightBackground\" type=\"text\" name=\"q\" id=\"q\" placeholder=\"search\" autofocus value=\""
       + input
       + "\" />\n"
-      + "<a href=\"--dashboard --nd\" class=\"goToDashboard fa fa-dashboard fa-2x\"></a>"
-      + "<span id=\"currentDashboard\" onclick=\"showDashSelector()\">\n"
+      + "<a href=\"--dashboard --nd\" class=\"goToDashboard link fa fa-dashboard fa-2x\"></a>"
+      + "<span id=\"currentDashboard\" class=\"link\" onclick=\"showDashSelector()\">\n"
       + currentDashboard
       + "</span>\n"
       //+ "<span id=\"star\" class=\"fa "+ (onl.isStarred(input) ? "fa-star" : "fa-star-o") + " fa-2x\" "
       //+ "onClick=\"toggleStar('"+input+"')\" ></span>\n"
-      /*
-         + "<div class=\"helpTrigger fa fa-info-circle fa-2x\">\n"
-         + " <div>\n"
-         + "  <ul class=\"helpContent\">\n"
-         + "   <lh>Examples</lh>\n"
-         + "   <li>thor.hammer odin.spear +output --merge</li>\n"
-         + "   <li>mysql +myserver -rubbish</li>\n"
-         + "   <li>order matters +servername -netstuff otherserver.netstuff -something</li>"
-         + "   <li>dataroom +temperature @24</li>\n"
-         + "   <li>interesting.data @5d-30d</li>\n"
-         + "   <li>dataroom +temperature --gauge</li>\n"
-         + "   <li>server1 server2 server3 +usage --stack</li>\n"
-         + "   <li>^du +data$</li>\n"
-         + "   <li>something --show-spikes</li>\n"
-         + "   <li>many methods --show-all</li>\n"
-         + "   <li>many methods --show-all --merge --limit 30</li>\n"
-         + "   <li>show.me.five.per.graph --merge #5</li>\n"
-         + "   <li>something.interesting --no-refresh</li>\n"
-         + "   <li>something.to.embed --no-bar</li>\n"
-         + "   <li>bandwidth --multiplier 8</li>\n"
-         + "   <li>bandwidth --units bps</li>\n"
-         + "   <li>crap --delete</li>\n"
-         + "   <li>dont.care --noalarm</li>\n"
-         + "   <li>do.care --enable-alarm</li>\n"
-         + "  </ul>\n"
-         + " </div>\n"
-         + "</div>\n"
-       */
-      + "<a class=\"github fa fa-life-saver fa-2x\" href=\"https://github.com/phaistos-networks/otinanai/wiki/Search-Bar-options\" title=\"Search Bar Options\" target=_blank></a>\n"
+      + "<a class=\"github link fa fa-life-saver fa-2x\" href=\"https://github.com/phaistos-networks/otinanai/wiki/Search-Bar-options\" title=\"Search Bar Options\" target=_blank></a>\n"
       + "</form>\n"
       + "<!-- END search bar -->\n\n"
       + "<script>onload = function () { document.getElementById('q').selectionStart = document.getElementById('q').value.length;}</script>\n"
@@ -1031,12 +1003,12 @@ class OtiNanaiWeb implements Runnable {
     LLString list = onl.getDashBoardList();
     String op =
       "<span id=\"dashSelector\">\n"
-      + "<ul>\n";
+      + "<ul class=\"intBackground\">\n";
     for ( String s : list ) {
-      op = op + "\t<li onclick=\"setDashboard('"+s+"')\">"+s+"</li>\n";
+      op = op + "\t<li class=\"link\" onclick=\"setDashboard('"+s+"')\">"+s+"</li>\n";
     }
     op = op
-      + "\t<li><input type=\"text\" id=\"NewDashboard\"/> <span onclick=\"setDashboard(document.getElementById('NewDashboard').value)\">add</span></li>\n"
+      + "\t<li><input class=\"lightBackground\" type=\"text\" id=\"NewDashboard\"/> <span class=\"link\" onclick=\"setDashboard(document.getElementById('NewDashboard').value)\">add</span></li>\n"
       + "</ul>\n"
       + "</span>\n";
     return op;
@@ -1546,10 +1518,10 @@ class OtiNanaiWeb implements Runnable {
     } else if (wipe && force) {
       logger.info("[Web]: --delete received with --force. Deleting matched keywords Permanently");
       KeyWordTracker kwt;
-      String delOP = new String("<h2>RIP Data for keywords:</h2><br />\n<a href=\"/\">Home</a>\n<ul>\n");
+      String delOP = new String("<h2 class=\"plainText\">RIP Data for keywords:</h2><br />\n<a href=\"/\">Home</a>\n<ul>\n");
       for (String todel : kws) {
         logger.info("[Web]: Deleting data for " + todel);
-        delOP = delOP + "<li>"+todel+"</li>\n";
+        delOP = delOP + "<li class=\"plainText\">"+todel+"</li>\n";
         onl.deleteKWT(todel);
       }
       delOP = delOP + "</ul>\n"
@@ -1557,7 +1529,7 @@ class OtiNanaiWeb implements Runnable {
       return delOP;
     } else if (wipe) {
       logger.fine("[Web]: Wipe command received. Sending Warning");
-      String delOP = new String("<h2>[WARNING] : You are about to permanently delete the following keywords</h2><br/>");
+      String delOP = new String("<h2 class=\"plainText\">[WARNING] : You are about to permanently delete the following keywords</h2><br/>");
       String allKWsToDelete = new String();
       String theDeleteList = new String();
 
