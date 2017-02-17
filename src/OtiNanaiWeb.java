@@ -162,7 +162,9 @@ class OtiNanaiWeb implements Runnable {
             }
 
             String text;
-            if (query.contains("--togglestar"))
+            if (query.equals("healthz"))
+              text = getHealthz();
+            else if (query.contains("--togglestar"))
               text = String.valueOf(onl.toggleStar(query.replaceAll(" --togglestar","")));
             else if (query.contains("--toggledashboard") || query.contains("--updatedashboard"))
               text = showKeyWords(query, currentDashboard, false);
@@ -1575,6 +1577,14 @@ class OtiNanaiWeb implements Runnable {
     return date_format.format(resultdate);
   }
 
+  private String getHealthz() {
+    String output = "<pre>\nOtinanai Health and Metrics\n";
+    output += "total_keywords " + onl.getKeyWordCount() + "\n";
+    output += "ticker_interval " + OtiNanai.TICKER_INTERVAL / 1000 + "\n";
+    output += "total_ticks " + onl.getTickCount() + " COUNTER\n";
+    output += "\n</pre>";
+    return output;
+  }
 
   private OtiNanaiListener onl;
   private int port;
