@@ -106,6 +106,16 @@ class RedisTracker implements KeyWordTracker {
     currentFloat += value;
   }
 
+  public void putHist(float value) {
+    if (recordType == OtiNanai.UNSET) {
+      recordType = OtiNanai.HISTOGRAM;
+      histValues = new ArrayList<Float>();
+    }
+    currentMin = value;
+    currentMax = value;
+    histValues.add(value);
+  }
+
 
   public void tick() {
     logger.fine("[RedisTracker]: ticking " + keyWord );
@@ -361,6 +371,9 @@ class RedisTracker implements KeyWordTracker {
     private int sampleCount;
     private int currentDataCount;
     private float currentFloat;
+    private float currentMin;
+    private float currentMax;
+    private ArrayList<Float> histValues;
     private float zeroPct;
     private long currentLong;
     private long currentPrev;
