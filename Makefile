@@ -5,7 +5,7 @@ DST= $(CURDIR)/gr/phaistosnetworks/admin/otinanai
 
 
 FLAGS= -Xlint:unchecked -Xlint:deprecation -cp $(CPATH)
-SRCFILES= OtiNanai.java SomeRecord.java OtiNanaiListener.java OtiNanaiWeb.java KeyWordTracker.java OtiNanaiTicker.java OtiNanaiCache.java LLString.java RedisTracker.java OtiNanaiNotifier.java NNComparator.java ValueComparator.java OtiNanaiParser.java
+SRCFILES= OtiNanai.java SomeRecord.java OtiNanaiListener.java OtiNanaiWeb.java KeyWordTracker.java OtiNanaiTicker.java OtiNanaiCache.java LLString.java RedisTracker.java OtiNanaiNotifier.java NNComparator.java ValueComparator.java OtiNanaiParser.java OtiNanaiHistogram.java
 JAVAC= /usr/bin/javac
 
 all:
