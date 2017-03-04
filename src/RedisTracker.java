@@ -110,6 +110,8 @@ class RedisTracker implements KeyWordTracker {
     if (recordType == OtiNanai.UNSET) {
       recordType = OtiNanai.HISTOGRAM;
       histValues = new ArrayList<Float>();
+    }
+    if (histValues.size() == 0) {
       currentMin = value;
       currentMax = value;
     } else {
@@ -184,6 +186,7 @@ class RedisTracker implements KeyWordTracker {
       } else if (recordType == OtiNanai.HISTOGRAM) {
         logger.info(OtiNanaiHistogram.get(currentMin, currentMax, histValues));
         histValues = new ArrayList<Float>();
+        return;
       }
 
       logger.fine("[RedisTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
