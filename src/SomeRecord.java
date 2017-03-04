@@ -42,7 +42,7 @@ class SomeRecord {
     str = str.replaceAll("[#'$+=!@$%^&*()|'\\/\":,?<>{};\\[\\]]", "");
     str = str.toLowerCase();
     storeMetric(str, min, max);
-    if (!IAmGauge && !IAmCounter && !IAmSum) {
+    if (!IAmGauge && !IAmCounter && !IAmSum && !IAmHistogram &&  !IAmEvent) {
       findKeyWords(str, min, max);
     }
   }
