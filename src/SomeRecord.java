@@ -328,6 +328,15 @@ class SomeRecord {
     return null;
   }
 
+  public String getType() {
+    if (IAmGauge) return "Gauge";
+    else if (IAmSum) return "Sum";
+    else if (IAmHistogram) return "Histogram";
+    else if (IAmEvent) return "Event";
+    else if (IAmCounter) return "Counter";
+    else return "Freq";
+  }
+
   private long timeStamp;
   private String timeNano;
   private InetAddress myip;
