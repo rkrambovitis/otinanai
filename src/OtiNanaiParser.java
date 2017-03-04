@@ -38,7 +38,7 @@ class OtiNanaiParser implements Runnable {
 
       KeyWordTracker kwt = onl.getKWT(kw);
       if (kwt == null) {
-        logger.info("[Parser]: New KeyWord: \""+kw+"\" from "+hip);
+        logger.info("[Parser]: New KeyWord: \""+kw+"\" of type " + newRecord.getType() + " from "+hip);
         kwt = onl.addKWT(kw);
       }
 
