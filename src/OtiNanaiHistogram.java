@@ -17,7 +17,7 @@ class OtiNanaiHistogram {
 
     for (float f : values) {
       for (i = 0 ; i < ranges ; i++) {
-        if (f < rangeBoundaries[i]) {
+        if (f <= rangeBoundaries[i]) {
           rangeCounts[i] = rangeCounts[i] + 1;
           break;
         }
@@ -28,6 +28,7 @@ class OtiNanaiHistogram {
     for (i = 1 ; i < ranges ; i++) {
       op += (", " + rangeBoundaries[i - 1] + "-" + rangeBoundaries[i] + ":" + rangeCounts[i]);
     }
+
     return op;
   }
 }
