@@ -48,6 +48,8 @@ class OtiNanaiParser implements Runnable {
         kwt.putSum(newRecord.getValue());
       } else if (newRecord.isCounter()) {
         kwt.putCounter(newRecord.getCounter());
+      } else if (newRecord.isHistogram()) {
+        kwt.putHistogram(newRecord.getValue());
       } else {
         kwt.putFreq();
       }

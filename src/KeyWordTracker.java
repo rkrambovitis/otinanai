@@ -20,6 +20,8 @@ interface KeyWordTracker {
 
   public void putSum(float value) ;
 
+  public void putHistogram(float value) ;
+
   public void tick() ;
 
   public long getAlarm() ;

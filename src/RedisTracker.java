@@ -106,7 +106,7 @@ class RedisTracker implements KeyWordTracker {
     currentFloat += value;
   }
 
-  public void putHist(float value) {
+  public void putHistogram(float value) {
     if (recordType == OtiNanai.UNSET) {
       recordType = OtiNanai.HISTOGRAM;
       histValues = new ArrayList<Float>();
