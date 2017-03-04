@@ -464,6 +464,7 @@ class OtiNanai {
   public static final short COUNTER = 2;
   public static final short FREQ = 3;
   public static final short SUM = 4;
+  public static final short HISTOGRAM = 5;
 
   public static final short GRAPH_FULL=1;
   public static final short GRAPH_PREVIEW=2;

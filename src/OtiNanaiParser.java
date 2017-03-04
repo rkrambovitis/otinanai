@@ -43,9 +43,9 @@ class OtiNanaiParser implements Runnable {
       }
 
       if (newRecord.isGauge()) {
-        kwt.putGauge(newRecord.getGauge());
+        kwt.putGauge(newRecord.getValue());
       } else if (newRecord.isSum()) {
-        kwt.putSum(newRecord.getSum());
+        kwt.putSum(newRecord.getValue());
       } else if (newRecord.isCounter()) {
         kwt.putCounter(newRecord.getCounter());
       } else {

@@ -28,6 +28,8 @@ class SomeRecord {
     IAmGauge = false;
     IAmCounter = false;
     IAmEvent = false;
+    theValue = 0F;
+    theCounter = 0L;
     process(data.replaceAll("[\r\n]",""), 3, 128);
   }
 
@@ -58,7 +60,7 @@ class SomeRecord {
       //System.out.println("Record: Gauge");
       Float w2 = toFloat(tokens[1]);
       if (w2 != null) {
-        theGauge = w2;
+        theValue = w2;
         IAmGauge = true;
         keyWords.add(tokens[0]);
       }
@@ -80,15 +82,29 @@ class SomeRecord {
     } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[1].equals("sum")) {
       Float w3 = toFloat(tokens[2]);
       if (w3 != null) {
-        theSum = w3;
+        theValue = w3;
         IAmSum = true;
         keyWords.add(tokens[0]);
       }
     } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[2].equals("sum")) {
       Float w2 = toFloat(tokens[1]);
       if (w2 != null) {
-        theSum = w2;
+        theValue = w2;
         IAmSum = true;
+        keyWords.add(tokens[0]);
+      }
+    } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[1].equals("hist")) {
+      Float w3 = toFloat(tokens[2]);
+      if (w3 != null) {
+        theValue = w3;
+        IAmHistogram = true;
+        keyWords.add(tokens[0]);
+      }
+    } else if (tokens.length == 3 && isKeyWord(tokens[0], min, max) && tokens[2].equals("hist")) {
+      Float w2 = toFloat(tokens[1]);
+      if (w2 != null) {
+        theValue = w2;
+        IAmHistogram = true;
         keyWords.add(tokens[0]);
       }
     } else if (tokens[tokens.length-1].equals("eventmarker") || tokens[0].equals("eventmarker")) {
@@ -273,75 +289,39 @@ class SomeRecord {
    * This will most likely not be used
    * @return the first word of data (could be useful is all data is org.gnome.desktop.wm.raiseOnFocus 0)
    */
-  //  public String getKey() {
-  //    return masterKey;
-  //  }
 
-  /**
-   * Access Method
-   */
   public boolean isGauge() {
     return IAmGauge;
   }
 
-  /**
-   * Access Method
-   */
   public boolean isCounter() {
     return IAmCounter;
   }
 
-  /**
-   * Access Method
-   */
   public boolean isSum() {
     return IAmSum;
   }
 
-  /**
-   * Access Method
-   */
+  public boolean isHistogram() {
+    return IAmHistogram;
+  }
+
   public boolean isEvent() {
     return IAmEvent;
   }
 
-  /**
-   * Access Method
-   */
   public boolean isFreq() {
     return (!IAmGauge && !IAmCounter && !IAmSum && !IAmEvent);
   }
 
-  /**
-   * Access Method
-   */
-  public Float getGauge() {
-    if (IAmGauge)
-      return theGauge;
-    return -666f;
-  }
-
-  /**
-   * Access Method
-   */
   public Long getCounter() {
-    if (IAmCounter)
-      return theCounter;
-    return 0l;
+    return theCounter;
   }
 
-  /**
-   * Access Method
-   */
-  public Float getSum() {
-    if (IAmSum)
-      return theSum;
-    return -1337f;
+  public Float getValue() {
+    return theValue;
   }
 
-  /**
-   * Access Method
-   */
   public String getEvent() {
     if (IAmEvent)
       return theEvent;
@@ -352,14 +332,14 @@ class SomeRecord {
   private String timeNano;
   private InetAddress myip;
   private String theRecord;
-  private Float theGauge;
+  private Float theValue;
   private boolean IAmGauge;
+  private boolean IAmSum;
+  private boolean IAmHistogram;
+  private boolean IAmEvent;
   private Long theCounter;
   private boolean IAmCounter;
-  private Float theSum;
-  private boolean IAmSum;
   private String theDate;
-  private boolean IAmEvent;
   private String theEvent;
   private ArrayList<String> keyWords;
   //private String masterKey;

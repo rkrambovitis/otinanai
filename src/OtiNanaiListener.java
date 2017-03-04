@@ -178,6 +178,7 @@ class OtiNanaiListener implements Runnable {
         case OtiNanai.COUNTER: return new String("count");
         case OtiNanai.FREQ: return new String("freq");
         case OtiNanai.SUM: return new String("sum");
+        case OtiNanai.HISTOGRAM: return new String("hist");
       }
     }
     return new String("unset");
