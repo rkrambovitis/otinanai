@@ -110,9 +110,12 @@ class RedisTracker implements KeyWordTracker {
     if (recordType == OtiNanai.UNSET) {
       recordType = OtiNanai.HISTOGRAM;
       histValues = new ArrayList<Float>();
+      currentMin = value;
+      currentMax = value;
+    } else {
+      if (value < currentMin) currentMin = value;
+      if (value > currentMax) currentMax = value;
     }
-    currentMin = value;
-    currentMax = value;
     histValues.add(value);
   }
 
@@ -133,8 +136,12 @@ class RedisTracker implements KeyWordTracker {
       return;
     if (recordType == OtiNanai.SUM && currentFloat == 0f)
       return;
+    if (recordType == OtiNanai.HISTOGRAM && histValues.size() == 0)
+      return;
 
-    if (lastTimeStamp == 0l && recordType != OtiNanai.GAUGE) {
+    if (lastTimeStamp == 0l
+        && recordType != OtiNanai.GAUGE
+        && recordType != OtiNanai.HISTOGRAM) {
       lastTimeStamp = ts;
       currentFloat = 0f;
       currentDataCount = 0;
@@ -174,6 +181,9 @@ class RedisTracker implements KeyWordTracker {
         perSec = ((float)currentCount*1000f)/timeDiff;
         logger.finest("[RedisTracker]: perSec = " +perSec);
         currentCount = 0;
+      } else if (recordType == OtiNanai.HISTOGRAM) {
+        logger.info(OtiNanaiHistogram.get(currentMin, currentMax, histValues));
+        histValues = new ArrayList<Float>();
       }
 
       logger.fine("[RedisTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
@@ -277,11 +287,9 @@ class RedisTracker implements KeyWordTracker {
           }
         } else {
           if (perSec < (mean - 3*stdev )) {
-            //if ((Math.abs(perSec) < (Math.abs(mean) / lowAlarmThreshold)) && (perSec != 0f || zeroPct < 2.0f)) {
             lowAlarmCount++;
             highAlarmCount = 0;
           } else if (perSec > (mean + 3*stdev)) {
-            //} else if (Math.abs(perSec) > (Math.abs(mean) * highAlarmThreshold)) {
             highAlarmCount++;
           lowAlarmCount = 0;
           } else {
