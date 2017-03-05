@@ -184,7 +184,17 @@ class RedisTracker implements KeyWordTracker {
         logger.finest("[RedisTracker]: perSec = " +perSec);
         currentCount = 0;
       } else if (recordType == OtiNanai.HISTOGRAM) {
-        logger.info(OtiNanaiHistogram.get(currentMin, currentMax, histValues));
+        //logger.info(OtiNanaiHistogram.get(currentMin, currentMax, histValues, ts));
+        OtiNanaiProtos.Histogram histogram = OtiNanaiHistogram.get(currentMin, currentMax, histValues, ts);
+        System.out.println("Ts: " + histogram.getTimestamp() + " Min: " + histogram.getMinValue() + " rangeStep: " + histogram.getRangeStep());
+        for (int i : histogram.getRangeCountList()) {
+          System.out.println("count: " + i);
+        }
+
+        for (byte b : histogram.toByteArray()) {
+          System.out.format("%d ", b);
+        }
+        System.out.println();
         histValues = new ArrayList<Float>();
         return;
       }

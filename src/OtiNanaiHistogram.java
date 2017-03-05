@@ -1,9 +1,9 @@
 package gr.phaistosnetworks.admin.otinanai;
 
-import java.util.ArrayList;
+import java.util.List;
 
 class OtiNanaiHistogram {
-  public static String get(float min, float max, ArrayList<Float> values) {
+  public static OtiNanaiProtos.Histogram get(float min, float max, List<Float> values, long ts) {
     int ranges = (int)Math.round(3.33 * Math.log10(values.size())) + 1;
     float rangeStep = (max - min)/ranges;
     int[] rangeCounts = new int[ranges];
@@ -24,11 +24,14 @@ class OtiNanaiHistogram {
       }
     }
 
-    String op = new String("" + min + "-" + rangeBoundaries[0] + ":" + rangeCounts[0]);
-    for (i = 1 ; i < ranges ; i++) {
-      op += (", " + rangeBoundaries[i - 1] + "-" + rangeBoundaries[i] + ":" + rangeCounts[i]);
-    }
+    OtiNanaiProtos.Histogram.Builder histogram = OtiNanaiProtos.Histogram.newBuilder();
+    histogram.setTimestamp((int)(ts/1000))
+        .setMinValue(min)
+        .setRangeStep(rangeStep);
 
-    return op;
+    for (i = 0; i < ranges ; i++) {
+      histogram.addRangeCount(rangeCounts[i]);
+    }
+    return histogram.build();
   }
 }

@@ -1,0 +1,10 @@
+syntax = "proto3";
+package otinanai;
+option java_package = "gr.phaistosnetworks.admin.otinanai";
+
+message Histogram {
+  int32 timestamp = 1;
+  float min_value = 2;
+  float range_step = 3;
+  repeated uint32 range_count = 4 [packed = true];
+}
