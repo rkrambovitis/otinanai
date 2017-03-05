@@ -153,6 +153,15 @@ class RedisTracker implements KeyWordTracker {
       return;
     }
 
+    try ( BinaryJedis jedis = jediTemple.getResource() ) {
+      if (recordType == OtiNanai.HISTOGRAM) {
+        OtiNanaiProtos.Histogram histogram = OtiNanaiHistogram.get(currentMin, currentMax, histValues, ts);
+        histValues = new ArrayList<Float>();
+        jedis.lpush(step1Key.getBytes(), histogram.toByteArray());
+        return;
+      }
+    }
+
     float perSec = 0f;
     float timeDiff = (float)(ts - lastTimeStamp);
     lastTimeStamp = ts;
@@ -183,27 +192,13 @@ class RedisTracker implements KeyWordTracker {
         perSec = ((float)currentCount*1000f)/timeDiff;
         logger.finest("[RedisTracker]: perSec = " +perSec);
         currentCount = 0;
-      } else if (recordType == OtiNanai.HISTOGRAM) {
-        //logger.info(OtiNanaiHistogram.get(currentMin, currentMax, histValues, ts));
-        OtiNanaiProtos.Histogram histogram = OtiNanaiHistogram.get(currentMin, currentMax, histValues, ts);
-        System.out.println("Ts: " + histogram.getTimestamp() + " Min: " + histogram.getMinValue() + " rangeStep: " + histogram.getRangeStep());
-        for (int i : histogram.getRangeCountList()) {
-          System.out.println("count: " + i);
-        }
-
-        for (byte b : histogram.toByteArray()) {
-          System.out.format("%d ", b);
-        }
-        System.out.println();
-        histValues = new ArrayList<Float>();
-        return;
       }
+
 
       logger.fine("[RedisTracker]: "+keyWord+" timeDiff: " +timeDiff+ " perSec: "+perSec);
       String toPush = new String(ts+" "+String.format("%.3f", perSec));
       logger.finest("[RedisTracker]: lpush "+step1Key+" "+toPush);
       jedis.lpush(step1Key, toPush);
-
 
 
       /*
