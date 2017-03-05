@@ -261,11 +261,15 @@ class OtiNanaiWeb implements Runnable {
     ArrayList<Float> allData = new ArrayList<Float>();
     float multip = onl.getMultiplier(kwt.getKeyWord());
     for (byte [] dato : data) {
-      //logger.finest("[Web]: Dato is : "+dato);
-      //dato = dato.replaceAll(",", ".");
-      
       if (kwt.getType() == OtiNanai.HISTOGRAM) {
-        // Handle Hisogram
+        try {
+          OtiNanaiProtos.Histogram histogram = OtiNanaiProtos.Histogram.parseFrom(dato);
+          timeStamp = histogram.getTimestamp();
+          val = histogram.getMinValue();
+        } catch (com.google.protobuf.InvalidProtocolBufferException ipbe) {
+          logger.severe("[Web]: Invalid Histogram data - " + ipbe.getCause());
+          continue;
+        }
       } else {
         String datoString = new String(dato);
         String[] twowords = datoString.split("\\s");
