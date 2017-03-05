@@ -160,6 +160,8 @@ class RedisTracker implements KeyWordTracker {
         jedis.lpush(step1Key.getBytes(), histogram.toByteArray());
         return;
       }
+    } catch (Exception e) {
+      logger.severe("[RedisTracker]: "+e.getCause());
     }
 
     float perSec = 0f;
@@ -331,17 +333,16 @@ class RedisTracker implements KeyWordTracker {
       return alarm;
     }
 
-    public ArrayList<String> getMemory(Long startTime, Long offset) {
-      ArrayList<String> returner = new ArrayList<String>();
-      try ( Jedis jedis = jediTemple.getResource() ) {
+    public ArrayList<byte []> getMemory(Long startTime, Long offset) {
+      ArrayList<byte []> returner = new ArrayList<byte []>();
+      try ( BinaryJedis jedis = jediTemple.getResource() ) {
         long startTimeAgo = (System.currentTimeMillis() - startTime + offset);
-        //System.out.println("kw: "+keyWord +"startTime: "+startTime+" offset: "+offset+" startTimeAgo:" +startTimeAgo+" step1: "+OtiNanai.STEP1_MILLISECONDS+" step2: "+OtiNanai.STEP2_MILLISECONDS);
-        if (startTimeAgo <= OtiNanai.STEP1_MILLISECONDS || jedis.llen(step2Key) < 2 ) {
-          returner.addAll(jedis.lrange(step1Key,0,-1));
-        } else if (startTimeAgo <= OtiNanai.STEP2_MILLISECONDS || jedis.llen(step3Key) < 2 ) {
-          returner.addAll(jedis.lrange(step2Key,0,-1));
+        if (startTimeAgo <= OtiNanai.STEP1_MILLISECONDS || jedis.llen(step2Key.getBytes()) < 2 ) {
+          returner.addAll(jedis.lrange(step1Key.getBytes(),0,-1));
+        } else if (startTimeAgo <= OtiNanai.STEP2_MILLISECONDS || jedis.llen(step3Key.getBytes()) < 2 ) {
+          returner.addAll(jedis.lrange(step2Key.getBytes(),0,-1));
         } else {
-          returner.addAll(jedis.lrange(step3Key,0, -1));
+          returner.addAll(jedis.lrange(step3Key.getBytes(),0, -1));
         }
       } catch (Exception e) {
         logger.severe("[RedisTracker]: "+e.getCause());

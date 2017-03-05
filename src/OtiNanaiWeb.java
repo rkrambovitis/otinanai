@@ -235,7 +235,7 @@ class OtiNanaiWeb implements Runnable {
     logger.fine("[Web]: Generating graph from KeyWordTracker: "+kwt.getKeyWord() +" type: "+type);
     String output = new String("");
     SomeRecord sr;
-    ArrayList<String> data = new ArrayList<String>();
+    ArrayList<byte []> data = new ArrayList<byte []>();
 
     long timePrev = System.currentTimeMillis();
     if (isOffset) {
@@ -260,15 +260,21 @@ class OtiNanaiWeb implements Runnable {
     float last = 0f;
     ArrayList<Float> allData = new ArrayList<Float>();
     float multip = onl.getMultiplier(kwt.getKeyWord());
-    for (String dato : data) {
-      logger.finest("[Web]: Dato is : "+dato);
-      dato = dato.replaceAll(",", ".");
-      String[] twowords = dato.split("\\s");
-      val=Float.parseFloat(twowords[1]);
-      if (multip != 1f)
-        val = val * multip;
+    for (byte [] dato : data) {
+      //logger.finest("[Web]: Dato is : "+dato);
+      //dato = dato.replaceAll(",", ".");
+      
+      if (kwt.getType() == OtiNanai.HISTOGRAM) {
+        // Handle Hisogram
+      } else {
+        String datoString = new String(dato);
+        String[] twowords = datoString.split("\\s");
+        val=Float.parseFloat(twowords[1].replaceAll(",", "."));
+        if (multip != 1F)
+          val = val * multip;
 
-      timeStamp = Long.parseLong(twowords[0]);
+        timeStamp = Long.parseLong(twowords[0]);
+      }
 
       if (timeStamp < startTime) 
         break;
