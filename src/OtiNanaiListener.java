@@ -10,7 +10,7 @@ import redis.clients.jedis.*;
 
 class OtiNanaiListener implements Runnable {
 
-  public OtiNanaiListener(DatagramSocket ds, int as, float atl, float ath, int acs, Logger l, String bucketName, String rh, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList, String redisMultipList) {
+  public OtiNanaiListener(DatagramSocket ds, int as, float atl, float ath, int acs, Logger l, String bucketName, String rh, int rp, String redisKeyWordList, String redisSavedQueries, String redisEventList, String redisUnitList, String redisMultipList) {
     logger = l;
     alarmSamples = as;
     lowAlarmThreshold = atl;
@@ -30,7 +30,8 @@ class OtiNanaiListener implements Runnable {
     threadPool = Executors.newCachedThreadPool();
 
     redisHost = rh;
-    jediTemple = new JedisPool(new JedisPoolConfig(), redisHost);
+    redisPort = rp;
+    jediTemple = new JedisPool(new JedisPoolConfig(), redisHost, redisPort);
 
     try ( Jedis jedis = jediTemple.getResource() ) {
       kwtList = new LLString();
@@ -471,6 +472,7 @@ class OtiNanaiListener implements Runnable {
   private LLString storeList;
   private LLString kwtList;
   private String redisHost;
+  private int redisPort;
   private JedisPool jediTemple;
   private TreeMap<Long, String> eventMap;
   private HashMap<String, String> unitMap;
