@@ -258,6 +258,7 @@ class OtiNanaiListener implements Runnable {
     }
     tempKW = null;
     deleteLock=false;
+    tickCount++;
   }
 
   public long getAlarm(String kw) {
@@ -451,6 +452,14 @@ class OtiNanaiListener implements Runnable {
     return false;
   }
 
+  public int getKeyWordCount() {
+    return kwtList.size();
+  }
+
+  public long getTickCount() {
+    return tickCount;
+  }
+
   private ExecutorService threadPool;
   private ConcurrentHashMap<String,KeyWordTracker> trackerMap;
   private int port;
@@ -480,4 +489,5 @@ class OtiNanaiListener implements Runnable {
   private HashMap<String, LLString> dashMap;
   private LLString dashList;
   private boolean deleteLock;
+  private static long tickCount = 0L;
 }
