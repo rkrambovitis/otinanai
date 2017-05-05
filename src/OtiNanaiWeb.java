@@ -934,7 +934,7 @@ class OtiNanaiWeb implements Runnable {
       return new String("<html><head>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"otinanai.css\" />\n"
           + "<script language=\"javascript\" type=\"text/javascript\" src=\"jquery.min.js\"></script>\n"
           + "<script language=\"javascript\" type=\"text/javascript\" src=\"otinanai.js\"></script>\n"
-          + "<link rel=\"stylesheet\" href=\"//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css\"/>\n"
+          + "<link rel=\"stylesheet\" href=\"//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css\"/>\n"
           + "<meta name=\"viewport\" content=\"width=device-width\" initial-scale=\"1.0\">\n"
           + "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n");
     } else if (out == OtiNanai.DARKTHEME) {
